@@ -1,8 +1,17 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { WSMessage } from "@shared/types";
+import { Action, ClientMessage, ServerMessage } from "@shared/types";
 import { Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+const deserializeMessage = (message: string): ServerMessage => {
+  const parsedMessage = JSON.parse(message);
+  return parsedMessage;
+};
+
+const serializeMessage = (message: ClientMessage): string => {
+  return JSON.stringify(message);
+};
 
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -19,10 +28,10 @@ export const Syncer = () => {
 
     newSocket.onmessage = (event) => {
       console.log("Message from server ", event.data);
-      const message = event.data as WSMessage;
-      if (message === WSMessage.Play) {
+      const message = deserializeMessage(event.data);
+      if (message.type === Action.Play) {
         audioRef.current!.play();
-      } else if (message === WSMessage.Pause) {
+      } else if (message.type === Action.Pause) {
         audioRef.current!.pause();
       }
     };
@@ -43,12 +52,14 @@ export const Syncer = () => {
   }, []);
 
   const handlePlay = () => {
-    socket?.send("play");
+    if (socket) {
+      socket?.send(serializeMessage({ type: Action.Play }));
+    }
   };
 
   const handlePause = () => {
     if (socket) {
-      socket?.send("pause");
+      socket?.send(serializeMessage({ type: Action.Pause }));
     }
   };
 
