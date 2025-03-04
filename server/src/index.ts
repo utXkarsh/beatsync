@@ -16,10 +16,16 @@ app.get(
     return {
       onMessage(event, ws) {
         console.log(`Message from client: ${event.data}`);
-        ws.send("Hello from server!");
+        ws.send(event.data.toString()); // send the same message back to the client
       },
       onClose: () => {
         console.log("Connection closed");
+      },
+      onOpen: () => {
+        console.log(`Connection opened from`);
+      },
+      onError: (error) => {
+        console.error("Error", error);
       },
     };
   })
