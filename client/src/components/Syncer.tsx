@@ -76,7 +76,7 @@ export const Syncer = () => {
   // Initialize Audio Context and load audio
   useEffect(() => {
     // Create Audio Context
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const AudioContext = window.AudioContext;
     const context = new AudioContext();
     audioContextRef.current = context;
 
@@ -213,11 +213,7 @@ export const Syncer = () => {
         if (message.type === Action.Play) {
           // Stop current source if any
           if (audioSourceRef.current) {
-            try {
-              audioSourceRef.current.stop();
-            } catch (e) {
-              // Ignore if already stopped
-            }
+            audioSourceRef.current.stop();
           }
 
           // Create new audio source node
