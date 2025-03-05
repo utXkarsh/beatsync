@@ -1,4 +1,9 @@
-import { Action, ClientMessage, ServerMessage } from "@shared/types";
+import {
+  Action,
+  ClientMessage,
+  NTPRequestMessage,
+  ServerMessage,
+} from "@shared/types";
 const GLOBAL_TOPIC = "global";
 
 const corsHeaders = {
@@ -73,8 +78,24 @@ const server = Bun.serve({
     },
 
     message(ws, message) {
+      const t1 = Date.now();
       const parsedMessage = deserializeMessage(message.toString());
-      console.log(`Message from client: ${parsedMessage}`);
+
+      if (parsedMessage.type === Action.NTPRequest) {
+        console.log("NTP request received");
+        const ntpRequest = parsedMessage as NTPRequestMessage;
+        const ntpResponse = {
+          type: Action.NTPResponse,
+          t0: ntpRequest.t0, // Echo back the client's t0
+          t1, // Server receive time
+          t2: Date.now(), // Server send time
+        };
+
+        ws.send(JSON.stringify(ntpResponse));
+        return;
+      }
+
+      console.log(`Message from client: ${JSON.stringify(parsedMessage)}`);
       // Broadcast the message to all subscribers of the global topic
       console.log(`Broadcasting message to all clients`);
       server.publish(GLOBAL_TOPIC, JSON.stringify(parsedMessage));
@@ -87,4 +108,4 @@ const server = Bun.serve({
   },
 });
 
-console.log(`Listening on http://${server.hostname}:${server.port}`);
+console.log(`HTTP listening on http://${server.hostname}:${server.port}`);
