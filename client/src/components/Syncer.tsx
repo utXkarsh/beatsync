@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Action, ClientMessage, ServerMessage } from "@shared/types";
 import { Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import LocalIPFinder from "./IPFinder";
 
 const deserializeMessage = (message: string): ServerMessage => {
   const parsedMessage = JSON.parse(message);
@@ -65,6 +66,7 @@ export const Syncer = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
+      <LocalIPFinder />
       <div className="mb-4">
         Status: {isConnected ? "Connected" : "Disconnected"}
       </div>
