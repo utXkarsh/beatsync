@@ -12,19 +12,15 @@ import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LocalIPFinder from "./IPFinder";
 
-// Add a helper function to format time with microsecond precision
+// Add a helper function to format time with millisecond precision
 const formatTimeMicro = (timeMs: number): string => {
-  const totalMicroseconds = Math.floor(timeMs * 1000);
-  const microseconds = totalMicroseconds % 1000;
   const milliseconds = Math.floor(timeMs) % 1000;
   const seconds = Math.floor(timeMs / 1000) % 60;
   const minutes = Math.floor(timeMs / 60000);
 
   return `${minutes.toString().padStart(2, "0")}:${seconds
     .toString()
-    .padStart(2, "0")}.${milliseconds
-    .toString()
-    .padStart(3, "0")}.${microseconds.toString().padStart(3, "0")}`;
+    .padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
 };
 
 const deserializeMessage = (message: string): ServerMessage => {
@@ -62,7 +58,7 @@ const calculateWaitTime = (
 interface TimingDisplayProps {
   currentTime: number; // in milliseconds
   isPlaying: boolean;
-  totalNudge: number; // in microseconds
+  totalNudge: number; // in milliseconds
   clockOffset: number | null; // in milliseconds
 }
 
@@ -81,8 +77,8 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
   // Get color based on 5-second cycle
   const getTimeCycleColor = (timeMs: number) => {
-    // Apply nudge adjustment to the time (convert microseconds to milliseconds)
-    const adjustedTime = timeMs + totalNudge / 1000;
+    // Apply nudge adjustment to the time
+    const adjustedTime = timeMs + totalNudge;
 
     // Cycle through colors every 5 seconds (5000ms)
     const cyclePosition = Math.floor((adjustedTime % 15000) / 5000);
@@ -102,8 +98,8 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
   // Get text color based on 5-second cycle
   const getTimeCycleTextColor = (timeMs: number) => {
-    // Apply nudge adjustment to the time (convert microseconds to milliseconds)
-    const adjustedTime = timeMs + totalNudge / 1000;
+    // Apply nudge adjustment to the time
+    const adjustedTime = timeMs + totalNudge;
 
     const cyclePosition = Math.floor((adjustedTime % 15000) / 5000);
 
@@ -119,11 +115,8 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
     }
   };
 
-  // Convert nudge from microseconds to milliseconds for display
-  const nudgeMs = totalNudge / 1000;
-
   // Calculate which 5-second block we're in (with nudge adjustment)
-  const adjustedTime = currentTime + nudgeMs;
+  const adjustedTime = currentTime + totalNudge;
   const currentCycleSeconds = Math.floor((adjustedTime % 15000) / 1000);
   const currentColorName = [
     "Red",
@@ -189,10 +182,6 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
             }
           >
             {formatTimeMicro(adjustedTime)}
-            <span className="text-xs ml-1">
-              ({nudgeMs > 0 ? "+" : ""}
-              {nudgeMs.toFixed(3)}ms)
-            </span>
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -208,21 +197,21 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
         <div className="flex justify-between mb-1">
           <span>Timing Adjustment:</span>
           <span className="font-mono">
-            {nudgeMs > 0 ? "+" : ""}
-            {nudgeMs.toFixed(3)} ms
+            {totalNudge > 0 ? "+" : ""}
+            {totalNudge} ms
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 flex items-center">
           <div className="w-1/2 h-full bg-gray-300 rounded-l-full"></div>
           <div
             className={`h-4 w-1 ${
-              Math.abs(nudgeMs) < 0.1
+              Math.abs(totalNudge) < 0.1
                 ? "bg-green-600"
-                : nudgeMs > 0
+                : totalNudge > 0
                 ? "bg-red-500"
                 : "bg-blue-500"
             }`}
-            style={{ marginLeft: `${50 + nudgeMs * 10}%` }} // Scale for visibility
+            style={{ marginLeft: `${50 + totalNudge * 10}%` }} // Scale for visibility
           ></div>
           <div className="w-1/2 h-full bg-gray-300 rounded-r-full"></div>
         </div>
@@ -277,8 +266,8 @@ export const Syncer = () => {
   const [loadingState, setLoadingState] = useState<
     "loading" | "ready" | "error"
   >("loading");
-  // Add state for tracking nudge amount in microseconds
-  const [nudgeAmount, setNudgeAmount] = useState<number>(100); // Default 100 microseconds
+  // Add state for tracking nudge amount in milliseconds
+  const [nudgeAmount, setNudgeAmount] = useState<number>(20); // Default 20 milliseconds
   const [totalNudge, setTotalNudge] = useState<number>(0); // Track total accumulated nudge
   // Add state for mute functionality
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -633,8 +622,8 @@ export const Syncer = () => {
       source.buffer = audioBufferRef.current;
       source.connect(gainNodeRef.current || audioContext.destination);
 
-      // Skip ahead by nudgeAmount microseconds (convert to seconds)
-      const skipAmount = nudgeAmount / 1000000;
+      // Skip ahead by nudgeAmount milliseconds (convert to seconds)
+      const skipAmount = nudgeAmount / 1000;
       const newPosition = currentPosition + skipAmount;
 
       // Start at the new position immediately
@@ -648,9 +637,9 @@ export const Syncer = () => {
       setTotalNudge((prev) => prev + nudgeAmount);
 
       console.log(
-        `Nudged forward by ${nudgeAmount} μs, total nudge: ${
+        `Nudged forward by ${nudgeAmount} ms, total nudge: ${
           totalNudge + nudgeAmount
-        } μs`
+        } ms`
       );
     } catch (e) {
       console.error("Error nudging forward:", e);
@@ -682,8 +671,8 @@ export const Syncer = () => {
       source.buffer = audioBufferRef.current;
       source.connect(gainNodeRef.current || audioContext.destination);
 
-      // Go back by nudgeAmount microseconds (convert to seconds)
-      const backAmount = nudgeAmount / 1000000;
+      // Go back by nudgeAmount milliseconds (convert to seconds)
+      const backAmount = nudgeAmount / 1000;
       const newPosition = Math.max(0, currentPosition - backAmount);
 
       // Start at the new position immediately
@@ -697,9 +686,9 @@ export const Syncer = () => {
       setTotalNudge((prev) => prev - nudgeAmount);
 
       console.log(
-        `Nudged backward by ${nudgeAmount} μs, total nudge: ${
+        `Nudged backward by ${nudgeAmount} ms, total nudge: ${
           totalNudge - nudgeAmount
-        } μs`
+        } ms`
       );
     } catch (e) {
       console.error("Error nudging backward:", e);
@@ -709,7 +698,7 @@ export const Syncer = () => {
   // Function to adjust the nudge amount
   const handleNudgeAmountChange = useCallback((newAmount: number) => {
     setNudgeAmount(newAmount);
-    console.log(`Nudge amount set to ${newAmount} μs`);
+    console.log(`Nudge amount set to ${newAmount} ms`);
   }, []);
 
   const sendNTPRequest = useCallback(() => {
@@ -829,7 +818,7 @@ export const Syncer = () => {
       <div className="mt-4 p-4 border rounded max-w-md w-full">
         <h3 className="font-bold mb-2">Microscopic Timing Controls</h3>
         <div className="flex items-center justify-between mb-2">
-          <span>Nudge Amount: {nudgeAmount} μs</span>
+          <span>Nudge Amount: {nudgeAmount} ms</span>
           <div className="flex gap-2">
             <Button
               onClick={() =>
@@ -852,12 +841,12 @@ export const Syncer = () => {
               value={nudgeAmount}
               onChange={(e) => handleNudgeAmountChange(Number(e.target.value))}
             >
-              <option value="10">10 μs</option>
-              <option value="50">50 μs</option>
-              <option value="100">100 μs</option>
-              <option value="250">250 μs</option>
-              <option value="500">500 μs</option>
-              <option value="1000">1000 μs (1ms)</option>
+              <option value="10">10 ms</option>
+              <option value="50">50 ms</option>
+              <option value="100">100 ms</option>
+              <option value="250">250 ms</option>
+              <option value="500">500 ms</option>
+              <option value="1000">1000 ms (1s)</option>
             </select>
           </div>
         </div>
@@ -881,7 +870,7 @@ export const Syncer = () => {
         </div>
         <div className="mt-2 text-center">
           Total adjustment: {totalNudge > 0 ? "+" : ""}
-          {totalNudge} μs ({(totalNudge / 1000).toFixed(3)} ms)
+          {totalNudge} ms ({(totalNudge / 1000).toFixed(3)} s)
         </div>
       </div>
 
