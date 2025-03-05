@@ -11,6 +11,13 @@ import {
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LocalIPFinder from "./IPFinder";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 // Add a helper function to format time with millisecond precision
 const formatTimeMicro = (timeMs: number): string => {
@@ -267,7 +274,7 @@ export const Syncer = () => {
     "loading" | "ready" | "error"
   >("loading");
   // Add state for tracking nudge amount in milliseconds
-  const [nudgeAmount, setNudgeAmount] = useState<number>(20); // Default 20 milliseconds
+  const [nudgeAmount, setNudgeAmount] = useState<number>(10); // Default 10 milliseconds
   const [totalNudge, setTotalNudge] = useState<number>(0); // Track total accumulated nudge
   // Add state for mute functionality
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -696,9 +703,25 @@ export const Syncer = () => {
   }, [nudgeAmount, totalNudge]);
 
   // Function to adjust the nudge amount
-  const handleNudgeAmountChange = useCallback((newAmount: number) => {
-    setNudgeAmount(newAmount);
-    console.log(`Nudge amount set to ${newAmount} ms`);
+  const handleNudgeAmountChange = useCallback((newAmount: string) => {
+    const validValues = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
+    const numericAmount = Number(newAmount);
+
+    // If the value is not in our predefined list, find the closest available option
+    if (!validValues.includes(numericAmount)) {
+      const closest = validValues.reduce((prev, curr) => {
+        return Math.abs(curr - numericAmount) < Math.abs(prev - numericAmount)
+          ? curr
+          : prev;
+      });
+      console.log(
+        `Nudge amount ${numericAmount} not in valid options, using closest value: ${closest}`
+      );
+      setNudgeAmount(closest);
+    } else {
+      setNudgeAmount(numericAmount);
+      console.log(`Nudge amount set to ${numericAmount} ms`);
+    }
   }, []);
 
   const sendNTPRequest = useCallback(() => {
@@ -822,7 +845,7 @@ export const Syncer = () => {
           <div className="flex gap-2">
             <Button
               onClick={() =>
-                handleNudgeAmountChange(Math.max(10, nudgeAmount / 2))
+                handleNudgeAmountChange(String(Math.max(10, nudgeAmount / 2)))
               }
               variant="outline"
               size="sm"
@@ -830,26 +853,32 @@ export const Syncer = () => {
               ÷2
             </Button>
             <Button
-              onClick={() => handleNudgeAmountChange(nudgeAmount * 2)}
+              onClick={() => handleNudgeAmountChange(String(nudgeAmount * 2))}
               variant="outline"
               size="sm"
             >
               ×2
             </Button>
-            <select
-              value={nudgeAmount}
-              className="text-black"
-              onChange={(e) => handleNudgeAmountChange(Number(e.target.value))}
+            <Select
+              value={String(nudgeAmount)}
+              onValueChange={handleNudgeAmountChange}
+              defaultValue="10"
             >
-              <option value="1">1 ms</option>
-              <option value="5">5 ms</option>
-              <option value="10">10 ms</option>
-              <option value="50">50 ms</option>
-              <option value="100">100 ms</option>
-              <option value="250">250 ms</option>
-              <option value="500">500 ms</option>
-              <option value="1000">1000 ms (1s)</option>
-            </select>
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Nudge amount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 ms</SelectItem>
+                <SelectItem value="5">5 ms</SelectItem>
+                <SelectItem value="10">10 ms</SelectItem>
+                <SelectItem value="20">20 ms</SelectItem>
+                <SelectItem value="50">50 ms</SelectItem>
+                <SelectItem value="100">100 ms</SelectItem>
+                <SelectItem value="250">250 ms</SelectItem>
+                <SelectItem value="500">500 ms</SelectItem>
+                <SelectItem value="1000">1000 ms (1s)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="flex gap-2 justify-center">
