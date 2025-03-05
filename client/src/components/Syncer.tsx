@@ -29,12 +29,30 @@ interface NTPMeasurement {
   clockOffset: number;
 }
 
+// Helper function to calculate wait time for synchronized actions
+const calculateWaitTime = (
+  targetServerTime: number,
+  clockOffset: number | null
+): number => {
+  // Calculate the current server time based on our local time and clock offset
+  const estimatedCurrentServerTime = Date.now() + (clockOffset || 0);
+
+  // Calculate how long to wait before executing the action
+  // If waitTime is negative, we're already past the target time, so execute immediately
+  return Math.max(0, targetServerTime - estimatedCurrentServerTime);
+};
+
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [ntpMeasurements, setNtpMeasurements] = useState<NTPMeasurement[]>([]);
   const [averageRoundTrip, setAverageRoundTrip] = useState<number | null>(null);
+  const [scheduledAction, setScheduledAction] = useState<{
+    type: Action;
+    time: number;
+  } | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   // This is the amount of time that the client is offset from the server
   const [averageOffset, setAverageOffset] = useState<number | null>(null);
@@ -102,10 +120,76 @@ export const Syncer = () => {
         if (measurementCountRef.current >= 20) {
           setIsMeasuring(false);
         }
-      } else if (message.type === Action.Play) {
-        audioRef.current!.play();
-      } else if (message.type === Action.Pause) {
-        audioRef.current!.pause();
+      } else if (
+        message.type === Action.Play ||
+        message.type === Action.Pause
+      ) {
+        // Get the server's intended execution time
+        const targetServerTime = message.timestamp;
+
+        // Calculate wait time using our helper function
+        const waitTime = calculateWaitTime(targetServerTime, averageOffset);
+
+        console.log(`Scheduling ${message.type} to happen in ${waitTime}ms`);
+        console.log(`Target server time: ${targetServerTime}`);
+        console.log(`Clock offset: ${averageOffset || 0}ms`);
+
+        // Update UI to show scheduled action
+        setScheduledAction({
+          type: message.type,
+          time: Date.now() + waitTime,
+        });
+
+        // Use more precise timing with requestAnimationFrame for better synchronization
+        const startTime = performance.now();
+        const targetTime = startTime + waitTime;
+
+        const scheduleFrame = (currentTime: number) => {
+          if (currentTime >= targetTime) {
+            if (message.type === Action.Play) {
+              console.log("Executing scheduled play");
+
+              // If we're joining late and the audio should already be playing,
+              // we need to seek to the correct position
+              if (message.serverTime < targetServerTime) {
+                const elapsedTime =
+                  (Date.now() + (averageOffset || 0) - targetServerTime) / 1000;
+                if (elapsedTime > 0) {
+                  console.log(
+                    `Seeking to ${elapsedTime}s to catch up with other clients`
+                  );
+                  audioRef.current!.currentTime = elapsedTime;
+                }
+              }
+
+              // Use the Web Audio API for more precise playback timing
+              if (audioRef.current) {
+                // Ensure audio is loaded and ready
+                if (audioRef.current.readyState >= 2) {
+                  audioRef.current.play();
+                } else {
+                  // If not loaded, set up a listener
+                  audioRef.current.addEventListener(
+                    "canplay",
+                    () => {
+                      audioRef.current!.play();
+                    },
+                    { once: true }
+                  );
+                }
+              }
+            } else if (message.type === Action.Pause) {
+              console.log("Executing scheduled pause");
+              audioRef.current!.pause();
+            }
+            // Clear scheduled action after execution
+            setScheduledAction(null);
+          } else {
+            requestAnimationFrame(scheduleFrame);
+          }
+        };
+
+        requestAnimationFrame(scheduleFrame);
       }
     };
 
@@ -183,6 +267,30 @@ export const Syncer = () => {
     sendNTPRequest();
   }, [sendNTPRequest]);
 
+  // Update countdown timer for scheduled action
+  useEffect(() => {
+    if (!scheduledAction) {
+      setCountdown(null);
+      return;
+    }
+
+    // Initial countdown
+    setCountdown(Math.max(0, scheduledAction.time - Date.now()));
+
+    // Update countdown every 10ms
+    const intervalId = setInterval(() => {
+      const remaining = Math.max(0, scheduledAction.time - Date.now());
+      setCountdown(remaining);
+
+      // Clear interval if countdown reaches 0
+      if (remaining === 0) {
+        clearInterval(intervalId);
+      }
+    }, 10);
+
+    return () => clearInterval(intervalId);
+  }, [scheduledAction]);
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <LocalIPFinder />
@@ -206,6 +314,21 @@ export const Syncer = () => {
       >
         {isMeasuring ? "Measuring..." : "Run NTP Measurements (20x)"}
       </Button>
+
+      {scheduledAction && (
+        <div className="mt-4 p-4 border rounded max-w-md w-full bg-yellow-50">
+          <h3 className="font-bold">Scheduled Action</h3>
+          <p>Action: {scheduledAction.type}</p>
+          <p>
+            Scheduled at: {new Date(scheduledAction.time).toLocaleTimeString()}
+          </p>
+          {countdown !== null && (
+            <p className="font-bold text-lg">
+              Executing in: {(countdown / 1000).toFixed(2)}s
+            </p>
+          )}
+        </div>
+      )}
 
       {ntpMeasurements.length > 0 && (
         <div className="mt-4 p-4 border rounded max-w-md w-full">

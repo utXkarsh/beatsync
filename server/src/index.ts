@@ -6,6 +6,8 @@ import {
 } from "@shared/types";
 const GLOBAL_TOPIC = "global";
 
+// Track the current playback state
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "*",
@@ -95,10 +97,16 @@ const server = Bun.serve({
         return;
       }
 
-      console.log(`Message from client: ${JSON.stringify(parsedMessage)}`);
-      // Broadcast the message to all subscribers of the global topic
+      const clientMessage = parsedMessage as ClientMessage;
+      const response = {
+        type: clientMessage.type,
+        timestamp: Date.now() + 500, // Schedule the action 500ms in the future
+        serverTime: Date.now(),
+      };
+
+      console.log(`Message from client: ${JSON.stringify(clientMessage)}`);
       console.log(`Broadcasting message to all clients`);
-      server.publish(GLOBAL_TOPIC, JSON.stringify(parsedMessage));
+      server.publish(GLOBAL_TOPIC, JSON.stringify(response));
     },
 
     close(ws) {

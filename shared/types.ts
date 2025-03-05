@@ -17,8 +17,8 @@ export interface NTPRequestMessage extends ClientMessage {
 
 export interface BaseServerMessage {
   type: Action;
-  timestamp: number; // Server timestamp in milliseconds
-  serverTime: number; // Optional server time for synchronization
+  timestamp: number; // Timestamp to take action at
+  serverTime: number; // Server time
 }
 
 export interface NTPResponseMessage {
