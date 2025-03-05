@@ -73,6 +73,10 @@ export const Syncer = () => {
     averageOffsetRef.current = averageOffset;
   }, [averageOffset]);
 
+  // Add state for tracking nudge amount in microseconds
+  const [nudgeAmount, setNudgeAmount] = useState<number>(100); // Default 100 microseconds
+  const [totalNudge, setTotalNudge] = useState<number>(0); // Track total accumulated nudge
+
   // Initialize Audio Context and load audio
   useEffect(() => {
     // Create Audio Context
@@ -351,6 +355,110 @@ export const Syncer = () => {
     }
   }, []);
 
+  // Function to nudge audio forward (speed up) by pausing and restarting with a tiny offset
+  const handleNudgeForward = useCallback(() => {
+    const audioContext = audioContextRef.current;
+    if (
+      !audioContext ||
+      !audioBufferRef.current ||
+      !audioSourceRef.current ||
+      startedAtRef.current === null
+    ) {
+      console.log("Cannot nudge: audio not playing");
+      return;
+    }
+
+    try {
+      // Calculate current position
+      const currentPosition = audioContext.currentTime - startedAtRef.current;
+
+      // Stop current playback
+      audioSourceRef.current.stop();
+
+      // Create new source and start slightly ahead (nudge forward)
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBufferRef.current;
+      source.connect(audioContext.destination);
+
+      // Skip ahead by nudgeAmount microseconds (convert to seconds)
+      const skipAmount = nudgeAmount / 1000000;
+      const newPosition = currentPosition + skipAmount;
+
+      // Start at the new position immediately
+      source.start(0, newPosition);
+
+      // Update refs
+      audioSourceRef.current = source;
+      startedAtRef.current = audioContext.currentTime - newPosition;
+
+      // Update total nudge
+      setTotalNudge((prev) => prev + nudgeAmount);
+
+      console.log(
+        `Nudged forward by ${nudgeAmount} μs, total nudge: ${
+          totalNudge + nudgeAmount
+        } μs`
+      );
+    } catch (e) {
+      console.error("Error nudging forward:", e);
+    }
+  }, [nudgeAmount, totalNudge]);
+
+  // Function to nudge audio backward (slow down) by pausing and restarting with a tiny offset
+  const handleNudgeBackward = useCallback(() => {
+    const audioContext = audioContextRef.current;
+    if (
+      !audioContext ||
+      !audioBufferRef.current ||
+      !audioSourceRef.current ||
+      startedAtRef.current === null
+    ) {
+      console.log("Cannot nudge: audio not playing");
+      return;
+    }
+
+    try {
+      // Calculate current position
+      const currentPosition = audioContext.currentTime - startedAtRef.current;
+
+      // Stop current playback
+      audioSourceRef.current.stop();
+
+      // Create new source and start slightly behind (nudge backward)
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBufferRef.current;
+      source.connect(audioContext.destination);
+
+      // Go back by nudgeAmount microseconds (convert to seconds)
+      const backAmount = nudgeAmount / 1000000;
+      const newPosition = Math.max(0, currentPosition - backAmount);
+
+      // Start at the new position immediately
+      source.start(0, newPosition);
+
+      // Update refs
+      audioSourceRef.current = source;
+      startedAtRef.current = audioContext.currentTime - newPosition;
+
+      // Update total nudge
+      setTotalNudge((prev) => prev - nudgeAmount);
+
+      console.log(
+        `Nudged backward by ${nudgeAmount} μs, total nudge: ${
+          totalNudge - nudgeAmount
+        } μs`
+      );
+    } catch (e) {
+      console.error("Error nudging backward:", e);
+    }
+  }, [nudgeAmount, totalNudge]);
+
+  // Function to adjust the nudge amount
+  const handleNudgeAmountChange = useCallback((newAmount: number) => {
+    setNudgeAmount(newAmount);
+    console.log(`Nudge amount set to ${newAmount} μs`);
+  }, []);
+
   const sendNTPRequest = useCallback(() => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       const t0 = Date.now();
@@ -428,6 +536,67 @@ export const Syncer = () => {
           Pause
         </Button>
       </div>
+
+      {/* Add fine-grained nudge controls */}
+      <div className="mt-4 p-4 border rounded max-w-md w-full">
+        <h3 className="font-bold mb-2">Microscopic Timing Controls</h3>
+        <div className="flex items-center justify-between mb-2">
+          <span>Nudge Amount: {nudgeAmount} μs</span>
+          <div className="flex gap-2">
+            <Button
+              onClick={() =>
+                handleNudgeAmountChange(Math.max(10, nudgeAmount / 2))
+              }
+              variant="outline"
+              size="sm"
+            >
+              ÷2
+            </Button>
+            <Button
+              onClick={() => handleNudgeAmountChange(nudgeAmount * 2)}
+              variant="outline"
+              size="sm"
+            >
+              ×2
+            </Button>
+            <select
+              className="border rounded px-2 py-1"
+              value={nudgeAmount}
+              onChange={(e) => handleNudgeAmountChange(Number(e.target.value))}
+            >
+              <option value="10">10 μs</option>
+              <option value="50">50 μs</option>
+              <option value="100">100 μs</option>
+              <option value="250">250 μs</option>
+              <option value="500">500 μs</option>
+              <option value="1000">1000 μs (1ms)</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-center">
+          <Button
+            onClick={handleNudgeBackward}
+            variant="secondary"
+            size="default"
+            disabled={loadingState !== "ready" || startedAtRef.current === null}
+          >
+            ◀ Slow Down
+          </Button>
+          <Button
+            onClick={handleNudgeForward}
+            variant="secondary"
+            size="default"
+            disabled={loadingState !== "ready" || startedAtRef.current === null}
+          >
+            Speed Up ▶
+          </Button>
+        </div>
+        <div className="mt-2 text-center">
+          Total adjustment: {totalNudge > 0 ? "+" : ""}
+          {totalNudge} μs ({(totalNudge / 1000).toFixed(3)} ms)
+        </div>
+      </div>
+
       <Button
         onClick={handleSendNTPMessage}
         className="mt-4"
