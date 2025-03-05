@@ -67,7 +67,7 @@ export const Syncer = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <LocalIPFinder />
-      <div className="mb-4">
+      <div className="mt-4 mb-4">
         Status: {isConnected ? "Connected" : "Disconnected"}
       </div>
       <div className="flex gap-2">

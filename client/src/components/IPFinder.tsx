@@ -5,13 +5,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HelpCircle } from "lucide-react";
+import { Check, Copy, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const LocalIPFinder = () => {
   const [localIP, setLocalIP] = useState("Detecting...");
   const [status, setStatus] = useState("searching");
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const getLocalIP = async () => {
     const RTCPeerConnection = window.RTCPeerConnection;
@@ -96,7 +103,25 @@ const LocalIPFinder = () => {
             <h3 className="font-semibold text-green-800">
               Detected IP Address:
             </h3>
-            <p className="text-green-700 text-lg">{localIP}</p>
+            <div
+              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => copyToClipboard(localIP)}
+            >
+              <p className="text-green-700 text-lg group-hover:underline">
+                {localIP}
+              </p>
+              <span className="text-green-600 text-xs flex items-center">
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 mr-1" /> Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 mr-1" /> Click to copy
+                  </>
+                )}
+              </span>
+            </div>
             <p className="text-sm text-green-600 mt-2">
               Use this IP address as the master device for audio
               synchronization.
@@ -109,7 +134,25 @@ const LocalIPFinder = () => {
         <div className="mb-4">
           <div className="bg-blue-100 p-3 rounded">
             <h3 className="font-semibold text-blue-800">Manual IP Address:</h3>
-            <p className="text-blue-700 text-lg">{localIP}</p>
+            <div
+              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => copyToClipboard(localIP)}
+            >
+              <p className="text-blue-700 text-lg group-hover:underline">
+                {localIP}
+              </p>
+              <span className="text-blue-600 text-xs flex items-center">
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 mr-1" /> Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 mr-1" /> Click to copy
+                  </>
+                )}
+              </span>
+            </div>
             <p className="text-sm text-blue-600 mt-2">
               Using manually entered IP address for synchronization.
             </p>
