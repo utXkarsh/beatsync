@@ -555,11 +555,8 @@ export const Syncer = () => {
     };
   }, []);
 
-  const calculateAverages = () => {
-    if (ntpMeasurements.length === 0) return;
-
-    // Sort measurements by round trip delay and take the best 50% for offset calculation
-    // This helps filter out network jitter
+  const calculateAverages = useCallback(() => {
+    // Sort measurements by round trip delay to find the best ones
     const sortedMeasurements = [...ntpMeasurements].sort(
       (a, b) => a.roundTripDelay - b.roundTripDelay
     );
@@ -587,7 +584,7 @@ export const Syncer = () => {
       "New clock offset calculated:",
       totalOffset / bestMeasurements.length
     );
-  };
+  }, [ntpMeasurements]);
 
   // Calculate averages when measurements change
   useEffect(() => {
