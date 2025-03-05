@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Action,
   ClientMessage,
@@ -10,6 +11,21 @@ import {
 import { Pause, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LocalIPFinder from "./IPFinder";
+
+// Add a helper function to format time with microsecond precision
+const formatTimeMicro = (timeMs: number): string => {
+  const totalMicroseconds = Math.floor(timeMs * 1000);
+  const microseconds = totalMicroseconds % 1000;
+  const milliseconds = Math.floor(timeMs) % 1000;
+  const seconds = Math.floor(timeMs / 1000) % 60;
+  const minutes = Math.floor(timeMs / 60000);
+
+  return `${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}.${milliseconds
+    .toString()
+    .padStart(3, "0")}.${microseconds.toString().padStart(3, "0")}`;
+};
 
 const deserializeMessage = (message: string): ServerMessage => {
   const parsedMessage = JSON.parse(message);
@@ -42,6 +58,194 @@ const calculateWaitTime = (
   return Math.max(0, targetServerTime - estimatedCurrentServerTime);
 };
 
+// Visual timing display component
+interface TimingDisplayProps {
+  currentTime: number; // in milliseconds
+  isPlaying: boolean;
+  totalNudge: number; // in microseconds
+  clockOffset: number | null; // in milliseconds
+}
+
+const TimingDisplay: React.FC<TimingDisplayProps> = ({
+  currentTime,
+  isPlaying,
+  totalNudge,
+  clockOffset,
+}) => {
+  // Calculate colors based on offset values
+  const getOffsetColor = (offset: number) => {
+    if (Math.abs(offset) < 1) return "bg-green-500"; // Very close - green
+    if (offset > 0) return "bg-red-500"; // Ahead - red
+    return "bg-blue-500"; // Behind - blue
+  };
+
+  // Get color based on 5-second cycle
+  const getTimeCycleColor = (timeMs: number) => {
+    // Cycle through colors every 5 seconds (5000ms)
+    const cyclePosition = Math.floor((timeMs % 15000) / 5000);
+
+    // Use very distinct colors for easy visual comparison
+    switch (cyclePosition) {
+      case 0:
+        return "bg-red-500"; // 0-5 seconds: Red
+      case 1:
+        return "bg-green-500"; // 5-10 seconds: Green
+      case 2:
+        return "bg-blue-500"; // 10-15 seconds: Blue
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  // Get text color based on 5-second cycle
+  const getTimeCycleTextColor = (timeMs: number) => {
+    const cyclePosition = Math.floor((timeMs % 15000) / 5000);
+
+    switch (cyclePosition) {
+      case 0:
+        return "text-red-500"; // 0-5 seconds: Red
+      case 1:
+        return "text-green-500"; // 5-10 seconds: Green
+      case 2:
+        return "text-blue-500"; // 10-15 seconds: Blue
+      default:
+        return "text-gray-500";
+    }
+  };
+
+  // Convert nudge from microseconds to milliseconds for display
+  const nudgeMs = totalNudge / 1000;
+
+  // Calculate which 5-second block we're in
+  const currentCycleSeconds = Math.floor((currentTime % 15000) / 1000);
+  const currentColorName = [
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+  ][currentCycleSeconds];
+
+  return (
+    <div className="w-full max-w-md p-4 border rounded bg-gray-50">
+      <h3 className="font-bold mb-2">Precise Timing Display</h3>
+
+      {/* Color cycle indicator */}
+      <div className="mb-4">
+        <div className="flex justify-between mb-1">
+          <span>Color Cycle (15s):</span>
+          <span className={`font-bold ${getTimeCycleTextColor(currentTime)}`}>
+            {currentColorName} ({currentCycleSeconds % 5}s)
+          </span>
+        </div>
+        {/* <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 ${getTimeCycleColor(
+              currentTime
+            )}`}
+            style={{ width: `${(currentTime % 5000) / 50}%` }}
+          ></div>
+        </div> */}
+
+        {/* Large color block for easy visual comparison between clients */}
+        <div className="mt-2 flex justify-center">
+          <div
+            className={cn(
+              "w-24 h-24 rounded-lg border-4 border-gray-300",
+              getTimeCycleColor(currentTime)
+            )}
+          >
+            <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">
+              {currentCycleSeconds % 5}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Current playback time with microsecond precision */}
+      <div className="mb-3">
+        <div className="flex justify-between mb-1">
+          <span>Playback Time:</span>
+          <span
+            className={
+              isPlaying ? "text-green-600 font-mono" : "text-gray-600 font-mono"
+            }
+          >
+            {formatTimeMicro(currentTime)}
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-green-600 h-2 rounded-full"
+            style={{ width: `${(currentTime % 5000) / 50}%` }} // 5-second loop for visualization
+          ></div>
+        </div>
+      </div>
+
+      {/* Nudge amount visualization */}
+      <div className="mb-3">
+        <div className="flex justify-between mb-1">
+          <span>Timing Adjustment:</span>
+          <span className="font-mono">
+            {nudgeMs > 0 ? "+" : ""}
+            {nudgeMs.toFixed(3)} ms
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2 flex items-center">
+          <div className="w-1/2 h-full bg-gray-300 rounded-l-full"></div>
+          <div
+            className={`h-4 w-1 ${
+              Math.abs(nudgeMs) < 0.1
+                ? "bg-green-600"
+                : nudgeMs > 0
+                ? "bg-red-500"
+                : "bg-blue-500"
+            }`}
+            style={{ marginLeft: `${50 + nudgeMs * 10}%` }} // Scale for visibility
+          ></div>
+          <div className="w-1/2 h-full bg-gray-300 rounded-r-full"></div>
+        </div>
+      </div>
+
+      {/* Clock offset visualization */}
+      <div>
+        <div className="flex justify-between mb-1">
+          <span>Clock Offset:</span>
+          <span className="font-mono">
+            {clockOffset !== null
+              ? `${clockOffset > 0 ? "+" : ""}${clockOffset.toFixed(3)} ms`
+              : "Unknown"}
+          </span>
+        </div>
+        {clockOffset !== null && (
+          <div className="w-full bg-gray-200 rounded-full h-2 flex items-center">
+            <div className="w-1/2 h-full bg-gray-300 rounded-l-full"></div>
+            <div
+              className={`h-4 w-1 ${getOffsetColor(clockOffset)}`}
+              style={{
+                marginLeft: `${
+                  50 + Math.min(Math.max(clockOffset * 5, -49), 49)
+                }%`,
+              }} // Scale and clamp
+            ></div>
+            <div className="w-1/2 h-full bg-gray-300 rounded-r-full"></div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
@@ -52,6 +256,8 @@ export const Syncer = () => {
   const pausedAtRef = useRef<number | null>(null);
   const [ntpMeasurements, setNtpMeasurements] = useState<NTPMeasurement[]>([]);
   const [averageRoundTrip, setAverageRoundTrip] = useState<number | null>(null);
+  const [averageOffset, setAverageOffset] = useState<number | null>(null);
+  const averageOffsetRef = useRef<number | null>(null);
   const [scheduledAction, setScheduledAction] = useState<{
     type: Action;
     time: number;
@@ -60,22 +266,22 @@ export const Syncer = () => {
   const [loadingState, setLoadingState] = useState<
     "loading" | "ready" | "error"
   >("loading");
-
-  // This is the amount of time that the client is offset from the server
-  const [averageOffset, setAverageOffset] = useState<number | null>(null);
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const measurementCountRef = useRef<number>(0);
-  const periodicNtpTimerRef = useRef<number | null>(null);
-
-  // References for the latest values to use in callbacks
-  const averageOffsetRef = useRef<number | null>(null);
-  useEffect(() => {
-    averageOffsetRef.current = averageOffset;
-  }, [averageOffset]);
-
   // Add state for tracking nudge amount in microseconds
   const [nudgeAmount, setNudgeAmount] = useState<number>(100); // Default 100 microseconds
   const [totalNudge, setTotalNudge] = useState<number>(0); // Track total accumulated nudge
+
+  // Add state for tracking current playback time with high precision
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const animationFrameRef = useRef<number | null>(null);
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const measurementCountRef = useRef(0);
+  const isMeasuringRef = useRef(false);
+
+  // References for the latest values to use in callbacks
+  useEffect(() => {
+    averageOffsetRef.current = averageOffset;
+  }, [averageOffset]);
 
   // Initialize Audio Context and load audio
   useEffect(() => {
@@ -110,7 +316,6 @@ export const Syncer = () => {
   }, []);
 
   // Keep isMeasuring in a ref so the WebSocket callback always has the current value
-  const isMeasuringRef = useRef(isMeasuring);
   useEffect(() => {
     isMeasuringRef.current = isMeasuring;
   }, [isMeasuring]);
@@ -122,18 +327,47 @@ export const Syncer = () => {
       handleSendNTPMessage();
 
       // Then schedule periodic remeasurements every 30 seconds
-      periodicNtpTimerRef.current = window.setInterval(() => {
-        console.log("Performing periodic NTP measurement");
+      const intervalId = setInterval(() => {
         handleSendNTPMessage();
       }, 30000);
-    }
 
+      return () => clearInterval(intervalId);
+    }
+  }, [isConnected]);
+
+  // Set up high precision playback time tracking using requestAnimationFrame
+  useEffect(() => {
+    const updatePlaybackTime = () => {
+      const audioContext = audioContextRef.current;
+
+      if (audioContext && startedAtRef.current !== null) {
+        // We're playing - calculate precise position
+        const currentPosition = audioContext.currentTime - startedAtRef.current;
+        setCurrentPlaybackTime(currentPosition * 1000); // Convert to milliseconds
+        setIsPlaying(true);
+      } else if (pausedAtRef.current !== null) {
+        // We're paused - show the paused position
+        setCurrentPlaybackTime(pausedAtRef.current * 1000); // Convert to milliseconds
+        setIsPlaying(false);
+      } else {
+        // Not playing or paused
+        setIsPlaying(false);
+      }
+
+      // Continue the animation loop
+      animationFrameRef.current = requestAnimationFrame(updatePlaybackTime);
+    };
+
+    // Start the animation loop
+    animationFrameRef.current = requestAnimationFrame(updatePlaybackTime);
+
+    // Clean up
     return () => {
-      if (periodicNtpTimerRef.current) {
-        clearInterval(periodicNtpTimerRef.current);
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isConnected]);
+  }, []);
 
   // Set up WebSocket connection - only once
   useEffect(() => {
@@ -297,7 +531,7 @@ export const Syncer = () => {
     return () => {
       ws.close();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
   // Calculate averages when measurements change
   useEffect(() => {
@@ -596,6 +830,14 @@ export const Syncer = () => {
           {totalNudge} μs ({(totalNudge / 1000).toFixed(3)} ms)
         </div>
       </div>
+
+      {/* Add the precise timing display */}
+      <TimingDisplay
+        currentTime={currentPlaybackTime}
+        isPlaying={isPlaying}
+        totalNudge={totalNudge}
+        clockOffset={averageOffset}
+      />
 
       <Button
         onClick={handleSendNTPMessage}
