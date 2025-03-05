@@ -85,11 +85,9 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
   // Get color based on 2-second cycle
   const getTimeCycleColor = (timeMs: number) => {
-    // Apply nudge adjustment to the time
-    const adjustedTime = timeMs + totalNudge;
-
-    // Cycle through colors every 2 seconds (2000ms)
-    const cyclePosition = Math.floor((adjustedTime % 6000) / 2000);
+    // We don't need to apply nudge adjustment here since the audio playback
+    // has already been nudged, and timeMs reflects the current actual position
+    const cyclePosition = Math.floor((timeMs % 6000) / 2000);
 
     // Use very distinct colors for easy visual comparison
     switch (cyclePosition) {
@@ -106,11 +104,9 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
   // Get text color based on 2-second cycle
   const getTimeCycleTextColor = (timeMs: number) => {
-    // Apply nudge adjustment to the time
-    const adjustedTime = timeMs + totalNudge;
-
-    // Cycle through colors every 2 seconds (2000ms)
-    const cyclePosition = Math.floor((adjustedTime % 6000) / 2000);
+    // We don't need to apply nudge adjustment here since the audio playback
+    // has already been nudged, and timeMs reflects the current actual position
+    const cyclePosition = Math.floor((timeMs % 6000) / 2000);
 
     switch (cyclePosition) {
       case 0:
@@ -125,24 +121,15 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
   };
 
   // Calculate which 2-second block we're in (with nudge adjustment)
-  const adjustedTime = currentTime + totalNudge;
-  const currentCycleSeconds = Math.floor((adjustedTime % 6000) / 1000);
+  // Since currentTime already includes the nudge effect, we don't need to add totalNudge here
+  const currentCycleSeconds = Math.floor((currentTime % 6000) / 1000);
   const currentColorName = [
-    "Red",
-    "Red",
-    "Red",
-    "Red",
-    "Red",
-    "Green",
-    "Green",
-    "Green",
-    "Green",
-    "Green",
-    "Blue",
-    "Blue",
-    "Blue",
-    "Blue",
-    "Blue",
+    "Red", // 0s
+    "Red", // 1s
+    "Green", // 2s
+    "Green", // 3s
+    "Blue", // 4s
+    "Blue", // 5s
   ][currentCycleSeconds];
 
   return (
@@ -190,13 +177,13 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
               isPlaying ? "text-green-600 font-mono" : "text-gray-600 font-mono"
             }
           >
-            {formatTimeMicro(adjustedTime)}
+            {formatTimeMicro(currentTime)}
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-green-600 h-2 rounded-full"
-            style={{ width: `${(adjustedTime % 2000) / 20}%` }} // 2-second loop for visualization
+            style={{ width: `${(currentTime % 2000) / 20}%` }} // 2-second loop for visualization
           ></div>
         </div>
       </div>
