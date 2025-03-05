@@ -10,6 +10,7 @@ import {
 } from "@shared/types";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import LocalIPFinder from "./IPFinder";
 import {
   Select,
@@ -273,8 +274,16 @@ export const Syncer = () => {
   const [loadingState, setLoadingState] = useState<
     "loading" | "ready" | "error"
   >("loading");
-  // Add state for tracking nudge amount in milliseconds
-  const [nudgeAmount, setNudgeAmount] = useState<number>(10); // Default 10 milliseconds
+
+  // Setup form for nudge controls
+  const { watch, setValue } = useForm({
+    defaultValues: {
+      nudgeAmount: 10,
+    },
+  });
+
+  // Get nudge amount from form
+  const nudgeAmount = watch("nudgeAmount");
   const [totalNudge, setTotalNudge] = useState<number>(0); // Track total accumulated nudge
   // Add state for mute functionality
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -703,26 +712,28 @@ export const Syncer = () => {
   }, [nudgeAmount, totalNudge]);
 
   // Function to adjust the nudge amount
-  const handleNudgeAmountChange = useCallback((newAmount: string) => {
-    const validValues = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
-    const numericAmount = Number(newAmount);
+  const handleNudgeAmountChange = useCallback(
+    (newAmount: number) => {
+      const validValues = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
 
-    // If the value is not in our predefined list, find the closest available option
-    if (!validValues.includes(numericAmount)) {
-      const closest = validValues.reduce((prev, curr) => {
-        return Math.abs(curr - numericAmount) < Math.abs(prev - numericAmount)
-          ? curr
-          : prev;
-      });
-      console.log(
-        `Nudge amount ${numericAmount} not in valid options, using closest value: ${closest}`
-      );
-      setNudgeAmount(closest);
-    } else {
-      setNudgeAmount(numericAmount);
-      console.log(`Nudge amount set to ${numericAmount} ms`);
-    }
-  }, []);
+      // If the value is not in our predefined list, find the closest available option
+      if (!validValues.includes(newAmount)) {
+        const closest = validValues.reduce((prev, curr) => {
+          return Math.abs(curr - newAmount) < Math.abs(prev - newAmount)
+            ? curr
+            : prev;
+        });
+        console.log(
+          `Nudge amount ${newAmount} not in valid options, using closest value: ${closest}`
+        );
+        setValue("nudgeAmount", closest);
+      } else {
+        setValue("nudgeAmount", newAmount);
+        console.log(`Nudge amount set to ${newAmount} ms`);
+      }
+    },
+    [setValue]
+  );
 
   const sendNTPRequest = useCallback(() => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -845,7 +856,9 @@ export const Syncer = () => {
           <div className="flex gap-2">
             <Button
               onClick={() =>
-                handleNudgeAmountChange(String(Math.max(10, nudgeAmount / 2)))
+                handleNudgeAmountChange(
+                  Math.max(1, Math.floor(nudgeAmount / 2))
+                )
               }
               variant="outline"
               size="sm"
@@ -853,7 +866,11 @@ export const Syncer = () => {
               ÷2
             </Button>
             <Button
-              onClick={() => handleNudgeAmountChange(String(nudgeAmount * 2))}
+              onClick={() =>
+                handleNudgeAmountChange(
+                  Math.min(1000, Math.floor(nudgeAmount * 2))
+                )
+              }
               variant="outline"
               size="sm"
             >
@@ -861,7 +878,7 @@ export const Syncer = () => {
             </Button>
             <Select
               value={String(nudgeAmount)}
-              onValueChange={handleNudgeAmountChange}
+              onValueChange={(value) => handleNudgeAmountChange(Number(value))}
               defaultValue="10"
             >
               <SelectTrigger className="w-[110px]">
