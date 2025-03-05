@@ -8,7 +8,7 @@ import {
   NTPResponseMessage,
   ServerMessage,
 } from "@shared/types";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LocalIPFinder from "./IPFinder";
 
@@ -269,6 +269,9 @@ export const Syncer = () => {
   // Add state for tracking nudge amount in microseconds
   const [nudgeAmount, setNudgeAmount] = useState<number>(100); // Default 100 microseconds
   const [totalNudge, setTotalNudge] = useState<number>(0); // Track total accumulated nudge
+  // Add state for mute functionality
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const gainNodeRef = useRef<GainNode | null>(null);
 
   // Add state for tracking current playback time with high precision
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
@@ -289,6 +292,14 @@ export const Syncer = () => {
     const AudioContext = window.AudioContext;
     const context = new AudioContext();
     audioContextRef.current = context;
+
+    // Create gain node for volume control
+    const gainNode = context.createGain();
+    gainNode.connect(context.destination);
+    gainNodeRef.current = gainNode;
+
+    // Set initial volume based on mute state
+    gainNode.gain.value = isMuted ? 0 : 1;
 
     // Load and decode audio file
     const loadAudio = async () => {
@@ -457,7 +468,7 @@ export const Syncer = () => {
           // Create new audio source node
           const source = audioContext.createBufferSource();
           source.buffer = audioBufferRef.current;
-          source.connect(audioContext.destination);
+          source.connect(gainNodeRef.current || audioContext.destination);
           audioSourceRef.current = source;
 
           // Calculate where to start playing from
@@ -612,7 +623,7 @@ export const Syncer = () => {
       // Create new source and start slightly ahead (nudge forward)
       const source = audioContext.createBufferSource();
       source.buffer = audioBufferRef.current;
-      source.connect(audioContext.destination);
+      source.connect(gainNodeRef.current || audioContext.destination);
 
       // Skip ahead by nudgeAmount microseconds (convert to seconds)
       const skipAmount = nudgeAmount / 1000000;
@@ -661,7 +672,7 @@ export const Syncer = () => {
       // Create new source and start slightly behind (nudge backward)
       const source = audioContext.createBufferSource();
       source.buffer = audioBufferRef.current;
-      source.connect(audioContext.destination);
+      source.connect(gainNodeRef.current || audioContext.destination);
 
       // Go back by nudgeAmount microseconds (convert to seconds)
       const backAmount = nudgeAmount / 1000000;
@@ -739,6 +750,28 @@ export const Syncer = () => {
     return () => clearInterval(intervalId);
   }, [scheduledAction]);
 
+  // Handle mute toggle
+  const handleToggleMute = useCallback(() => {
+    const audioContext = audioContextRef.current;
+    const gainNode = gainNodeRef.current;
+
+    if (!audioContext || !gainNode) {
+      console.error("Audio context or gain node not available");
+      return;
+    }
+
+    const newMuteState = !isMuted;
+    setIsMuted(newMuteState);
+
+    // Set gain to 0 when muted, 1 when unmuted
+    gainNode.gain.setValueAtTime(
+      newMuteState ? 0 : 1,
+      audioContext.currentTime
+    );
+
+    console.log(`Audio ${newMuteState ? "muted" : "unmuted"}`);
+  }, [isMuted]);
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <LocalIPFinder />
@@ -768,6 +801,19 @@ export const Syncer = () => {
         >
           <Pause className="mr-2 h-4 w-4" />
           Pause
+        </Button>
+        <Button
+          onClick={handleToggleMute}
+          variant={isMuted ? "destructive" : "outline"}
+          size="default"
+          disabled={loadingState !== "ready"}
+        >
+          {isMuted ? (
+            <Volume2 className="mr-2 h-4 w-4" />
+          ) : (
+            <VolumeX className="mr-2 h-4 w-4" />
+          )}
+          {isMuted ? "Unmute" : "Mute"}
         </Button>
       </div>
 
