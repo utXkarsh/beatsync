@@ -837,10 +837,12 @@ export const Syncer = () => {
               ×2
             </Button>
             <select
-              className="border rounded px-2 py-1"
               value={nudgeAmount}
+              className="text-black"
               onChange={(e) => handleNudgeAmountChange(Number(e.target.value))}
             >
+              <option value="1">1 ms</option>
+              <option value="5">5 ms</option>
               <option value="10">10 ms</option>
               <option value="50">50 ms</option>
               <option value="100">100 ms</option>
