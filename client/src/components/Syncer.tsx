@@ -83,49 +83,50 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
     return "bg-blue-500"; // Behind - blue
   };
 
-  // Get color based on 5-second cycle
+  // Get color based on 2-second cycle
   const getTimeCycleColor = (timeMs: number) => {
     // Apply nudge adjustment to the time
     const adjustedTime = timeMs + totalNudge;
 
-    // Cycle through colors every 5 seconds (5000ms)
-    const cyclePosition = Math.floor((adjustedTime % 15000) / 5000);
+    // Cycle through colors every 2 seconds (2000ms)
+    const cyclePosition = Math.floor((adjustedTime % 6000) / 2000);
 
     // Use very distinct colors for easy visual comparison
     switch (cyclePosition) {
       case 0:
-        return "bg-red-500"; // 0-5 seconds: Red
+        return "bg-red-500"; // 0-2 seconds: Red
       case 1:
-        return "bg-green-500"; // 5-10 seconds: Green
+        return "bg-green-500"; // 2-4 seconds: Green
       case 2:
-        return "bg-blue-500"; // 10-15 seconds: Blue
+        return "bg-blue-500"; // 4-6 seconds: Blue
       default:
         return "bg-gray-500";
     }
   };
 
-  // Get text color based on 5-second cycle
+  // Get text color based on 2-second cycle
   const getTimeCycleTextColor = (timeMs: number) => {
     // Apply nudge adjustment to the time
     const adjustedTime = timeMs + totalNudge;
 
-    const cyclePosition = Math.floor((adjustedTime % 15000) / 5000);
+    // Cycle through colors every 2 seconds (2000ms)
+    const cyclePosition = Math.floor((adjustedTime % 6000) / 2000);
 
     switch (cyclePosition) {
       case 0:
-        return "text-red-500"; // 0-5 seconds: Red
+        return "text-red-500"; // 0-2 seconds: Red
       case 1:
-        return "text-green-500"; // 5-10 seconds: Green
+        return "text-green-500"; // 2-4 seconds: Green
       case 2:
-        return "text-blue-500"; // 10-15 seconds: Blue
+        return "text-blue-500"; // 4-6 seconds: Blue
       default:
         return "text-gray-500";
     }
   };
 
-  // Calculate which 5-second block we're in (with nudge adjustment)
+  // Calculate which 2-second block we're in (with nudge adjustment)
   const adjustedTime = currentTime + totalNudge;
-  const currentCycleSeconds = Math.floor((adjustedTime % 15000) / 1000);
+  const currentCycleSeconds = Math.floor((adjustedTime % 6000) / 1000);
   const currentColorName = [
     "Red",
     "Red",
@@ -151,9 +152,9 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
       {/* Color cycle indicator */}
       <div className="mb-4">
         <div className="flex justify-between mb-1">
-          <span>Color Cycle (15s):</span>
+          <span>Color Cycle (6s):</span>
           <span className={`font-bold ${getTimeCycleTextColor(currentTime)}`}>
-            {currentColorName} ({currentCycleSeconds % 5}s)
+            {currentColorName} ({currentCycleSeconds % 2}s)
           </span>
         </div>
         {/* <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
@@ -174,7 +175,7 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
             )}
           >
             <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">
-              {currentCycleSeconds % 5}
+              {currentCycleSeconds % 2}
             </div>
           </div>
         </div>
@@ -195,7 +196,7 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-green-600 h-2 rounded-full"
-            style={{ width: `${(adjustedTime % 5000) / 50}%` }} // 5-second loop for visualization
+            style={{ width: `${(adjustedTime % 2000) / 20}%` }} // 2-second loop for visualization
           ></div>
         </div>
       </div>
