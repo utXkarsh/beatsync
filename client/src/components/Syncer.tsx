@@ -262,6 +262,7 @@ export const Syncer = () => {
   const [loadingState, setLoadingState] = useState<
     "loading" | "ready" | "error"
   >("loading");
+  const [selectedTrack, setSelectedTrack] = useState<string>("/trndsttr.mp3");
 
   // Setup form for nudge controls
   const { watch, setValue } = useForm({
@@ -309,7 +310,7 @@ export const Syncer = () => {
     const loadAudio = async () => {
       try {
         setLoadingState("loading");
-        const response = await fetch("/chess.mp3");
+        const response = await fetch(selectedTrack);
         const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await context.decodeAudioData(arrayBuffer);
         audioBufferRef.current = audioBuffer;
@@ -328,7 +329,7 @@ export const Syncer = () => {
         context.close();
       }
     };
-  }, []);
+  }, [selectedTrack, isMuted]);
 
   // Keep isMeasuring in a ref so the WebSocket callback always has the current value
   useEffect(() => {
@@ -791,9 +792,45 @@ export const Syncer = () => {
     console.log(`Audio ${newMuteState ? "muted" : "unmuted"}`);
   }, [isMuted]);
 
+  // Handle track selection change
+  const handleTrackChange = useCallback((track: string) => {
+    // Stop current playback if any
+    if (audioSourceRef.current) {
+      audioSourceRef.current.stop();
+      audioSourceRef.current = null;
+    }
+
+    // Reset playback state
+    startedAtRef.current = null;
+    pausedAtRef.current = null;
+    setIsPlaying(false);
+
+    // Set new track and reload audio
+    setSelectedTrack(track);
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <LocalIPFinder />
+
+      {/* Track selection */}
+      <div className="mt-4 mb-4">
+        <Select
+          value={selectedTrack}
+          onValueChange={handleTrackChange}
+          defaultValue="/trndsttr.mp3"
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select track" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="/trndsttr.mp3">TRNDSTTR</SelectItem>
+            <SelectItem value="/chess.mp3">Chess</SelectItem>
+            <SelectItem value="/wonder.mp3">Wonder</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="mt-4 mb-4">
         Status: {isConnected ? "Connected" : "Disconnected"}, Audio:{" "}
         {loadingState === "ready"
