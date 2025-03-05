@@ -81,8 +81,11 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
   // Get color based on 5-second cycle
   const getTimeCycleColor = (timeMs: number) => {
+    // Apply nudge adjustment to the time (convert microseconds to milliseconds)
+    const adjustedTime = timeMs + totalNudge / 1000;
+
     // Cycle through colors every 5 seconds (5000ms)
-    const cyclePosition = Math.floor((timeMs % 15000) / 5000);
+    const cyclePosition = Math.floor((adjustedTime % 15000) / 5000);
 
     // Use very distinct colors for easy visual comparison
     switch (cyclePosition) {
@@ -99,7 +102,10 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
   // Get text color based on 5-second cycle
   const getTimeCycleTextColor = (timeMs: number) => {
-    const cyclePosition = Math.floor((timeMs % 15000) / 5000);
+    // Apply nudge adjustment to the time (convert microseconds to milliseconds)
+    const adjustedTime = timeMs + totalNudge / 1000;
+
+    const cyclePosition = Math.floor((adjustedTime % 15000) / 5000);
 
     switch (cyclePosition) {
       case 0:
@@ -116,8 +122,9 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
   // Convert nudge from microseconds to milliseconds for display
   const nudgeMs = totalNudge / 1000;
 
-  // Calculate which 5-second block we're in
-  const currentCycleSeconds = Math.floor((currentTime % 15000) / 1000);
+  // Calculate which 5-second block we're in (with nudge adjustment)
+  const adjustedTime = currentTime + nudgeMs;
+  const currentCycleSeconds = Math.floor((adjustedTime % 15000) / 1000);
   const currentColorName = [
     "Red",
     "Red",
@@ -181,13 +188,17 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
               isPlaying ? "text-green-600 font-mono" : "text-gray-600 font-mono"
             }
           >
-            {formatTimeMicro(currentTime)}
+            {formatTimeMicro(adjustedTime)}
+            <span className="text-xs ml-1">
+              ({nudgeMs > 0 ? "+" : ""}
+              {nudgeMs.toFixed(3)}ms)
+            </span>
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-green-600 h-2 rounded-full"
-            style={{ width: `${(currentTime % 5000) / 50}%` }} // 5-second loop for visualization
+            style={{ width: `${(adjustedTime % 5000) / 50}%` }} // 5-second loop for visualization
           ></div>
         </div>
       </div>
@@ -544,16 +555,6 @@ export const Syncer = () => {
     };
   }, []);
 
-  // Calculate averages when measurements change
-  useEffect(() => {
-    if (ntpMeasurements.length === 0) return;
-
-    // If we've completed all measurements, calculate the averages
-    if (ntpMeasurements.length === 20) {
-      calculateAverages();
-    }
-  }, [ntpMeasurements]);
-
   const calculateAverages = () => {
     if (ntpMeasurements.length === 0) return;
 
@@ -587,6 +588,16 @@ export const Syncer = () => {
       totalOffset / bestMeasurements.length
     );
   };
+
+  // Calculate averages when measurements change
+  useEffect(() => {
+    if (ntpMeasurements.length === 0) return;
+
+    // If we've completed all measurements, calculate the averages
+    if (ntpMeasurements.length === 20) {
+      calculateAverages();
+    }
+  }, [ntpMeasurements, calculateAverages]);
 
   const handlePlay = useCallback(() => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
