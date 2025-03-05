@@ -45,7 +45,11 @@ const calculateWaitTime = (
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioBufferRef = useRef<AudioBuffer | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const pausedAtRef = useRef<number | null>(null);
   const [ntpMeasurements, setNtpMeasurements] = useState<NTPMeasurement[]>([]);
   const [averageRoundTrip, setAverageRoundTrip] = useState<number | null>(null);
   const [scheduledAction, setScheduledAction] = useState<{
@@ -53,17 +57,79 @@ export const Syncer = () => {
     time: number;
   } | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [loadingState, setLoadingState] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
 
   // This is the amount of time that the client is offset from the server
   const [averageOffset, setAverageOffset] = useState<number | null>(null);
   const [isMeasuring, setIsMeasuring] = useState(false);
   const measurementCountRef = useRef<number>(0);
+  const periodicNtpTimerRef = useRef<number | null>(null);
+
+  // References for the latest values to use in callbacks
+  const averageOffsetRef = useRef<number | null>(null);
+  useEffect(() => {
+    averageOffsetRef.current = averageOffset;
+  }, [averageOffset]);
+
+  // Initialize Audio Context and load audio
+  useEffect(() => {
+    // Create Audio Context
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const context = new AudioContext();
+    audioContextRef.current = context;
+
+    // Load and decode audio file
+    const loadAudio = async () => {
+      try {
+        setLoadingState("loading");
+        const response = await fetch("/chess.mp3");
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await context.decodeAudioData(arrayBuffer);
+        audioBufferRef.current = audioBuffer;
+        setLoadingState("ready");
+        console.log("Audio decoded and ready for precise playback");
+      } catch (error) {
+        console.error("Failed to load audio:", error);
+        setLoadingState("error");
+      }
+    };
+
+    loadAudio();
+
+    return () => {
+      if (context && context.state !== "closed") {
+        context.close();
+      }
+    };
+  }, []);
 
   // Keep isMeasuring in a ref so the WebSocket callback always has the current value
   const isMeasuringRef = useRef(isMeasuring);
   useEffect(() => {
     isMeasuringRef.current = isMeasuring;
   }, [isMeasuring]);
+
+  // Set up continuous NTP measurements to prevent clock drift
+  useEffect(() => {
+    if (isConnected) {
+      // Initial measurement when connected
+      handleSendNTPMessage();
+
+      // Then schedule periodic remeasurements every 30 seconds
+      periodicNtpTimerRef.current = window.setInterval(() => {
+        console.log("Performing periodic NTP measurement");
+        handleSendNTPMessage();
+      }, 30000);
+    }
+
+    return () => {
+      if (periodicNtpTimerRef.current) {
+        clearInterval(periodicNtpTimerRef.current);
+      }
+    };
+  }, [isConnected]);
 
   // Set up WebSocket connection - only once
   useEffect(() => {
@@ -101,12 +167,6 @@ export const Syncer = () => {
 
         setNtpMeasurements((prev) => [...prev, measurement]);
 
-        console.log("isMeasuring ", isMeasuringRef.current);
-        console.log(
-          "measurementCountRef.current ",
-          measurementCountRef.current
-        );
-
         // If we're in the middle of a measurement batch, continue
         if (isMeasuringRef.current && measurementCountRef.current < 20) {
           console.log("Sending NTP request ", measurementCountRef.current);
@@ -127,12 +187,22 @@ export const Syncer = () => {
         // Get the server's intended execution time
         const targetServerTime = message.timestamp;
 
-        // Calculate wait time using our helper function
-        const waitTime = calculateWaitTime(targetServerTime, averageOffset);
+        // Convert server time to audio context time for precise scheduling
+        const audioContext = audioContextRef.current;
+        if (!audioContext || !audioBufferRef.current) {
+          console.error("Audio not ready yet");
+          return;
+        }
 
+        // Calculate wait time using helper function
+        const waitTime = calculateWaitTime(
+          targetServerTime,
+          averageOffsetRef.current
+        );
         console.log(`Scheduling ${message.type} to happen in ${waitTime}ms`);
-        console.log(`Target server time: ${targetServerTime}`);
-        console.log(`Clock offset: ${averageOffset || 0}ms`);
+
+        // Calculate the exact audio context time to start/stop playback
+        const audioContextTime = audioContext.currentTime + waitTime / 1000;
 
         // Update UI to show scheduled action
         setScheduledAction({
@@ -140,56 +210,82 @@ export const Syncer = () => {
           time: Date.now() + waitTime,
         });
 
-        // Use more precise timing with requestAnimationFrame for better synchronization
-        const startTime = performance.now();
-        const targetTime = startTime + waitTime;
-
-        const scheduleFrame = (currentTime: number) => {
-          if (currentTime >= targetTime) {
-            if (message.type === Action.Play) {
-              console.log("Executing scheduled play");
-
-              // If we're joining late and the audio should already be playing,
-              // we need to seek to the correct position
-              if (message.serverTime < targetServerTime) {
-                const elapsedTime =
-                  (Date.now() + (averageOffset || 0) - targetServerTime) / 1000;
-                if (elapsedTime > 0) {
-                  console.log(
-                    `Seeking to ${elapsedTime}s to catch up with other clients`
-                  );
-                  audioRef.current!.currentTime = elapsedTime;
-                }
-              }
-
-              // Use the Web Audio API for more precise playback timing
-              if (audioRef.current) {
-                // Ensure audio is loaded and ready
-                if (audioRef.current.readyState >= 2) {
-                  audioRef.current.play();
-                } else {
-                  // If not loaded, set up a listener
-                  audioRef.current.addEventListener(
-                    "canplay",
-                    () => {
-                      audioRef.current!.play();
-                    },
-                    { once: true }
-                  );
-                }
-              }
-            } else if (message.type === Action.Pause) {
-              console.log("Executing scheduled pause");
-              audioRef.current!.pause();
+        if (message.type === Action.Play) {
+          // Stop current source if any
+          if (audioSourceRef.current) {
+            try {
+              audioSourceRef.current.stop();
+            } catch (e) {
+              // Ignore if already stopped
             }
-            // Clear scheduled action after execution
-            setScheduledAction(null);
-          } else {
-            requestAnimationFrame(scheduleFrame);
           }
-        };
 
-        requestAnimationFrame(scheduleFrame);
+          // Create new audio source node
+          const source = audioContext.createBufferSource();
+          source.buffer = audioBufferRef.current;
+          source.connect(audioContext.destination);
+          audioSourceRef.current = source;
+
+          // Calculate where to start playing from
+          let offset = 0;
+          if (pausedAtRef.current !== null) {
+            offset = pausedAtRef.current;
+            pausedAtRef.current = null;
+          } else if (message.serverTime < targetServerTime) {
+            // If we're joining late and the audio should already be playing,
+            // calculate how far into the audio we should start
+            const elapsedServerTime =
+              (Date.now() +
+                (averageOffsetRef.current || 0) -
+                targetServerTime) /
+              1000;
+            offset = Math.max(0, elapsedServerTime);
+            console.log(`Late join - starting ${offset}s into audio`);
+          }
+
+          // Schedule precise playback
+          startedAtRef.current = audioContextTime - offset;
+          console.log(
+            `Starting playback at context time ${audioContextTime}, offset ${offset}`
+          );
+          source.start(audioContextTime, offset);
+
+          // Log when playback actually starts
+          setTimeout(() => {
+            console.log("Play scheduled to start at:", audioContextTime);
+            console.log("Actual context time now:", audioContext.currentTime);
+          }, waitTime);
+        } else if (message.type === Action.Pause) {
+          if (audioSourceRef.current && startedAtRef.current !== null) {
+            try {
+              // Schedule the stop
+              audioSourceRef.current.stop(audioContextTime);
+
+              // Calculate where we'll be in the audio when we pause
+              const pausePosition = audioContextTime - startedAtRef.current;
+              pausedAtRef.current = pausePosition;
+              startedAtRef.current = null;
+
+              console.log(`Pausing at position ${pausePosition}s`);
+
+              // Log when playback actually stops
+              setTimeout(() => {
+                console.log("Pause scheduled at:", audioContextTime);
+                console.log(
+                  "Actual context time now:",
+                  audioContext.currentTime
+                );
+              }, waitTime);
+            } catch (e) {
+              console.error("Error pausing:", e);
+            }
+          }
+        }
+
+        // Clear scheduled action after a bit longer than the wait time
+        setTimeout(() => {
+          setScheduledAction(null);
+        }, waitTime + 100);
       }
     };
 
@@ -197,9 +293,6 @@ export const Syncer = () => {
       console.log("WebSocket connection closed");
       setIsConnected(false);
     };
-
-    // Preload audio
-    audioRef.current = new Audio("/chess.mp3");
 
     return () => {
       ws.close();
@@ -219,17 +312,35 @@ export const Syncer = () => {
   const calculateAverages = () => {
     if (ntpMeasurements.length === 0) return;
 
+    // Sort measurements by round trip delay and take the best 50% for offset calculation
+    // This helps filter out network jitter
+    const sortedMeasurements = [...ntpMeasurements].sort(
+      (a, b) => a.roundTripDelay - b.roundTripDelay
+    );
+    const bestMeasurements = sortedMeasurements.slice(
+      0,
+      Math.ceil(sortedMeasurements.length / 2)
+    );
+
+    // Calculate average round trip from all measurements
     const totalRoundTrip = ntpMeasurements.reduce(
       (sum, m) => sum + m.roundTripDelay,
       0
     );
-    const totalOffset = ntpMeasurements.reduce(
+
+    // But only use the best measurements for offset calculation
+    const totalOffset = bestMeasurements.reduce(
       (sum, m) => sum + m.clockOffset,
       0
     );
 
     setAverageRoundTrip(totalRoundTrip / ntpMeasurements.length);
-    setAverageOffset(totalOffset / ntpMeasurements.length);
+    setAverageOffset(totalOffset / bestMeasurements.length);
+
+    console.log(
+      "New clock offset calculated:",
+      totalOffset / bestMeasurements.length
+    );
   };
 
   const handlePlay = useCallback(() => {
@@ -259,8 +370,7 @@ export const Syncer = () => {
     setIsMeasuring(true);
     // Reset measurements
     setNtpMeasurements([]);
-    setAverageRoundTrip(null);
-    setAverageOffset(null);
+    // Keep the existing offset until we have new measurements
     measurementCountRef.current = 1;
 
     // Start the measurement process
@@ -295,14 +405,29 @@ export const Syncer = () => {
     <div className="flex flex-col items-center justify-center h-screen">
       <LocalIPFinder />
       <div className="mt-4 mb-4">
-        Status: {isConnected ? "Connected" : "Disconnected"}
+        Status: {isConnected ? "Connected" : "Disconnected"}, Audio:{" "}
+        {loadingState === "ready"
+          ? "Ready"
+          : loadingState === "loading"
+          ? "Loading..."
+          : "Error!"}
       </div>
       <div className="flex gap-2">
-        <Button onClick={handlePlay} variant="default" size="default">
+        <Button
+          onClick={handlePlay}
+          variant="default"
+          size="default"
+          disabled={loadingState !== "ready"}
+        >
           <Play className="mr-2 h-4 w-4" />
           Play
         </Button>
-        <Button onClick={handlePause} variant="default" size="default">
+        <Button
+          onClick={handlePause}
+          variant="default"
+          size="default"
+          disabled={loadingState !== "ready"}
+        >
           <Pause className="mr-2 h-4 w-4" />
           Pause
         </Button>
