@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { useRoom } from "@/context/room";
 import { cn } from "@/lib/utils";
 import {
   Action,
@@ -243,7 +244,7 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<WebSocket | null>(null);
+  const { socketRef, setWebsocket } = useRoom();
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -387,7 +388,7 @@ export const Syncer = () => {
   // Set up WebSocket connection - only once
   useEffect(() => {
     const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL!);
-    socketRef.current = ws;
+    setWebsocket(ws);
 
     ws.onopen = () => {
       console.log("Connected to WebSocket");

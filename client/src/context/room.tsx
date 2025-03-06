@@ -1,12 +1,19 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  ReactNode,
+  RefObject,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 
 interface RoomContextType {
-  websocket: string;
+  socketRef: RefObject<WebSocket | null>;
   roomId: string;
   username: string;
   userId: string;
-  setWebsocket: (websocket: string) => void;
+  setWebsocket: (websocket: WebSocket) => void;
   setRoomId: (roomId: string) => void;
   setUsername: (username: string) => void;
   setUserId: (userId: string) => void;
@@ -27,13 +34,17 @@ interface RoomProviderProps {
 }
 
 export function RoomProvider({ children }: RoomProviderProps) {
-  const [websocket, setWebsocket] = useState<string>("");
+  const socketRef = useRef<WebSocket>(null);
   const [roomId, setRoomId] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
 
+  const setWebsocket = (websocket: WebSocket) => {
+    socketRef.current = websocket;
+  };
+
   const value = {
-    websocket,
+    socketRef,
     roomId,
     username,
     userId,

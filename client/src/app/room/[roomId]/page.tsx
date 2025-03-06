@@ -1,4 +1,4 @@
-import { Room } from "@/components/Room";
+import { Syncer } from "@/components/Syncer";
 import { validateFullRoomId } from "@/lib/room";
 
 export default async function Page({
@@ -21,5 +21,5 @@ export default async function Page({
     );
   }
 
-  return <Room />;
+  return <Syncer />;
 }
