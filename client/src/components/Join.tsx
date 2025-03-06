@@ -9,7 +9,11 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { useRoom } from "@/context/room";
-import { validatePartialRoomId } from "@/lib/room";
+import {
+  createUserId,
+  validateFullRoomId,
+  validatePartialRoomId,
+} from "@/lib/room";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -22,7 +26,7 @@ interface JoinFormData {
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
   const usernameInputRef = useRef<HTMLInputElement>(null);
-  const { setRoomId, setUsername } = useRoom();
+  const { setRoomId, setUsername, setUserId } = useRoom();
 
   const {
     register,
@@ -40,9 +44,16 @@ export const Join = () => {
 
   const onSubmit = (data: JoinFormData) => {
     setIsJoining(true);
+    // Validate roomId
+    if (!validateFullRoomId(data.roomId)) {
+      alert("Invalid room ID");
+      return;
+    }
+
     console.log("Joining room with data:", data);
     setRoomId(data.roomId);
     setUsername(data.username);
+    setUserId(createUserId());
     router.push(`/room/${data.roomId}`);
   };
 

@@ -59,14 +59,26 @@ const server = Bun.serve<WSData, undefined>({
           const userId = url.searchParams.get("userId");
           const username = url.searchParams.get("username");
 
-          console.log(
-            `WebSocket join request for room: ${roomId}, user: ${userId}`
-          );
-
           if (!roomId || !userId || !username) {
-            console.log("All of roomId, userId, and username are required");
+            // Check which parameters are missing and log them
+            const missingParams = [];
+
+            if (!roomId) missingParams.push("roomId");
+            if (!userId) missingParams.push("userId");
+            if (!username) missingParams.push("username");
+
+            console.log(
+              `WebSocket connection attempt missing parameters: ${missingParams.join(
+                ", "
+              )}`
+            );
+
             return errorResponse("roomId and userId are required");
           }
+
+          console.log(
+            `User ${username} joined room ${roomId} with userId ${userId}`
+          );
 
           // Upgrade the connection with the WSData context
           const upgraded = server.upgrade(req, {
@@ -108,7 +120,14 @@ const server = Bun.serve<WSData, undefined>({
       const parsedMessage = deserializeMessage(message.toString());
 
       if (parsedMessage.type === Action.NTPRequest) {
-        console.log("NTP request received");
+        // Only log NTP requests occasionally (every 100 requests)
+        let ntpRequestCount = 0;
+        ntpRequestCount++;
+
+        if (ntpRequestCount % 100 === 0) {
+          console.log(`NTP request received (count: ${ntpRequestCount})`);
+        }
+
         const ntpRequest = parsedMessage as NTPRequestMessage;
         const ntpResponse = {
           type: Action.NTPResponse,

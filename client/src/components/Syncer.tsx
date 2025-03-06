@@ -10,6 +10,7 @@ import {
   ServerMessage,
 } from "@shared/types";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -244,7 +245,7 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const { socketRef, setWebsocket } = useRoom();
+  const { socketRef, setWebsocket, roomId, username, userId } = useRoom();
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -387,7 +388,9 @@ export const Syncer = () => {
 
   // Set up WebSocket connection - only once
   useEffect(() => {
-    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL!);
+    const ws = new WebSocket(
+      `${process.env.NEXT_PUBLIC_WS_URL}?roomId=${roomId}&userId=${userId}&username=${username}`
+    );
     setWebsocket(ws);
 
     ws.onopen = () => {
@@ -808,6 +811,30 @@ export const Syncer = () => {
     // Set new track and reload audio
     setSelectedTrack(track);
   }, []);
+
+  const router = useRouter();
+
+  if (!roomId || !username || !userId) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div>
+          Room configured incorrectly. Missing:
+          {!roomId && <span className="font-semibold"> roomId</span>}
+          {!username && (
+            <span className="font-semibold">{!roomId ? "," : ""} username</span>
+          )}
+          {!userId && (
+            <span className="font-semibold">
+              {!roomId || !username ? "," : ""} userId
+            </span>
+          )}
+        </div>
+        <Button onClick={() => router.push("/")} className="mt-2">
+          Return to Home
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
