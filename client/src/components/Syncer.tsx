@@ -245,7 +245,8 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({
 
 export const Syncer = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const { socketRef, setWebsocket, roomId, username, userId } = useRoom();
+  const { socketRef, setWebsocket, roomId, username, userId, isLoading } =
+    useRoom();
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -388,6 +389,8 @@ export const Syncer = () => {
 
   // Set up WebSocket connection - only once
   useEffect(() => {
+    if (isLoading) return;
+
     const ws = new WebSocket(
       `${process.env.NEXT_PUBLIC_WS_URL}?roomId=${roomId}&userId=${userId}&username=${username}`
     );
@@ -550,7 +553,7 @@ export const Syncer = () => {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [isLoading]);
 
   const calculateAverages = useCallback(() => {
     // Sort measurements by round trip delay to find the best ones
@@ -813,6 +816,16 @@ export const Syncer = () => {
   }, []);
 
   const router = useRouter();
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white/90">
+        <div className="w-6 h-6 border-1 border-t-gray-800 rounded-full animate-spin"></div>
+        <span className="ml-3 text-base font-normal text-gray-500">
+          Loading...
+        </span>
+      </div>
+    );
+  }
 
   if (!roomId || !username || !userId) {
     return (

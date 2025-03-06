@@ -12,7 +12,6 @@ interface WSData {
 }
 
 // Define a constant for the global topic
-const GLOBAL_TOPIC = "global";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -106,16 +105,18 @@ const server = Bun.serve<WSData, undefined>({
 
   websocket: {
     open(ws) {
-      ws.subscribe(GLOBAL_TOPIC);
+      const { roomId } = ws.data;
+      ws.subscribe(roomId);
       const message: ServerMessage = {
         type: Action.Join,
         timestamp: Date.now(),
         serverTime: Date.now(),
       };
-      ws.send(JSON.stringify(message));
+      server.publish(roomId, JSON.stringify(message));
     },
 
     message(ws, message) {
+      const { roomId, userId, username } = ws.data;
       const t1 = Date.now();
       const parsedMessage = deserializeMessage(message.toString());
 
@@ -140,14 +141,17 @@ const server = Bun.serve<WSData, undefined>({
         serverTime: Date.now(),
       };
 
-      console.log(`Message from client: ${JSON.stringify(clientMessage)}`);
-      console.log(`Broadcasting message to all clients`);
-      server.publish(GLOBAL_TOPIC, JSON.stringify(response));
+      console.log(
+        `Room: ${roomId} | User: ${username} | Message: ${JSON.stringify(
+          clientMessage
+        )}`
+      );
+      server.publish(roomId, JSON.stringify(response));
     },
 
     close(ws) {
       console.log(`Connection closed`);
-      ws.unsubscribe(GLOBAL_TOPIC);
+      ws.unsubscribe(ws.data.roomId);
     },
   },
 });
