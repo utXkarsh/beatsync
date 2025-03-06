@@ -8,6 +8,9 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import { useRoom } from "@/context/room";
+import { validatePartialRoomId } from "@/lib/room";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -19,6 +22,7 @@ interface JoinFormData {
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const { setRoomId, setUsername } = useRoom();
 
   const {
     register,
@@ -32,11 +36,14 @@ export const Join = () => {
     },
   });
 
+  const router = useRouter();
+
   const onSubmit = (data: JoinFormData) => {
     setIsJoining(true);
     console.log("Joining room with data:", data);
-    // Here you would handle the actual room joining logic
-    // For example, redirecting to the room or connecting to WebSocket
+    setRoomId(data.roomId);
+    setUsername(data.username);
+    router.push(`/room/${data.roomId}`);
   };
 
   return (
@@ -61,7 +68,7 @@ export const Join = () => {
                     value={field.value}
                     onChange={(value) => {
                       // Only set the value if it contains only digits
-                      if (/^\d*$/.test(value)) {
+                      if (validatePartialRoomId(value)) {
                         field.onChange(value);
                         // Focus the username input after OTP is complete
                         if (value.length === 6 && usernameInputRef.current) {
