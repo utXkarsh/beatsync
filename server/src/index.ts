@@ -4,9 +4,15 @@ import {
   NTPRequestMessage,
   ServerMessage,
 } from "@shared/types";
-const GLOBAL_TOPIC = "global";
 
-// Track the current playback state
+interface WSData {
+  roomId: string;
+  userId: string;
+  username: string;
+}
+
+// Define a constant for the global topic
+const GLOBAL_TOPIC = "global";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,7 +38,8 @@ const errorResponse = (message: string, status = 400) =>
     headers: corsHeaders,
   });
 
-const server = Bun.serve({
+// Bun.serve<WebSocketDataType, ServerFetchContextType>
+const server = Bun.serve<WSData, undefined>({
   port: 8080,
   async fetch(req, server) {
     const url = new URL(req.url);
@@ -48,16 +55,33 @@ const server = Bun.serve({
           return new Response("Hello Hono!");
 
         case "/ws": {
-          // const email = url.searchParams.get("email");
-          // console.log(`Websocket join request from ${email}`);
+          const roomId = url.searchParams.get("roomId");
+          const userId = url.searchParams.get("userId");
+          const username = url.searchParams.get("username");
 
-          // if (!email) {
-          //   return errorResponse("Email is required");
-          // }
+          console.log(
+            `WebSocket join request for room: ${roomId}, user: ${userId}`
+          );
 
-          // server.upgrade(req, { data: { email } });
-          server.upgrade(req);
-          return new Response("WebSocket connection upgraded");
+          if (!roomId || !userId || !username) {
+            console.log("All of roomId, userId, and username are required");
+            return errorResponse("roomId and userId are required");
+          }
+
+          // Upgrade the connection with the WSData context
+          const upgraded = server.upgrade(req, {
+            data: {
+              roomId,
+              userId,
+              username,
+            },
+          });
+
+          if (!upgraded) {
+            return errorResponse("WebSocket upgrade failed");
+          }
+
+          return undefined;
         }
 
         default:

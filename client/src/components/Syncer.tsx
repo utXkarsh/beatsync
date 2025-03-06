@@ -11,7 +11,6 @@ import {
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import LocalIPFinder from "./IPFinder";
 import {
   Select,
   SelectContent,
@@ -811,8 +810,6 @@ export const Syncer = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <LocalIPFinder />
-
       {/* Track selection */}
       <div className="mt-4 mb-4">
         <Select
