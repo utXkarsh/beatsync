@@ -1,6 +1,6 @@
 // import * as ytdl from "@distube/ytdl-core";
 import { Action, AudioSource } from "@shared/types";
-import { randomUUIDv7 } from "bun";
+import { randomUUIDv7, Server } from "bun";
 import { existsSync, mkdirSync } from "fs";
 import * as path from "path";
 import { errorResponse, jsonResponse } from "../utils/responses";
@@ -15,7 +15,7 @@ if (!existsSync(AUDIO_DIR)) {
   mkdirSync(AUDIO_DIR, { recursive: true });
 }
 
-export const handleExtract = async (req: Request, server: any) => {
+export const handleExtract = async (req: Request, server: Server) => {
   console.log(`Extract request received: ${req.method}`);
   // Only accept POST requests
   if (req.method !== "POST") {

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   Action,
   ClientMessage,
+  NewAudioSourceMessage,
   NTPRequestMessage,
   NTPResponseMessage,
   ServerMessage,
@@ -542,6 +543,9 @@ export const Syncer = () => {
         setTimeout(() => {
           setScheduledAction(null);
         }, waitTime + 100);
+      } else if (message.type === Action.NewAudioSource) {
+        const msg = message as NewAudioSourceMessage;
+        console.log("New audio source ", msg);
       }
     };
 
