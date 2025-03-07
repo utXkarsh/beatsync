@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useRoom } from "@/context/room";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
+import { useAudioSources } from "@/hooks/useAudioSources";
 import { useNTPSync } from "@/hooks/useNTPSync";
 import { calculateWaitTime } from "@/utils/time";
 import { deserializeMessage } from "@/utils/websocket";
@@ -23,6 +24,7 @@ export const Syncer = () => {
   } | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
 
+  const { audioSources, isLoadingAudioSources } = useAudioSources();
   const {
     ntpMeasurements,
     averageRoundTrip,
@@ -38,14 +40,14 @@ export const Syncer = () => {
     isMuted,
     currentPlaybackTime,
     totalNudge,
-    selectedTrack,
+    selectedSourceIndex,
     handlePlay,
     handlePause,
     handleNudge,
     handleToggleMute,
     handleTrackChange,
     handleServerAction,
-  } = useAudioPlayback(socketRef, averageOffset);
+  } = useAudioPlayback(socketRef, averageOffset); // depends on useNTPSync first
 
   // Set up WebSocket connection
   useEffect(() => {
@@ -122,12 +124,18 @@ export const Syncer = () => {
   }, [scheduledAction]);
 
   const router = useRouter();
-  if (isLoading) {
+  if (isLoading || isLoadingAudioSources) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white/90">
         <div className="w-6 h-6 border-1 border-t-gray-800 rounded-full animate-spin"></div>
         <span className="ml-3 text-base font-normal text-gray-500">
-          Loading...
+          Loading{" "}
+          {isLoading
+            ? "room data"
+            : isLoadingAudioSources
+            ? "audio tracks"
+            : ""}
+          ...
         </span>
       </div>
     );
@@ -158,8 +166,15 @@ export const Syncer = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <TrackSelector
-        selectedTrack={selectedTrack}
-        onTrackChange={handleTrackChange}
+        selectedTrack={audioSources[selectedSourceIndex]?.name || ""}
+        onTrackChange={(name) => {
+          const index = audioSources.findIndex(
+            (source) => source.name === name
+          );
+          if (index !== -1) {
+            handleTrackChange(index);
+          }
+        }}
       />
 
       <div className="mt-4 mb-4">

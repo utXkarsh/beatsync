@@ -1,10 +1,11 @@
 import { calculateWaitTime } from "@/utils/time";
 import { serializeMessage } from "@/utils/websocket";
 import { Action } from "@shared/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { useAudioSources } from "./useAudioSources";
 
 export const useAudioPlayback = (
-  socketRef: React.MutableRefObject<WebSocket | null>,
+  socketRef: RefObject<WebSocket | null>,
   averageOffset: number | null
 ) => {
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -16,7 +17,8 @@ export const useAudioPlayback = (
   const [loadingState, setLoadingState] = useState<
     "loading" | "ready" | "error"
   >("loading");
-  const [selectedTrack, setSelectedTrack] = useState<string>("/trndsttr.mp3");
+  const { audioSources, isLoadingAudioSources } = useAudioSources();
+  const [selectedSourceIndex, setSelectedSourceIndex] = useState<number>(0);
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -24,6 +26,10 @@ export const useAudioPlayback = (
 
   // Initialize Audio Context and load audio
   useEffect(() => {
+    if (isLoadingAudioSources) {
+      return;
+    }
+
     const AudioContext = window.AudioContext;
     const context = new AudioContext();
     audioContextRef.current = context;
@@ -40,9 +46,14 @@ export const useAudioPlayback = (
     const loadAudio = async () => {
       try {
         setLoadingState("loading");
-        const response = await fetch(selectedTrack);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await context.decodeAudioData(arrayBuffer);
+        const currentSource = audioSources[selectedSourceIndex];
+        if (!currentSource || !currentSource.buffer) {
+          throw new Error("No audio source or buffer available");
+        }
+
+        const audioBuffer = await audioContextRef.current!.decodeAudioData(
+          currentSource.buffer
+        );
         audioBufferRef.current = audioBuffer;
         setLoadingState("ready");
         console.log("Audio decoded and ready for precise playback");
@@ -59,7 +70,7 @@ export const useAudioPlayback = (
         context.close();
       }
     };
-  }, [selectedTrack, isMuted]);
+  }, [selectedSourceIndex, audioSources, isMuted, isLoadingAudioSources]);
 
   // Set up high precision playback time tracking using requestAnimationFrame
   useEffect(() => {
@@ -168,17 +179,25 @@ export const useAudioPlayback = (
     console.log(`Audio ${newMuteState ? "muted" : "unmuted"}`);
   }, [isMuted]);
 
-  const handleTrackChange = useCallback((track: string) => {
-    if (audioSourceRef.current) {
-      audioSourceRef.current.stop();
-      audioSourceRef.current = null;
-    }
+  const handleTrackChange = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= audioSources.length) {
+        console.error("Invalid track index");
+        return;
+      }
 
-    startedAtRef.current = null;
-    pausedAtRef.current = null;
-    setIsPlaying(false);
-    setSelectedTrack(track);
-  }, []);
+      if (audioSourceRef.current) {
+        audioSourceRef.current.stop();
+        audioSourceRef.current = null;
+      }
+
+      startedAtRef.current = null;
+      pausedAtRef.current = null;
+      setIsPlaying(false);
+      setSelectedSourceIndex(index);
+    },
+    [audioSources.length]
+  );
 
   const handleServerAction = useCallback(
     (action: Action.Play | Action.Pause, targetServerTime: number) => {
@@ -237,7 +256,8 @@ export const useAudioPlayback = (
     isMuted,
     currentPlaybackTime,
     totalNudge,
-    selectedTrack,
+    audioSources,
+    selectedSourceIndex,
     handlePlay,
     handlePause,
     handleNudge,
