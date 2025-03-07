@@ -5,26 +5,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAudioSources } from "@/hooks/useAudioSources";
 
-interface TrackSelectorProps {
-  selectedTrack: string;
-  onTrackChange: (track: string) => void;
-}
+export const TrackSelector: React.FC = () => {
+  const { audioSources, isLoadingAudioSources } = useAudioSources();
 
-export const TrackSelector: React.FC<TrackSelectorProps> = ({
-  selectedTrack,
-  onTrackChange,
-}) => {
   return (
     <div className="mt-4 mb-4">
-      <Select value={selectedTrack} onValueChange={onTrackChange}>
+      <Select
+        // value={selectedTrack}
+        // onValueChange={onTrackChange}
+        disabled={isLoadingAudioSources}
+      >
         <SelectTrigger className="w-[200px]">
           <SelectValue placeholder="Select track" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="Trndsttr (Lucian Remix)">TRNDSTTR</SelectItem>
-          <SelectItem value="Chess">Chess</SelectItem>
-          <SelectItem value="Wonder">Wonder</SelectItem>
+          {audioSources.map((source) => (
+            <SelectItem key={source.name} value={source.name}>
+              {source.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

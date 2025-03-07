@@ -24,7 +24,7 @@ export const Syncer = () => {
   } | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
 
-  const { audioSources, isLoadingAudioSources } = useAudioSources();
+  const { isLoadingAudioSources } = useAudioSources();
   const {
     ntpMeasurements,
     averageRoundTrip,
@@ -165,17 +165,7 @@ export const Syncer = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <TrackSelector
-        selectedTrack={audioSources[selectedSourceIndex]?.name || ""}
-        onTrackChange={(name) => {
-          const index = audioSources.findIndex(
-            (source) => source.name === name
-          );
-          if (index !== -1) {
-            handleTrackChange(index);
-          }
-        }}
-      />
+      <TrackSelector />
 
       <div className="mt-4 mb-4">
         Status: {isConnected ? "Connected" : "Disconnected"}, Audio:{" "}
