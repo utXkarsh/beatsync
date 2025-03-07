@@ -1,3 +1,4 @@
+import { handleExtract } from "./routes/extract";
 import { handleRoot } from "./routes/root";
 import { handleWebSocketUpgrade } from "./routes/websocket";
 import {
@@ -26,6 +27,9 @@ const server = Bun.serve<WSData, undefined>({
 
         case "/ws":
           return handleWebSocketUpgrade(req, server);
+
+        case "/extract":
+          return handleExtract(req, server);
 
         default:
           return errorResponse("Not found", 404);

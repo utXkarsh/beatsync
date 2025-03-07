@@ -4,6 +4,17 @@ export enum Action {
   Join = "join",
   NTPRequest = "ntp_request",
   NTPResponse = "ntp_response",
+  NewAudioSource = "new_audio_source",
+}
+
+// Audio source information
+export interface AudioSource {
+  id: string;
+  title: string;
+  url: string;
+  duration: number;
+  thumbnail?: string;
+  addedAt: number;
 }
 
 export interface ClientMessage {
@@ -28,4 +39,13 @@ export interface NTPResponseMessage {
   t2: number; // Server send timestamp
 }
 
-export type ServerMessage = BaseServerMessage | NTPResponseMessage;
+// New message type for audio source notification
+export interface NewAudioSourceMessage extends BaseServerMessage {
+  type: Action.NewAudioSource;
+  source: AudioSource;
+}
+
+export type ServerMessage =
+  | BaseServerMessage
+  | NTPResponseMessage
+  | NewAudioSourceMessage;

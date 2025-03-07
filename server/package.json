@@ -5,6 +5,7 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.4",
     "hono": "^4.7.2"
   },
   "devDependencies": {
