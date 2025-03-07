@@ -1,43 +1,14 @@
+import { handleRoot } from "./routes/root";
+import { handleWebSocketUpgrade } from "./routes/websocket";
 import {
-  Action,
-  ClientMessage,
-  NTPRequestMessage,
-  ServerMessage,
-} from "@shared/types";
+  handleClose,
+  handleMessage,
+  handleOpen,
+} from "./routes/websocketHandlers";
+import { corsHeaders, errorResponse } from "./utils/responses";
+import { WSData } from "./utils/websocket";
 
-interface WSData {
-  roomId: string;
-  userId: string;
-  username: string;
-}
-
-// Define a constant for the global topic
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "*",
-  "Access-Control-Allow-Headers": "*",
-};
-
-const deserializeMessage = (message: string): ClientMessage => {
-  const parsedMessage = JSON.parse(message.toString());
-  return parsedMessage;
-};
-
-// Helper functions for common responses
-const jsonResponse = (data: any, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: corsHeaders,
-  });
-
-const errorResponse = (message: string, status = 400) =>
-  new Response(message, {
-    status,
-    headers: corsHeaders,
-  });
-
-// Bun.serve<WebSocketDataType, ServerFetchContextType>
+// Bun.serve with WebSocket support
 const server = Bun.serve<WSData, undefined>({
   port: 8080,
   async fetch(req, server) {
@@ -51,49 +22,10 @@ const server = Bun.serve<WSData, undefined>({
     try {
       switch (url.pathname) {
         case "/":
-          return new Response("Hello Hono!");
+          return handleRoot(req);
 
-        case "/ws": {
-          const roomId = url.searchParams.get("roomId");
-          const userId = url.searchParams.get("userId");
-          const username = url.searchParams.get("username");
-
-          if (!roomId || !userId || !username) {
-            // Check which parameters are missing and log them
-            const missingParams = [];
-
-            if (!roomId) missingParams.push("roomId");
-            if (!userId) missingParams.push("userId");
-            if (!username) missingParams.push("username");
-
-            console.log(
-              `WebSocket connection attempt missing parameters: ${missingParams.join(
-                ", "
-              )}`
-            );
-
-            return errorResponse("roomId and userId are required");
-          }
-
-          console.log(
-            `User ${username} joined room ${roomId} with userId ${userId}`
-          );
-
-          // Upgrade the connection with the WSData context
-          const upgraded = server.upgrade(req, {
-            data: {
-              roomId,
-              userId,
-              username,
-            },
-          });
-
-          if (!upgraded) {
-            return errorResponse("WebSocket upgrade failed");
-          }
-
-          return undefined;
-        }
+        case "/ws":
+          return handleWebSocketUpgrade(req, server);
 
         default:
           return errorResponse("Not found", 404);
@@ -105,53 +37,15 @@ const server = Bun.serve<WSData, undefined>({
 
   websocket: {
     open(ws) {
-      const { roomId } = ws.data;
-      ws.subscribe(roomId);
-      const message: ServerMessage = {
-        type: Action.Join,
-        timestamp: Date.now(),
-        serverTime: Date.now(),
-      };
-      server.publish(roomId, JSON.stringify(message));
+      handleOpen(ws, server);
     },
 
     message(ws, message) {
-      const { roomId, userId, username } = ws.data;
-      const t1 = Date.now();
-      const parsedMessage = deserializeMessage(message.toString());
-
-      if (parsedMessage.type === Action.NTPRequest) {
-        // Only log NTP requests occasionally (every 100 requests)
-        const ntpRequest = parsedMessage as NTPRequestMessage;
-        const ntpResponse = {
-          type: Action.NTPResponse,
-          t0: ntpRequest.t0, // Echo back the client's t0
-          t1, // Server receive time
-          t2: Date.now(), // Server send time
-        };
-
-        ws.send(JSON.stringify(ntpResponse));
-        return;
-      }
-
-      const clientMessage = parsedMessage as ClientMessage;
-      const response = {
-        type: clientMessage.type,
-        timestamp: Date.now() + 500, // Schedule the action 500ms in the future
-        serverTime: Date.now(),
-      };
-
-      console.log(
-        `Room: ${roomId} | User: ${username} | Message: ${JSON.stringify(
-          clientMessage
-        )}`
-      );
-      server.publish(roomId, JSON.stringify(response));
+      handleMessage(ws, message, server);
     },
 
     close(ws) {
-      console.log(`Connection closed`);
-      ws.unsubscribe(ws.data.roomId);
+      handleClose(ws);
     },
   },
 });
