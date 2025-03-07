@@ -7,5 +7,13 @@ export const validateFullRoomId = (roomId: string) => {
 };
 
 export const createUserId = () => {
-  return crypto.randomUUID();
+  if (window.crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  } else {
+    // Fallback for insecure contexts
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
+  }
 };
