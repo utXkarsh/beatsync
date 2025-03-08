@@ -1,8 +1,8 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { useAudioSources } from "@/context/audiosources";
 import { useRoom } from "@/context/room";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
-import { useAudioSources } from "@/hooks/useAudioSources";
 import { useNTPSync } from "@/hooks/useNTPSync";
 import { calculateWaitTime } from "@/utils/time";
 import { deserializeMessage } from "@/utils/websocket";
@@ -40,12 +40,10 @@ export const Syncer = () => {
     isMuted,
     currentPlaybackTime,
     totalNudge,
-    selectedSourceIndex,
     handlePlay,
     handlePause,
     handleNudge,
     handleToggleMute,
-    handleTrackChange,
     handleServerAction,
   } = useAudioPlayback(socketRef, averageOffset); // depends on useNTPSync first
 

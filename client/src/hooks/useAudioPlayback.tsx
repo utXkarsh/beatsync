@@ -1,8 +1,8 @@
+import { useAudioSources } from "@/context/audiosources";
 import { calculateWaitTime } from "@/utils/time";
 import { serializeMessage } from "@/utils/websocket";
 import { Action } from "@shared/types";
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { useAudioSources } from "./useAudioSources";
 
 export const useAudioPlayback = (
   socketRef: RefObject<WebSocket | null>,
@@ -17,18 +17,22 @@ export const useAudioPlayback = (
   const [loadingState, setLoadingState] = useState<
     "loading" | "ready" | "error"
   >("loading");
-  const { audioSources, isLoadingAudioSources } = useAudioSources();
-  const [selectedSourceIndex, setSelectedSourceIndex] = useState<number>(0);
+  const { audioSources, isLoadingAudioSources, selectedSourceIndex } =
+    useAudioSources();
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [totalNudge, setTotalNudge] = useState<number>(0);
+
+  console.log("re-render");
 
   // Initialize Audio Context and load audio
   useEffect(() => {
     if (isLoadingAudioSources) {
       return;
     }
+
+    console.log("initializing audio context");
 
     const AudioContext = window.AudioContext;
     const context = new AudioContext();
@@ -179,25 +183,17 @@ export const useAudioPlayback = (
     console.log(`Audio ${newMuteState ? "muted" : "unmuted"}`);
   }, [isMuted]);
 
-  const handleTrackChange = useCallback(
-    (index: number) => {
-      if (index < 0 || index >= audioSources.length) {
-        console.error("Invalid track index");
-        return;
-      }
+  // For the case where the user changes the track while the audio is playing
+  useEffect(() => {
+    if (audioSourceRef.current) {
+      audioSourceRef.current.stop();
+      audioSourceRef.current = null;
+    }
 
-      if (audioSourceRef.current) {
-        audioSourceRef.current.stop();
-        audioSourceRef.current = null;
-      }
-
-      startedAtRef.current = null;
-      pausedAtRef.current = null;
-      setIsPlaying(false);
-      setSelectedSourceIndex(index);
-    },
-    [audioSources.length]
-  );
+    startedAtRef.current = null;
+    pausedAtRef.current = null;
+    setIsPlaying(false);
+  }, [selectedSourceIndex]);
 
   const handleServerAction = useCallback(
     (action: Action.Play | Action.Pause, targetServerTime: number) => {
@@ -257,12 +253,10 @@ export const useAudioPlayback = (
     currentPlaybackTime,
     totalNudge,
     audioSources,
-    selectedSourceIndex,
     handlePlay,
     handlePause,
     handleNudge,
     handleToggleMute,
-    handleTrackChange,
     handleServerAction,
   };
 };
