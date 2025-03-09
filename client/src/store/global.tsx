@@ -43,13 +43,16 @@ export const getInitialAudioSources = async (): Promise<
 };
 
 export const useGlobalStore = create<GlobalState>((set) => {
-  const loadAudioSources = async () => {
-    const sources = await getInitialAudioSources();
-    console.log(`Loaded initial audio sources ${sources.length}`);
-    set({ audioSources: sources, isLoadingAudioSources: false });
-  };
+  // Load audio sources if we're in the browser
+  if (typeof window !== "undefined") {
+    const loadAudioSources = async () => {
+      const sources = await getInitialAudioSources();
+      console.log(`Loaded initial audio sources ${sources.length}`);
+      set({ audioSources: sources, isLoadingAudioSources: false });
+    };
 
-  loadAudioSources();
+    loadAudioSources();
+  }
 
   return {
     // Audio Sources
