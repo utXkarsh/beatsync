@@ -1,4 +1,4 @@
-import { ClientMessage } from "@shared/types";
+import { WSMessage, WSRequestSchema } from "@shared/types";
 
 export interface WSData {
   roomId: string;
@@ -6,7 +6,6 @@ export interface WSData {
   username: string;
 }
 
-export const deserializeMessage = (message: string): ClientMessage => {
-  const parsedMessage = JSON.parse(message.toString());
-  return parsedMessage;
+export const deserializeMessage = (message: string): WSMessage => {
+  return WSRequestSchema.parse(JSON.parse(message));
 };

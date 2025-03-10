@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { TrackSelector } from "./TrackSelector";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
+import { WSResponseSchema } from "@shared/types";
+import { toast } from "sonner";
 
 export const NewSyncer = () => {
   // Room
@@ -18,6 +20,8 @@ export const NewSyncer = () => {
   const setSocket = useGlobalStore((state) => state.setSocket);
   const socket = useGlobalStore((state) => state.socket);
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
+
+  // Toast
 
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
@@ -43,8 +47,23 @@ export const NewSyncer = () => {
     };
 
     ws.onmessage = (msg) => {
-      const message = JSON.parse(msg.data);
-      console.log(`Received message: ${JSON.stringify(message)}`);
+      const response = WSResponseSchema.parse(JSON.parse(msg.data));
+
+      if (response.type === "NTP_RESPONSE") {
+        // Handle NTP logic
+      } else if (response.type === "ROOM_EVENT") {
+        const { event } = response;
+        console.log("Room event:", event);
+
+        if (event.type === "JOIN") {
+          toast(`User ${event.username} joined the room`);
+        } else if (event.type === "NEW_AUDIO_SOURCE") {
+          toast(`New audio source added: ${event.source.title}`);
+        }
+      } else if (response.type === "SCHEDULED_ACTION") {
+        // handle scheduling action
+        console.log("Scheduled action:", response);
+      }
     };
 
     return () => {

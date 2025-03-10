@@ -1,4 +1,5 @@
 import { LocalAudioSource } from "@/lib/localTypes";
+import { ClientActionEnum, WSMessage } from "@shared/types";
 import { create } from "zustand";
 
 // https://webaudioapi.com/book/Web_Audio_API_Boris_Smus_html/ch02.html
@@ -62,14 +63,14 @@ const getAudioPlayer = (state: GlobalState) => {
   return state.audioPlayer;
 };
 
-// const getSocket = (state: GlobalState) => {
-//   if (!state.socket) {
-//     throw new Error("Socket not initialized");
-//   }
-//   return {
-//     socket: state.socket,
-//   };
-// };
+const getSocket = (state: GlobalState) => {
+  if (!state.socket) {
+    throw new Error("Socket not initialized");
+  }
+  return {
+    socket: state.socket,
+  };
+};
 
 export const initializeAudioSources = async (
   audioContext: AudioContext
@@ -149,10 +150,28 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
     // Commands to broadcast
     play: () => {
-      // const { socket } = getSocket(get());
+      const state = get();
+      const { socket } = getSocket(state);
+
+      const message: WSMessage = {
+        type: ClientActionEnum.enum.PLAY,
+        time: state.currentTime,
+        trackIndex: state.selectedSourceIndex,
+      };
+
+      socket.send(JSON.stringify(message));
     },
 
-    pause: () => {},
+    pause: () => {
+      const state = get();
+      const { socket } = getSocket(state);
+
+      const message: WSMessage = {
+        type: ClientActionEnum.enum.PAUSE,
+      };
+
+      socket.send(JSON.stringify(message));
+    },
 
     // Audio Player
     audioPlayer: null,

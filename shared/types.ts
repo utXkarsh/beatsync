@@ -9,9 +9,6 @@ export const ClientActionEnum = z.enum([
 ]);
 export type ClientAction = z.infer<typeof ClientActionEnum>;
 
-// Actions that are different from the echoing of client actions
-export const ServerActionEnum = z.enum(["NTP_RESPONSE"]);
-
 export const AudioSourceSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -23,23 +20,18 @@ export const AudioSourceSchema = z.object({
 
 export type AudioSource = z.infer<typeof AudioSourceSchema>;
 
-export const ClientMessageSchema = z.object({
-  type: ClientActionEnum,
-});
-
-export const NTPRequestMessageSchema = ClientMessageSchema.extend({
-  type: z.literal(ClientActionEnum.enum.NTP_REQUEST),
-  t0: z.number(), // Client send timestamp
-});
-
 export const PlayActionSchema = z.object({
   type: z.literal(ClientActionEnum.enum.PLAY),
   time: z.number(),
   trackIndex: z.number(),
 });
 
+export const PauseActionSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.PAUSE),
+});
+
 export const NTPResponseMessageSchema = z.object({
-  type: z.literal(ServerActionEnum.enum.NTP_RESPONSE),
+  type: z.literal("NTP_RESPONSE"),
   t0: z.number(), // Client send timestamp (echoed back)
   t1: z.number(), // Server receive timestamp
   t2: z.number(), // Server send timestamp
@@ -56,16 +48,40 @@ const JoinMessageSchema = z.object({
   userId: z.string(),
 });
 
-export const ServerMessageSchema = z.discriminatedUnion("type", [
+const NTPRequestMessageSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.NTP_REQUEST),
+  t0: z.number(), // Client send timestamp
+});
+
+export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
-  NTPResponseMessageSchema,
+  PauseActionSchema,
   NewAudioSourceMessageSchema,
   JoinMessageSchema,
+  NTPRequestMessageSchema,
 ]);
 
-export type ClientMessage = z.infer<typeof ClientMessageSchema>;
+export const ScheduledActionSchema = z.object({
+  type: z.literal("SCHEDULED_ACTION"),
+  action: z.enum(["PLAY", "PAUSE"]),
+  timeToExecute: z.number(), // server time to execute
+});
+
+export const RoomEventSchema = z.object({
+  type: z.literal("ROOM_EVENT"),
+  event: WSRequestSchema,
+});
+export type RoomEvent = z.infer<typeof RoomEventSchema>;
+
+export const WSResponseSchema = z.discriminatedUnion("type", [
+  NTPResponseMessageSchema,
+  ScheduledActionSchema,
+  RoomEventSchema,
+]);
+export type WSResponse = z.infer<typeof WSResponseSchema>;
+
 export type NTPRequestMessage = z.infer<typeof NTPRequestMessageSchema>;
 export type PlayActionMessage = z.infer<typeof PlayActionSchema>;
 export type NTPResponseMessage = z.infer<typeof NTPResponseMessageSchema>;
 export type NewAudioSourceMessage = z.infer<typeof NewAudioSourceMessageSchema>;
-export type ServerMessage = z.infer<typeof ServerMessageSchema>;
+export type WSMessage = z.infer<typeof WSRequestSchema>;

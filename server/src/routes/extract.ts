@@ -3,7 +3,7 @@ import {
   ClientAction,
   ClientActionEnum,
   AudioSource,
-  ServerMessage,
+  WSMessage,
 } from "@shared/types";
 import { randomUUIDv7, Server } from "bun";
 import { existsSync, mkdirSync } from "fs";
@@ -105,7 +105,7 @@ export const handleExtract = async (req: Request, server: Server) => {
 
     // Notify all clients in the room about the new audio source
     console.log(`Notifying clients in room ${roomId} about new audio`);
-    const message: ServerMessage = {
+    const message: WSMessage = {
       type: "NEW_AUDIO_SOURCE",
       source: audioSource,
     };
