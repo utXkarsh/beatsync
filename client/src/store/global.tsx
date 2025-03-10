@@ -52,6 +52,13 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
   { name: "Chess", url: "/chess.mp3" },
 ];
 
+const getAudioPlayer = (state: GlobalState) => {
+  if (!state.audioPlayer) {
+    throw new Error(AudioPlayerError.NotInitialized);
+  }
+  return state.audioPlayer;
+};
+
 export const initializeAudioSources = async (
   audioContext: AudioContext
 ): Promise<Array<LocalAudioSource>> => {
@@ -73,13 +80,6 @@ export const initializeAudioSources = async (
 const initializeAudioContext = () => {
   const audioContext = new AudioContext();
   return audioContext;
-};
-
-const getAudioContext = (state: GlobalState) => {
-  if (!state.audioPlayer) {
-    throw new Error(AudioPlayerError.NotInitialized);
-  }
-  return state.audioPlayer.audioContext;
 };
 
 export const useGlobalStore = create<GlobalState>((set, get) => {
@@ -127,7 +127,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         audioSources: [...state.audioSources, source],
       })),
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
-    setSelectedSourceIndex: (index) => set({ selectedSourceIndex: index }),
+    setSelectedSourceIndex: (index) => {
+      set({ selectedSourceIndex: index });
+    },
 
     // Websocket
     socket: null,
@@ -143,30 +145,39 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Play the current source
     play: async ({ offset }: { offset: number; time: number }) => {
       const state = get();
-      const audioContext = getAudioContext(state);
+      const { sourceNode, audioContext, gainNode } = getAudioPlayer(state);
 
-      // Create a new source node each time
-      const sourceNode = audioContext.createBufferSource();
-      sourceNode.buffer =
+      // Stop any existing source node before creating a new one
+      try {
+        sourceNode.stop();
+        // If node hasn't been started stop will throw an error
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {}
+
+      // Create a new source node
+      const newSourceNode = audioContext.createBufferSource();
+      newSourceNode.buffer =
         state.audioSources[state.selectedSourceIndex].audioBuffer;
-      sourceNode.connect(state.audioPlayer!.gainNode);
-      sourceNode.start(0, offset);
+      newSourceNode.connect(gainNode);
+      newSourceNode.start(0, offset);
       console.log("Started playback");
+
+      // Update the state with the new source node
+      set((state) => ({
+        ...state,
+        audioPlayer: {
+          ...state.audioPlayer!,
+          sourceNode: newSourceNode,
+        },
+      }));
     },
 
     // Pause playback
     pause: () => {
       const state = get();
-      const audioContext = getAudioContext(state);
+      const { sourceNode } = getAudioPlayer(state);
 
-      if (audioContext.state === "suspended") {
-        audioContext.resume();
-      } else {
-        console.log(
-          `Cannot pause audio context. It is in state: ${audioContext.state}`
-        );
-        audioContext.suspend();
-      }
+      sourceNode.stop();
     },
   };
 });
