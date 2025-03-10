@@ -1,6 +1,9 @@
 import { LocalAudioSource } from "@/lib/localTypes";
+import { NTPMeasurement, _sendNTPRequest } from "@/utils/ntp";
 import { ClientActionEnum, WSMessage } from "@shared/types";
 import { create } from "zustand";
+
+const MAX_NTP_MEASUREMENTS = 20;
 
 // https://webaudioapi.com/book/Web_Audio_API_Boris_Smus_html/ch02.html
 
@@ -35,6 +38,11 @@ interface GlobalState {
   // Commands to broadcast
   play: (data: { offset: number; time: number }) => void;
   pause: () => void;
+
+  // NTP
+  sendNTPRequest: () => void;
+  ntpMeasurements: NTPMeasurement[];
+  addNTPMeasurement: (measurement: NTPMeasurement) => void;
 
   // Audio Player
   audioPlayer: AudioPlayerState | null;
@@ -172,6 +180,26 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       socket.send(JSON.stringify(message));
     },
+
+    // NTP
+    sendNTPRequest: () => {
+      const state = get();
+      if (state.ntpMeasurements.length >= MAX_NTP_MEASUREMENTS) {
+        return;
+      }
+
+      const { socket } = getSocket(state);
+
+      // Send the first one
+      _sendNTPRequest(socket);
+    },
+
+    // NTP
+    ntpMeasurements: [],
+    addNTPMeasurement: (measurement) =>
+      set((state) => ({
+        ntpMeasurements: [...state.ntpMeasurements, measurement],
+      })),
 
     // Audio Player
     audioPlayer: null,

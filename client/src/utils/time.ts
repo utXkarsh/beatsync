@@ -7,11 +7,3 @@ export const formatTimeMicro = (timeMs: number): string => {
     .toString()
     .padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
 };
-
-export const calculateWaitTime = (
-  targetServerTime: number,
-  clockOffset: number | null
-): number => {
-  const estimatedCurrentServerTime = Date.now() + (clockOffset || 0);
-  return Math.max(0, targetServerTime - estimatedCurrentServerTime);
-};

@@ -63,8 +63,11 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
 
 export const ScheduledActionSchema = z.object({
   type: z.literal("SCHEDULED_ACTION"),
-  action: z.enum(["PLAY", "PAUSE"]),
-  timeToExecute: z.number(), // server time to execute
+  timeToExecute: z.number(),
+  scheduledAction: z.discriminatedUnion("type", [
+    PlayActionSchema,
+    PauseActionSchema,
+  ]),
 });
 
 export const RoomEventSchema = z.object({

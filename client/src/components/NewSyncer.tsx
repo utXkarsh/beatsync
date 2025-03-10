@@ -5,8 +5,32 @@ import { useEffect } from "react";
 import { TrackSelector } from "./TrackSelector";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
-import { WSResponseSchema } from "@shared/types";
+import { NTPResponseMessage, WSResponseSchema } from "@shared/types";
 import { toast } from "sonner";
+import { NTPMeasurement } from "@/utils/ntp";
+import { NTP } from "./room/NTP";
+
+const handleNTPResponse = (response: NTPResponseMessage) => {
+  const t3 = Date.now();
+  const { t0, t1, t2 } = response;
+
+  // Calculate round-trip delay and clock offset
+  // See: https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
+  const clockOffset = (t1 - t0 + (t2 - t3)) / 2;
+  const roundTripDelay = t3 - t0 - (t2 - t1);
+
+  const measurement: NTPMeasurement = {
+    t0,
+    t1,
+    t2,
+    t3,
+    roundTripDelay,
+    clockOffset,
+  };
+
+  console.log("Measurement ", measurement);
+  return measurement;
+};
 
 export const NewSyncer = () => {
   // Room
@@ -16,12 +40,13 @@ export const NewSyncer = () => {
   const isLoadingRoom = useRoomStore((state) => state.isLoadingRoom);
 
   // Audio
-  const audioSources = useGlobalStore((state) => state.audioSources);
   const setSocket = useGlobalStore((state) => state.setSocket);
   const socket = useGlobalStore((state) => state.socket);
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
 
-  // Toast
+  // Socket
+  const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
+  const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
 
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
@@ -50,7 +75,13 @@ export const NewSyncer = () => {
       const response = WSResponseSchema.parse(JSON.parse(msg.data));
 
       if (response.type === "NTP_RESPONSE") {
-        // Handle NTP logic
+        const ntpMeasurement = handleNTPResponse(response);
+        addNTPMeasurement(ntpMeasurement);
+
+        // Check that we have not exceeded the max and then send another NTP request
+        setTimeout(() => {
+          sendNTPRequest();
+        }, 30);
       } else if (response.type === "ROOM_EVENT") {
         const { event } = response;
         console.log("Room event:", event);
@@ -74,7 +105,7 @@ export const NewSyncer = () => {
     // Not including socket in the dependency array because it will trigger the close
   }, [isLoadingRoom, roomId, userId, username, setSocket]);
 
-  console.log("render", audioSources);
+  console.log("NewSyncer render");
 
   if (isLoadingRoom || !socket || isLoadingAudio) {
     return (
@@ -104,6 +135,7 @@ export const NewSyncer = () => {
       <div>
         {isLoadingRoom && <div>Loading...</div>}
         <TrackSelector />
+        <NTP />
         <Player />
       </div>
     </div>

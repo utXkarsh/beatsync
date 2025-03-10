@@ -50,7 +50,7 @@ export const handleMessage = (
   } else if (parsedMessage.type === "PLAY" || parsedMessage.type === "PAUSE") {
     const scheduledMessage: WSResponse = {
       type: "SCHEDULED_ACTION",
-      action: parsedMessage.type,
+      scheduledAction: parsedMessage,
       timeToExecute: Date.now() + 500, // 500 ms from now
     };
     ws.send(JSON.stringify(scheduledMessage));
