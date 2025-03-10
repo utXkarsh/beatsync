@@ -53,7 +53,8 @@ export const handleMessage = (
       scheduledAction: parsedMessage,
       timeToExecute: Date.now() + 500, // 500 ms from now
     };
-    ws.send(JSON.stringify(scheduledMessage));
+    console.log("Publishing message for room", roomId);
+    server.publish(roomId, JSON.stringify(scheduledMessage));
     return;
   }
 

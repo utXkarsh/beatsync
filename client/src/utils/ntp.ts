@@ -53,7 +53,7 @@ export const calculateOffsetEstimate = (ntpMeasurements: NTPMeasurement[]) => {
   return result;
 };
 
-export const calculateWaitTime = (
+export const calculateWaitTimeMilliseconds = (
   targetServerTime: number,
   clockOffset: number | null
 ): number => {

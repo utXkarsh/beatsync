@@ -2,13 +2,13 @@ import { useGlobalStore } from "@/store/global";
 import { Button } from "../ui/button";
 
 export const Player = () => {
-  const play = useGlobalStore((state) => state.play);
-  const pause = useGlobalStore((state) => state.pause);
+  const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
+  const broadcastPause = useGlobalStore((state) => state.broadcastPause);
 
   return (
     <div>
-      <Button onClick={() => play({ offset: 0, time: 0 })}>Play</Button>
-      <Button onClick={pause}>Pause</Button>
+      <Button onClick={() => broadcastPlay()}>Play</Button>
+      <Button onClick={broadcastPause}>Pause</Button>
     </div>
   );
 };

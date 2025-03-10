@@ -22,7 +22,7 @@ export type AudioSource = z.infer<typeof AudioSourceSchema>;
 
 export const PlayActionSchema = z.object({
   type: z.literal(ClientActionEnum.enum.PLAY),
-  time: z.number(),
+  trackTimeSeconds: z.number(),
   trackIndex: z.number(),
 });
 

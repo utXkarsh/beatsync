@@ -43,6 +43,8 @@ export const NewSyncer = () => {
   const setSocket = useGlobalStore((state) => state.setSocket);
   const socket = useGlobalStore((state) => state.socket);
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
+  const schedulePlay = useGlobalStore((state) => state.schedulePlay);
+  const schedulePause = useGlobalStore((state) => state.schedulePause);
 
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
@@ -81,7 +83,7 @@ export const NewSyncer = () => {
         // Check that we have not exceeded the max and then send another NTP request
         setTimeout(() => {
           sendNTPRequest();
-        }, 30);
+        }, 30); // 30ms delay to not overload
       } else if (response.type === "ROOM_EVENT") {
         const { event } = response;
         console.log("Room event:", event);
@@ -93,7 +95,19 @@ export const NewSyncer = () => {
         }
       } else if (response.type === "SCHEDULED_ACTION") {
         // handle scheduling action
-        console.log("Scheduled action:", response);
+        console.log("Received scheduled action:", response);
+        const { scheduledAction, timeToExecute } = response;
+
+        if (scheduledAction.type === "PLAY") {
+          schedulePlay({
+            trackTimeSeconds: scheduledAction.trackTimeSeconds,
+            targetServerTime: timeToExecute,
+          });
+        } else if (scheduledAction.type === "PAUSE") {
+          schedulePause({
+            targetServerTime: timeToExecute,
+          });
+        }
       }
     };
 

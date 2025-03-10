@@ -3,11 +3,12 @@ import {
   NTPMeasurement,
   _sendNTPRequest,
   calculateOffsetEstimate,
+  calculateWaitTimeMilliseconds,
 } from "@/utils/ntp";
 import { ClientActionEnum, WSMessage } from "@shared/types";
 import { create } from "zustand";
 
-const MAX_NTP_MEASUREMENTS = 20;
+const MAX_NTP_MEASUREMENTS = 50;
 
 // https://webaudioapi.com/book/Web_Audio_API_Boris_Smus_html/ch02.html
 
@@ -35,13 +36,19 @@ interface GlobalState {
   addAudioSource: (source: LocalAudioSource) => void;
   setIsLoadingAudio: (isLoading: boolean) => void;
   setSelectedSourceIndex: (index: number) => void;
+  schedulePlay: (data: {
+    trackTimeSeconds: number;
+    targetServerTime: number;
+  }) => void;
+  schedulePause: (data: { targetServerTime: number }) => void;
 
   // Websocket
   socket: WebSocket | null; // Use WebSocket.readyState read-only property returns the current state of the WebSocket connection
   setSocket: (socket: WebSocket) => void;
   // Commands to broadcast
-  play: (data: { offset: number; time: number }) => void;
-  pause: () => void;
+  // trackTimeSeconds is the number of seconds into the track to play at (ie. location of the slider)
+  broadcastPlay: (trackTimeSeconds?: number) => void;
+  broadcastPause: () => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -56,8 +63,8 @@ interface GlobalState {
   currentTime: number;
   duration: number;
   volume: number;
-  playAudio: (data: { offset: number; time: number }) => void; // time in seconds
-  pauseAudio: () => void;
+  playAudio: (data: { offset: number; when: number }) => void; // time in seconds
+  pauseAudio: (data: { when: number }) => void;
   // reset: () => void;
   // seekTo: (time: number) => void;
   // setVolume: (volume: number) => void; // Set volume out of 1
@@ -84,6 +91,11 @@ const getSocket = (state: GlobalState) => {
   return {
     socket: state.socket,
   };
+};
+
+const getWaitTimeSeconds = (state: GlobalState, targetServerTime: number) => {
+  const { offsetEstimate } = state;
+  return calculateWaitTimeMilliseconds(targetServerTime, offsetEstimate) / 1000;
 };
 
 export const initializeAudioSources = async (
@@ -157,26 +169,54 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     setSelectedSourceIndex: (index) => {
       set({ selectedSourceIndex: index });
     },
+    schedulePlay: ({
+      trackTimeSeconds,
+      targetServerTime,
+    }: {
+      trackTimeSeconds: number;
+      targetServerTime: number;
+    }) => {
+      const state = get();
+      const waitTimeSeconds = getWaitTimeSeconds(state, targetServerTime);
+      console.log(
+        `Playing track at ${trackTimeSeconds} seconds in ${waitTimeSeconds}`
+      );
+
+      state.playAudio({
+        offset: trackTimeSeconds,
+        when: waitTimeSeconds,
+      });
+    },
+    schedulePause: ({ targetServerTime }: { targetServerTime: number }) => {
+      const state = get();
+      const waitTimeSeconds = getWaitTimeSeconds(state, targetServerTime);
+      console.log(`Pausing track in ${waitTimeSeconds}`);
+
+      state.pauseAudio({
+        when: waitTimeSeconds,
+      });
+    },
 
     // Websocket
     socket: null,
     setSocket: (socket) => set({ socket }),
 
     // Commands to broadcast
-    play: () => {
+    broadcastPlay: (trackTimeSeconds?: number) => {
       const state = get();
       const { socket } = getSocket(state);
+      const { audioContext } = getAudioPlayer(state);
 
       const message: WSMessage = {
         type: ClientActionEnum.enum.PLAY,
-        time: state.currentTime,
+        trackTimeSeconds: trackTimeSeconds || audioContext.currentTime,
         trackIndex: state.selectedSourceIndex,
       };
 
       socket.send(JSON.stringify(message));
     },
 
-    pause: () => {
+    broadcastPause: () => {
       const state = get();
       const { socket } = getSocket(state);
 
@@ -225,7 +265,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     volume: 0.5,
 
     // Play the current source
-    playAudio: async ({ offset }: { offset: number; time: number }) => {
+    playAudio: async ({ offset, when }: { offset: number; when: number }) => {
       const state = get();
       const { sourceNode, audioContext, gainNode } = getAudioPlayer(state);
 
@@ -236,12 +276,14 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {}
 
+      const startTime = audioContext.currentTime + when;
+
       // Create a new source node
       const newSourceNode = audioContext.createBufferSource();
       newSourceNode.buffer =
         state.audioSources[state.selectedSourceIndex].audioBuffer;
       newSourceNode.connect(gainNode);
-      newSourceNode.start(0, offset);
+      newSourceNode.start(startTime, offset);
       console.log("Started playback");
 
       // Update the state with the new source node
@@ -255,11 +297,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
 
     // Pause playback
-    pauseAudio: () => {
+    pauseAudio: ({ when }: { when: number }) => {
       const state = get();
       const { sourceNode } = getAudioPlayer(state);
 
-      sourceNode.stop();
+      sourceNode.stop(when);
     },
   };
 });
