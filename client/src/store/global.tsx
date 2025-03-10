@@ -31,6 +31,9 @@ interface GlobalState {
   // Websocket
   socket: WebSocket | null; // Use WebSocket.readyState read-only property returns the current state of the WebSocket connection
   setSocket: (socket: WebSocket) => void;
+  // Commands to broadcast
+  play: (data: { offset: number; time: number }) => void;
+  pause: () => void;
 
   // Audio Player
   audioPlayer: AudioPlayerState | null;
@@ -38,8 +41,8 @@ interface GlobalState {
   currentTime: number;
   duration: number;
   volume: number;
-  play: (data: { offset: number; time: number }) => void; // time in seconds
-  pause: () => void;
+  playAudio: (data: { offset: number; time: number }) => void; // time in seconds
+  pauseAudio: () => void;
   // reset: () => void;
   // seekTo: (time: number) => void;
   // setVolume: (volume: number) => void; // Set volume out of 1
@@ -58,6 +61,15 @@ const getAudioPlayer = (state: GlobalState) => {
   }
   return state.audioPlayer;
 };
+
+// const getSocket = (state: GlobalState) => {
+//   if (!state.socket) {
+//     throw new Error("Socket not initialized");
+//   }
+//   return {
+//     socket: state.socket,
+//   };
+// };
 
 export const initializeAudioSources = async (
   audioContext: AudioContext
@@ -135,6 +147,13 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     socket: null,
     setSocket: (socket) => set({ socket }),
 
+    // Commands to broadcast
+    play: () => {
+      // const { socket } = getSocket(get());
+    },
+
+    pause: () => {},
+
     // Audio Player
     audioPlayer: null,
     isPlaying: false,
@@ -143,7 +162,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     volume: 0.5,
 
     // Play the current source
-    play: async ({ offset }: { offset: number; time: number }) => {
+    playAudio: async ({ offset }: { offset: number; time: number }) => {
       const state = get();
       const { sourceNode, audioContext, gainNode } = getAudioPlayer(state);
 
@@ -173,7 +192,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
 
     // Pause playback
-    pause: () => {
+    pauseAudio: () => {
       const state = get();
       const { sourceNode } = getAudioPlayer(state);
 

@@ -42,6 +42,11 @@ export const NewSyncer = () => {
       console.log("WebSocket connection closed");
     };
 
+    ws.onmessage = (msg) => {
+      const message = JSON.parse(msg.data);
+      console.log(`Received message: ${JSON.stringify(message)}`);
+    };
+
     return () => {
       // Runs on unmount and dependency change
       console.log("Running cleanup for WebSocket connection");
