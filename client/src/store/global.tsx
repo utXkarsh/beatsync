@@ -1,5 +1,9 @@
 import { LocalAudioSource } from "@/lib/localTypes";
-import { NTPMeasurement, _sendNTPRequest } from "@/utils/ntp";
+import {
+  NTPMeasurement,
+  _sendNTPRequest,
+  calculateOffsetEstimate,
+} from "@/utils/ntp";
 import { ClientActionEnum, WSMessage } from "@shared/types";
 import { create } from "zustand";
 
@@ -43,6 +47,8 @@ interface GlobalState {
   sendNTPRequest: () => void;
   ntpMeasurements: NTPMeasurement[];
   addNTPMeasurement: (measurement: NTPMeasurement) => void;
+  offsetEstimate: number;
+  roundTripEstimate: number;
 
   // Audio Player
   audioPlayer: AudioPlayerState | null;
@@ -185,9 +191,17 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     sendNTPRequest: () => {
       const state = get();
       if (state.ntpMeasurements.length >= MAX_NTP_MEASUREMENTS) {
+        const { averageOffset, averageRoundTrip } = calculateOffsetEstimate(
+          state.ntpMeasurements
+        );
+        set({
+          offsetEstimate: averageOffset,
+          roundTripEstimate: averageRoundTrip,
+        });
         return;
       }
 
+      // Otherwise not done, keep sending
       const { socket } = getSocket(state);
 
       // Send the first one
@@ -200,6 +214,8 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       set((state) => ({
         ntpMeasurements: [...state.ntpMeasurements, measurement],
       })),
+    offsetEstimate: 0,
+    roundTripEstimate: 0,
 
     // Audio Player
     audioPlayer: null,
