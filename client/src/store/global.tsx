@@ -1,6 +1,8 @@
 import { LocalAudioSource } from "@/lib/localTypes";
 import { create } from "zustand";
 
+// https://webaudioapi.com/book/Web_Audio_API_Boris_Smus_html/ch02.html
+
 interface StaticAudioSource {
   name: string;
   url: string;
@@ -36,7 +38,7 @@ interface GlobalState {
   currentTime: number;
   duration: number;
   volume: number;
-  play: () => void;
+  play: (data: { offset: number; time: number }) => void; // time in seconds
   pause: () => void;
   // reset: () => void;
   // seekTo: (time: number) => void;
@@ -139,14 +141,16 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     volume: 0.5,
 
     // Play the current source
-    play: async () => {
+    play: async ({ offset }: { offset: number; time: number }) => {
       const state = get();
       const audioContext = getAudioContext(state);
+
+      // Create a new source node each time
       const sourceNode = audioContext.createBufferSource();
       sourceNode.buffer =
         state.audioSources[state.selectedSourceIndex].audioBuffer;
       sourceNode.connect(state.audioPlayer!.gainNode);
-      sourceNode.start(0);
+      sourceNode.start(0, offset);
       console.log("Started playback");
     },
 
