@@ -3,6 +3,8 @@ import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { useEffect } from "react";
 import { TrackSelector } from "./TrackSelector";
+import { Player } from "./room/Player";
+import { SocketStatus } from "./room/SocketStatus";
 
 export const NewSyncer = () => {
   // Room
@@ -13,11 +15,9 @@ export const NewSyncer = () => {
 
   // Audio
   const audioSources = useGlobalStore((state) => state.audioSources);
-  const isLoadingAudioSources = useGlobalStore(
-    (state) => state.isLoadingAudioSources
-  );
   const setSocket = useGlobalStore((state) => state.setSocket);
   const socket = useGlobalStore((state) => state.socket);
+  const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
 
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
@@ -50,29 +50,19 @@ export const NewSyncer = () => {
     // Not including socket in the dependency array because it will trigger the close
   }, [isLoadingRoom, roomId, userId, username, setSocket]);
 
-  // Unmount of page:
-
   console.log("render", audioSources);
 
-  if (isLoadingRoom) {
+  if (isLoadingRoom || !socket || isLoadingAudio) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white/90">
         <div className="w-6 h-6 border-1 border-t-gray-800 rounded-full animate-spin"></div>
         <span className="ml-3 text-base font-normal text-gray-500">
-          Loading{" "}
-          {isLoadingRoom ? "room" : isLoadingAudioSources ? "audio tracks" : ""}
+          {isLoadingRoom
+            ? "Loading room"
+            : !socket
+            ? "Loading socket"
+            : "Loading audio"}
           ...
-        </span>
-      </div>
-    );
-  }
-
-  if (!socket) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white/90">
-        <div className="w-6 h-6 border-1 border-t-gray-800 rounded-full animate-spin"></div>
-        <span className="ml-3 text-base font-normal text-gray-500">
-          Loading socket...
         </span>
       </div>
     );
@@ -80,6 +70,7 @@ export const NewSyncer = () => {
 
   return (
     <div>
+      <SocketStatus />
       <div>
         <div>Room: {roomId}</div>
         <div>Username: {username}</div>
@@ -89,6 +80,7 @@ export const NewSyncer = () => {
       <div>
         {isLoadingRoom && <div>Loading...</div>}
         <TrackSelector />
+        <Player />
       </div>
     </div>
   );

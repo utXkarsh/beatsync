@@ -16,9 +16,7 @@ export const TrackSelector = () => {
   const setSelectedSourceIndex = useGlobalStore(
     (state) => state.setSelectedSourceIndex
   );
-  const isLoadingAudioSources = useGlobalStore(
-    (state) => state.isLoadingAudioSources
-  );
+  const isLoadingAudioSources = useGlobalStore((state) => state.isLoadingAudio);
 
   return (
     <div className="mt-4 mb-4">
