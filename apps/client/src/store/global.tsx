@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { LocalAudioSource } from "@/lib/localTypes";
 import {
   NTPMeasurement,
@@ -64,10 +65,19 @@ interface GlobalState {
   duration: number;
   volume: number;
   playAudio: (data: { offset: number; when: number }) => void; // time in seconds
+
+  // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
   // reset: () => void;
   // seekTo: (time: number) => void;
   // setVolume: (volume: number) => void; // Set volume out of 1
+
+  // Add these tracking properties
+  playbackStartTime: number; // AudioContext time when playback started
+  playbackOffset: number; // Offset in seconds into the track when playback started
+
+  // Add function to get current position
+  getCurrentTrackPosition: () => number;
 }
 
 // Audio sources
@@ -205,11 +215,10 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     broadcastPlay: (trackTimeSeconds?: number) => {
       const state = get();
       const { socket } = getSocket(state);
-      const { audioContext } = getAudioPlayer(state);
 
       const message: WSMessage = {
         type: ClientActionEnum.enum.PLAY,
-        trackTimeSeconds: trackTimeSeconds || audioContext.currentTime,
+        trackTimeSeconds: trackTimeSeconds ?? state.getCurrentTrackPosition(),
         trackIndex: state.selectedSourceIndex,
       };
 
@@ -260,9 +269,27 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Audio Player
     audioPlayer: null,
     isPlaying: false,
+
     currentTime: 0,
     duration: 0,
     volume: 0.5,
+
+    // Initialize new tracking properties
+    playbackStartTime: 0,
+    playbackOffset: 0,
+
+    // Get current track position at any time
+    getCurrentTrackPosition: () => {
+      const state = get();
+      if (!state.isPlaying) {
+        return state.currentTime; // Return the saved position when paused
+      }
+
+      const { audioContext } = getAudioPlayer(state);
+      const elapsedSinceStart =
+        audioContext.currentTime - state.playbackStartTime;
+      return state.playbackOffset + elapsedSinceStart;
+    },
 
     // Play the current source
     playAudio: async ({ offset, when }: { offset: number; when: number }) => {
@@ -272,8 +299,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // Stop any existing source node before creating a new one
       try {
         sourceNode.stop();
-        // If node hasn't been started stop will throw an error
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {}
 
       const startTime = audioContext.currentTime + when;
@@ -284,24 +309,45 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         state.audioSources[state.selectedSourceIndex].audioBuffer;
       newSourceNode.connect(gainNode);
       newSourceNode.start(startTime, offset);
-      console.log("Started playback");
+      console.log("Started playback at offset:", offset, "with delay:", when);
 
-      // Update the state with the new source node
+      // Update state with the new source node and tracking info
       set((state) => ({
         ...state,
         audioPlayer: {
           ...state.audioPlayer!,
           sourceNode: newSourceNode,
         },
+        isPlaying: true,
+        playbackStartTime: startTime,
+        playbackOffset: offset,
       }));
     },
 
     // Pause playback
     pauseAudio: ({ when }: { when: number }) => {
       const state = get();
-      const { sourceNode } = getAudioPlayer(state);
+      const { sourceNode, audioContext } = getAudioPlayer(state);
 
-      sourceNode.stop(when);
+      const stopTime = audioContext.currentTime + when;
+      sourceNode.stop(stopTime);
+
+      // Calculate current position in the track at the time of pausing
+      const elapsedSinceStart = stopTime - state.playbackStartTime;
+      const currentTrackPosition = state.playbackOffset + elapsedSinceStart;
+
+      console.log(
+        "Stopping at:",
+        when,
+        "Current track position:",
+        currentTrackPosition
+      );
+
+      set((state) => ({
+        ...state,
+        isPlaying: false,
+        currentTime: currentTrackPosition,
+      }));
     },
   };
 });

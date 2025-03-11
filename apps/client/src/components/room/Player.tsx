@@ -7,7 +7,7 @@ export const Player = () => {
 
   return (
     <div>
-      <Button onClick={() => broadcastPlay(0)}>Play</Button>
+      <Button onClick={() => broadcastPlay()}>Play</Button>
       <Button onClick={broadcastPause}>Pause</Button>
     </div>
   );
