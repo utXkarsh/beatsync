@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { TrackSelector } from "./TrackSelector";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
-import { NTPResponseMessage, WSResponseSchema } from "@shared/types";
+import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
 import { toast } from "sonner";
 import { NTPMeasurement } from "@/utils/ntp";
 import { NTP } from "./room/NTP";

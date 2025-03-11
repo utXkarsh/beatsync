@@ -4,7 +4,7 @@ import {
   ClientActionEnum,
   AudioSource,
   WSMessage,
-} from "@shared/types";
+} from "@beatsync/shared";
 import { randomUUIDv7, Server } from "bun";
 import { existsSync, mkdirSync } from "fs";
 import * as path from "path";

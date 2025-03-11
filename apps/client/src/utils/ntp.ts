@@ -1,4 +1,4 @@
-import { ClientActionEnum, WSMessage } from "@shared/types";
+import { ClientActionEnum, WSMessage } from "@beatsync/shared";
 
 export interface NTPMeasurement {
   t0: number;

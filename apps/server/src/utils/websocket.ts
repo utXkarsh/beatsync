@@ -1,4 +1,4 @@
-import { WSMessage, WSRequestSchema } from "@shared/types";
+import { WSMessage, WSRequestSchema } from "@beatsync/shared";
 
 export interface WSData {
   roomId: string;

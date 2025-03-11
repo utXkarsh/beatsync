@@ -1,6 +1,5 @@
 {
-  "name": "shared",
-  "module": "index.ts",
+  "name": "@beatsync/shared",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"

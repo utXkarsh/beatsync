@@ -5,7 +5,7 @@ import {
   calculateOffsetEstimate,
   calculateWaitTimeMilliseconds,
 } from "@/utils/ntp";
-import { ClientActionEnum, WSMessage } from "@shared/types";
+import { ClientActionEnum, WSMessage } from "@beatsync/shared";
 import { create } from "zustand";
 
 const MAX_NTP_MEASUREMENTS = 50;
