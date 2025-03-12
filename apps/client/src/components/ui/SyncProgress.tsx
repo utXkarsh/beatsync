@@ -1,27 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 
 interface SyncProgressProps {
   progress: number; // 0 to 1
 }
 
 export const SyncProgress = ({ progress }: SyncProgressProps) => {
-  const [animatedProgress, setAnimatedProgress] = useState(0);
-
   // Normalize progress to ensure it's between 0 and 1
   const normalizedProgress = Math.min(Math.max(progress, 0), 1);
 
   // Calculate the stroke-dashoffset based on progress
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - animatedProgress);
-
-  useEffect(() => {
-    // Animate the progress value for a smoother effect
-    setAnimatedProgress(normalizedProgress);
-  }, [normalizedProgress]);
 
   return (
     <div className="flex flex-col items-center justify-center p-8">
@@ -50,12 +41,12 @@ export const SyncProgress = ({ progress }: SyncProgressProps) => {
             fill="none"
             className={"stroke-[16px] drop-shadow-lg"}
             stroke="url(#progressGradient)"
-            // strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
             initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
+            animate={{
+              strokeDashoffset: circumference * (1 - normalizedProgress),
+            }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
             style={{
               transformOrigin: "center",
@@ -82,18 +73,12 @@ export const SyncProgress = ({ progress }: SyncProgressProps) => {
         <div className="absolute w-28 h-28 rounded-full bg-gray-100 shadow-[4px_4px_8px_rgba(0,0,0,0.1),-4px_-4px_8px_rgba(255,255,255,0.9)] flex items-center justify-center"></div>
 
         {/* Progress text */}
-        <motion.div
+        <div
           className="relative z-10 text-2xl font-semibold text-gray-700"
-          initial={{ scale: 0.9 }}
-          transition={{
-            duration: 0.4,
-            ease: "easeOut",
-            times: [0, 0.7, 1],
-          }}
           key={Math.round(normalizedProgress * 100)}
         >
           {Math.round(normalizedProgress * 100)}%
-        </motion.div>
+        </div>
       </div>
       <motion.p
         className="mt-4 text-gray-600 font-medium"
