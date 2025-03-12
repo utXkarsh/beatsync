@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LocalAudioSource } from "@/lib/localTypes";
+import { LocalAudioSource, RawAudioSource } from "@/lib/localTypes";
 import {
   NTPMeasurement,
   _sendNTPRequest,
@@ -34,7 +34,7 @@ interface GlobalState {
   isLoadingAudio: boolean;
   selectedSourceIndex: number;
   setAudioSources: (sources: LocalAudioSource[]) => void;
-  addAudioSource: (source: LocalAudioSource) => void;
+  addAudioSource: (source: RawAudioSource) => Promise<void>;
   setIsLoadingAudio: (isLoading: boolean) => void;
   setSelectedSourceIndex: (index: number) => void;
   schedulePlay: (data: {
@@ -171,10 +171,33 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     isLoadingAudio: true,
     selectedSourceIndex: 0,
     setAudioSources: (sources) => set({ audioSources: sources }),
-    addAudioSource: (source: LocalAudioSource) =>
-      set((state) => ({
-        audioSources: [...state.audioSources, source],
-      })),
+    addAudioSource: async (source: RawAudioSource) => {
+      const state = get();
+      const { audioContext } = state.audioPlayer || {
+        audioContext: new AudioContext(),
+      };
+
+      try {
+        const audioBuffer = await audioContext.decodeAudioData(
+          source.audioBuffer
+        );
+        console.log(
+          "Decoded audio setting state to add audio source",
+          source.name
+        );
+        set((state) => ({
+          audioSources: [
+            ...state.audioSources,
+            {
+              name: source.name,
+              audioBuffer,
+            },
+          ],
+        }));
+      } catch (error) {
+        console.error("Failed to decode audio data:", error);
+      }
+    },
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
     setSelectedSourceIndex: (index) => {
       set({ selectedSourceIndex: index });

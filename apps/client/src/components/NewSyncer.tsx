@@ -48,7 +48,7 @@ export const NewSyncer = () => {
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
   const schedulePlay = useGlobalStore((state) => state.schedulePlay);
   const schedulePause = useGlobalStore((state) => state.schedulePause);
-
+  const addAudioSource = useGlobalStore((state) => state.addAudioSource);
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
@@ -130,16 +130,19 @@ export const NewSyncer = () => {
       } else if (response.type === "NEW_AUDIO_SOURCE") {
         console.log("Received new audio source:", response);
         const { title, id } = response;
-        toast(`New audio source added: ${title}`);
 
         // Fetch the audio now
-        toast("Fetching audio...");
-        setTimeout(async () => {
-          const buffer = await fetchYouTubeAudio(id);
-          console.log("Fetched audio buffer:", buffer);
-          console.log("Type of buffer:", typeof buffer);
-          toast("Audio fetched successfully!");
-        }, 2000);
+        const buffer = await fetchYouTubeAudio(id);
+        console.log("Fetched audio buffer:", buffer);
+        console.log("Type of buffer:", typeof buffer);
+
+        // TODO: add more metadata about audio source
+        await addAudioSource({
+          name: title,
+          audioBuffer: buffer,
+        });
+
+        toast(`New audio source added: ${title}`);
       }
     };
 

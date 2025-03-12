@@ -94,6 +94,9 @@ export const handleExtract = async (req: Request, server: any) => {
     // Notify all clients in the room about the new audio source
     console.log(`Notifying clients in room ${roomId} about new audio`);
 
+    // Sleep for 1 second before publishing to give time for processing
+    // Yeah this sucks I know lol
+    await new Promise((resolve) => setTimeout(resolve, 300));
     server.publish(roomId, JSON.stringify(message));
 
     // Return success response with the audio source info
