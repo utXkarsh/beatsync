@@ -9,7 +9,7 @@ import {
 import { ClientActionEnum, WSMessage } from "@beatsync/shared";
 import { create } from "zustand";
 
-const MAX_NTP_MEASUREMENTS = 50;
+const MAX_NTP_MEASUREMENTS = 40;
 
 // https://webaudioapi.com/book/Web_Audio_API_Boris_Smus_html/ch02.html
 
@@ -295,6 +295,13 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     playAudio: async ({ offset, when }: { offset: number; when: number }) => {
       const state = get();
       const { sourceNode, audioContext, gainNode } = getAudioPlayer(state);
+
+      // Before any audio playback, ensure the context is running
+      if (audioContext.state !== "running") {
+        // This will resume a suspended context
+        await audioContext.resume();
+        console.log("Audio context resumed");
+      }
 
       // Stop any existing source node before creating a new one
       try {
