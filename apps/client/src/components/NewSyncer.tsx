@@ -3,7 +3,7 @@ import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
 import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TrackSelector } from "./TrackSelector";
@@ -138,25 +138,6 @@ export const NewSyncer = () => {
     // Not including socket in the dependency array because it will trigger the close
   }, [isLoadingRoom, roomId, userId, username, setSocket]);
 
-  if (!isSynced || isLoadingAudio || !socket) {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-white/90">
-        <AnimatePresence>
-          <SyncProgress
-            isSyncComplete={isSynced}
-            loadingMessage={
-              isLoadingRoom
-                ? "Loading audio"
-                : !socket
-                ? "Connecting to server"
-                : "Loading room"
-            }
-          />
-        </AnimatePresence>
-      </div>
-    );
-  }
-
   return (
     <div>
       <SocketStatus />
@@ -172,6 +153,27 @@ export const NewSyncer = () => {
         <NTP />
         <Player />
       </div>
+      <AnimatePresence>
+        {!isSynced && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <SyncProgress
+              isSyncComplete={isSynced}
+              loadingMessage={
+                isLoadingRoom
+                  ? "Loading audio"
+                  : !socket
+                  ? "Connecting to server"
+                  : "Loading room"
+              }
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
