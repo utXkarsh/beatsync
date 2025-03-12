@@ -10,14 +10,12 @@ interface SyncProgressProps {
   loadingMessage?: string; // Message for initial loading phase
 
   // Sync state
-  isSyncing?: boolean; // NTP syncing phase
   isSyncComplete?: boolean; // Whether sync is complete
 }
 
 export const SyncProgress = ({
   isLoading = false,
   loadingMessage = "Loading...",
-  isSyncing = false,
   isSyncComplete = false,
 }: SyncProgressProps) => {
   // Internal state for tracking progress animation
@@ -49,19 +47,17 @@ export const SyncProgress = ({
     }
 
     // In syncing phase, scale progress from 20% to 100%
-    if (isSyncing) {
-      setMessage("Syncing with server...");
-      setSubMessage("Calibrating time synchronization");
+    setMessage("Syncing with server...");
+    setSubMessage("Calibrating time synchronization");
 
-      // If sync is complete, set to 100%
-      if (isSyncComplete) {
-        setAnimatedProgress(1);
-      } else {
-        // Otherwise, scale the syncProgress to 20%-100% range
-        setAnimatedProgress(0.1 + syncProgress * 0.9);
-      }
+    // If sync is complete, set to 100%
+    if (isSyncComplete) {
+      setAnimatedProgress(1);
+    } else {
+      // Otherwise, scale the syncProgress to 20%-100% range
+      setAnimatedProgress(0.1 + syncProgress * 0.9);
     }
-  }, [isLoading, isSyncing, syncProgress, isSyncComplete, loadingMessage]);
+  }, [isLoading, syncProgress, isSyncComplete, loadingMessage]);
 
   // Normalize progress to ensure it's between 0 and 1
   const normalizedProgress = Math.min(Math.max(animatedProgress, 0), 1);
@@ -71,7 +67,13 @@ export const SyncProgress = ({
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className="flex flex-col items-center justify-center p-8">
+    <motion.div
+      className="flex flex-col items-center justify-center p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="relative w-48 h-48 flex items-center justify-center">
         {/* Neumorphic container */}
         <div className="absolute inset-0 rounded-full bg-gray-100 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)]"></div>
@@ -155,6 +157,6 @@ export const SyncProgress = ({
       >
         {subMessage}
       </motion.p>
-    </div>
+    </motion.div>
   );
 };
