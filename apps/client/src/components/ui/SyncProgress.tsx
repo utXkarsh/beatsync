@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -164,9 +165,10 @@ export const SyncProgress = ({
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className={`h-2 ${
-                i <= normalizedProgress * 4 ? "bg-black" : "bg-gray-700"
-              }`}
+              className={cn(
+                "h-2",
+                i <= normalizedProgress * 4 ? "bg-black" : "bg-zinc-700"
+              )}
             ></div>
           ))}
         </div>
