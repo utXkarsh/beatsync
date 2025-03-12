@@ -1,4 +1,4 @@
-import { WSMessage, WSRequestSchema } from "@beatsync/shared";
+import { WSRequestSchema } from "@beatsync/shared";
 
 export interface WSData {
   roomId: string;
@@ -6,6 +6,6 @@ export interface WSData {
   username: string;
 }
 
-export const deserializeMessage = (message: string): WSMessage => {
+export const deserializeMessage = (message: string) => {
   return WSRequestSchema.parse(JSON.parse(message));
 };

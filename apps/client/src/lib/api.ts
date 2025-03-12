@@ -1,3 +1,4 @@
+import { AudioSource, ExtractAudioSource } from "@beatsync/shared";
 import axios from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -15,4 +16,19 @@ export const fetchYouTubeAudio = async (audioId: string) => {
     responseType: "blob",
   });
   return response.data;
+};
+
+export const extractYouTubeAudio = async (data: ExtractAudioSource) => {
+  try {
+    const response = await baseAxios.post<AudioSource>("/extract", data);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to extract YouTube audio"
+      );
+    }
+    throw error;
+  }
 };

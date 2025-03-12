@@ -6,7 +6,7 @@ import {
   calculateOffsetEstimate,
   calculateWaitTimeMilliseconds,
 } from "@/utils/ntp";
-import { ClientActionEnum, WSMessage } from "@beatsync/shared";
+import { ClientActionEnum, WSRequest } from "@beatsync/shared";
 import { create } from "zustand";
 
 export const MAX_NTP_MEASUREMENTS = 40;
@@ -216,7 +216,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       const state = get();
       const { socket } = getSocket(state);
 
-      const message: WSMessage = {
+      const message: WSRequest = {
         type: ClientActionEnum.enum.PLAY,
         trackTimeSeconds: trackTimeSeconds ?? state.getCurrentTrackPosition(),
         trackIndex: state.selectedSourceIndex,
@@ -229,7 +229,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       const state = get();
       const { socket } = getSocket(state);
 
-      const message: WSMessage = {
+      const message: WSRequest = {
         type: ClientActionEnum.enum.PAUSE,
       };
 

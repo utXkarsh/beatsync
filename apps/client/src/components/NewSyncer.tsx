@@ -4,13 +4,14 @@ import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
 import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { TrackSelector } from "./TrackSelector";
 import { NTP } from "./room/NTP";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
+import { TrackSelector } from "./TrackSelector";
 import { SyncProgress } from "./ui/SyncProgress";
+import { YouTubeAudioFetcher } from "./YouTubeAudioFetcher";
 
 const handleNTPResponse = (response: NTPResponseMessage) => {
   const t3 = Date.now();
@@ -109,8 +110,6 @@ export const NewSyncer = () => {
 
         if (event.type === "JOIN") {
           toast(`User ${event.username} joined the room`);
-        } else if (event.type === "NEW_AUDIO_SOURCE") {
-          toast(`New audio source added: ${event.source.title}`);
         }
       } else if (response.type === "SCHEDULED_ACTION") {
         // handle scheduling action
@@ -127,6 +126,10 @@ export const NewSyncer = () => {
             targetServerTime: timeToExecute,
           });
         }
+      } else if (response.type === "NEW_AUDIO_SOURCE") {
+        console.log("Received new audio source:", response);
+        const { title } = response;
+        toast(`New audio source added: ${title}`);
       }
     };
 
@@ -137,10 +140,6 @@ export const NewSyncer = () => {
     };
     // Not including socket in the dependency array because it will trigger the close
   }, [isLoadingRoom, roomId, userId, username, setSocket]);
-
-  const shouldShowSyncProgress = useMemo(() => {
-    return !isSynced || isLoadingRoom || !socket || isLoadingAudio;
-  }, [isSynced, isLoadingRoom, socket, isLoadingAudio]);
 
   return (
     <div>
@@ -156,6 +155,7 @@ export const NewSyncer = () => {
         <TrackSelector />
         <NTP />
         <Player />
+        <YouTubeAudioFetcher />
       </div>
       <AnimatePresence>
         {isLoadingAudio && (

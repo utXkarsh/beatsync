@@ -1,11 +1,10 @@
 import {
   ClientActionEnum,
   NTPRequestMessage,
-  WSMessage,
   WSResponse,
 } from "@beatsync/shared";
-import { deserializeMessage, WSData } from "../utils/websocket";
 import { Server, ServerWebSocket } from "bun";
+import { deserializeMessage, WSData } from "../utils/websocket";
 
 export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
   const { roomId } = ws.data;
@@ -21,7 +20,7 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
   server.publish(roomId, JSON.stringify(message));
 };
 
-export const handleMessage = (
+export const handleMessage = async (
   ws: ServerWebSocket<WSData>,
   message: string | Buffer,
   server: Server
