@@ -9,7 +9,7 @@ import {
 import { ClientActionEnum, WSMessage } from "@beatsync/shared";
 import { create } from "zustand";
 
-const MAX_NTP_MEASUREMENTS = 40;
+export const MAX_NTP_MEASUREMENTS = 40;
 
 // https://webaudioapi.com/book/Web_Audio_API_Boris_Smus_html/ch02.html
 

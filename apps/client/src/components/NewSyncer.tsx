@@ -3,16 +3,13 @@ import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
 import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TrackSelector } from "./TrackSelector";
 import { NTP } from "./room/NTP";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
 import { SyncProgress } from "./ui/SyncProgress";
-
-// Maximum number of NTP measurements to collect
-const MAX_NTP_MEASUREMENTS = 40;
 
 const handleNTPResponse = (response: NTPResponseMessage) => {
   const t3 = Date.now();
@@ -52,8 +49,21 @@ export const NewSyncer = () => {
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
-  const ntpMeasurements = useGlobalStore((state) => state.ntpMeasurements);
   const isSynced = useGlobalStore((state) => state.isSynced);
+
+  // Transition state for delayed showing of main UI
+  const [showingSyncScreen, setShowingSyncScreen] = useState(true);
+
+  // Add effect to delay hiding the sync screen after sync completes
+  useEffect(() => {
+    if (isSynced && showingSyncScreen) {
+      // const timer = setTimeout(() => {
+      setShowingSyncScreen(false);
+      // }, 0);
+
+      // return () => clearTimeout(timer);
+    }
+  }, [isSynced, showingSyncScreen]);
 
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
@@ -132,15 +142,16 @@ export const NewSyncer = () => {
   if (isLoadingRoom || !socket || isLoadingAudio) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white/90">
-        <div className="w-6 h-6 border-1 border-t-gray-800 rounded-full animate-spin"></div>
-        <span className="ml-3 text-base font-normal text-gray-500">
-          {isLoadingRoom
-            ? "Loading room"
-            : !socket
-            ? "Loading socket"
-            : "Loading audio"}
-          ...
-        </span>
+        <SyncProgress
+          isLoading={true}
+          loadingMessage={
+            isLoadingRoom
+              ? "Loading room..."
+              : !socket
+              ? "Connecting to server..."
+              : "Loading audio..."
+          }
+        />
       </div>
     );
   }
@@ -148,9 +159,7 @@ export const NewSyncer = () => {
   if (!isSynced) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-white/90">
-        <SyncProgress
-          progress={ntpMeasurements.length / MAX_NTP_MEASUREMENTS}
-        />
+        <SyncProgress isSyncing={true} isSyncComplete={isSynced} />
       </div>
     );
   }

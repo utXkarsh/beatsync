@@ -1,14 +1,70 @@
 "use client";
 
+import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface SyncProgressProps {
-  progress: number; // 0 to 1
+  // Loading state flags
+  isLoading?: boolean; // Initial loading phase (room/socket/audio)
+  loadingMessage?: string; // Message for initial loading phase
+
+  // Sync state
+  isSyncing?: boolean; // NTP syncing phase
+  isSyncComplete?: boolean; // Whether sync is complete
 }
 
-export const SyncProgress = ({ progress }: SyncProgressProps) => {
+export const SyncProgress = ({
+  isLoading = false,
+  loadingMessage = "Loading...",
+  isSyncing = false,
+  isSyncComplete = false,
+}: SyncProgressProps) => {
+  // Internal state for tracking progress animation
+  const syncProgress = useGlobalStore(
+    (state) => state.ntpMeasurements.length / MAX_NTP_MEASUREMENTS
+  );
+  const [animatedProgress, setAnimatedProgress] = useState(0);
+
+  // Message state based on current progress phase
+  const [message, setMessage] = useState("Loading...");
+  const [subMessage, setSubMessage] = useState("Please wait...");
+
+  // Effect to handle initial loading animation (0-20%)
+  useEffect(() => {
+    // In loading phase, animate progress from 0 to 20%
+    if (isLoading) {
+      setMessage(loadingMessage);
+      setSubMessage("Please wait while we set things up");
+
+      const initialLoadInterval = setInterval(() => {
+        setAnimatedProgress((prev) => {
+          // Cap at 0.19 (19%) to visually indicate we're still loading
+          const nextProgress = prev + 0.005;
+          return nextProgress >= 0.1 ? 0.1 : nextProgress;
+        });
+      }, 40);
+
+      return () => clearInterval(initialLoadInterval);
+    }
+
+    // In syncing phase, scale progress from 20% to 100%
+    if (isSyncing) {
+      setMessage("Syncing with server...");
+      setSubMessage("Calibrating time synchronization");
+
+      // If sync is complete, set to 100%
+      if (isSyncComplete) {
+        setAnimatedProgress(1);
+      } else {
+        // Otherwise, scale the syncProgress to 20%-100% range
+        setAnimatedProgress(0.1 + syncProgress * 0.9);
+      }
+    }
+  }, [isLoading, isSyncing, syncProgress, isSyncComplete, loadingMessage]);
+
   // Normalize progress to ensure it's between 0 and 1
-  const normalizedProgress = Math.min(Math.max(progress, 0), 1);
+  const normalizedProgress = Math.min(Math.max(animatedProgress, 0), 1);
 
   // Calculate the stroke-dashoffset based on progress
   const radius = 40;
@@ -47,7 +103,10 @@ export const SyncProgress = ({ progress }: SyncProgressProps) => {
             animate={{
               strokeDashoffset: circumference * (1 - normalizedProgress),
             }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
             style={{
               transformOrigin: "center",
               transform: "rotate(-90deg)",
@@ -77,7 +136,7 @@ export const SyncProgress = ({ progress }: SyncProgressProps) => {
           className="relative z-10 text-2xl font-semibold text-gray-700"
           key={Math.round(normalizedProgress * 100)}
         >
-          {Math.round(normalizedProgress * 100)}%
+          {`${Math.round(normalizedProgress * 100)}%`}
         </div>
       </div>
       <motion.p
@@ -86,7 +145,7 @@ export const SyncProgress = ({ progress }: SyncProgressProps) => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        Syncing with server...
+        {message}
       </motion.p>
       <motion.p
         className="text-sm text-gray-500"
@@ -94,7 +153,7 @@ export const SyncProgress = ({ progress }: SyncProgressProps) => {
         animate={{ opacity: 0.8, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        Calibrating time synchronization
+        {subMessage}
       </motion.p>
     </div>
   );
