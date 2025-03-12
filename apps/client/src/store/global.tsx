@@ -200,7 +200,25 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
     setSelectedSourceIndex: (index) => {
-      set({ selectedSourceIndex: index });
+      // Stop any current playback
+      const state = get();
+      if (state.isPlaying) {
+        try {
+          const { sourceNode } = getAudioPlayer(state);
+          sourceNode.stop();
+        } catch (e) {
+          console.warn("Error stopping playback during track switch:", e);
+        }
+      }
+
+      // Reset timing state
+      set({
+        selectedSourceIndex: index,
+        isPlaying: false,
+        currentTime: 0,
+        playbackStartTime: 0,
+        playbackOffset: 0,
+      });
     },
     schedulePlay: ({
       trackTimeSeconds,
