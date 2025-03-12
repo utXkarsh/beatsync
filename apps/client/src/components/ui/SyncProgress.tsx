@@ -28,14 +28,12 @@ export const SyncProgress = ({
 
   // Message state based on current progress phase
   const [message, setMessage] = useState("Loading...");
-  const [subMessage, setSubMessage] = useState("Please wait...");
 
   // Effect to handle initial loading animation (0-20%)
   useEffect(() => {
     // In loading phase, animate progress from 0 to 20%
     if (isLoading) {
       setMessage(loadingMessage);
-      setSubMessage("Please wait while we set things up");
 
       const initialLoadInterval = setInterval(() => {
         setAnimatedProgress((prev) => {
@@ -49,8 +47,7 @@ export const SyncProgress = ({
     }
 
     // In syncing phase, scale progress from 20% to 100%
-    setMessage("Syncing with server...");
-    setSubMessage("Calibrating time synchronization");
+    setMessage("Synchronizing time...");
 
     // If sync is complete, set to 100%
     if (isSyncComplete) {
@@ -157,9 +154,9 @@ export const SyncProgress = ({
           {message}
         </p>
 
-        <p className="font-mono text-black mb-6 text-center text-xs">
+        {/* <p className="font-mono text-black mb-6 text-center text-xs">
           {subMessage}
-        </p>
+        </p> */}
 
         <div className="grid grid-cols-4 gap-2 mt-2 w-full">
           {[1, 2, 3, 4].map((i) => (
