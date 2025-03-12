@@ -1,6 +1,5 @@
 // import * as ytdl from "@distube/ytdl-core";
 import { AudioSource, ExtractAudioSourceSchema } from "@beatsync/shared";
-import { randomUUIDv7 } from "bun";
 import { existsSync, mkdirSync } from "fs";
 import * as path from "path";
 import { errorResponse, jsonResponse } from "../utils/responses";
@@ -47,7 +46,7 @@ export const handleExtract = async (req: Request, server: any) => {
     }
 
     // Generate a unique ID for the audio file
-    const audioId = randomUUIDv7();
+    const audioId = Math.random().toString(36).substring(2, 15);
     const outputPath = path.join(AUDIO_DIR, `${audioId}.mp3`);
     console.log(`Generated audio ID: ${audioId}, Output path: ${outputPath}`);
 
