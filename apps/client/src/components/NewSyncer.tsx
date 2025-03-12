@@ -158,7 +158,7 @@ export const NewSyncer = () => {
         <Player />
       </div>
       <AnimatePresence>
-        {shouldShowSyncProgress && (
+        {isLoadingAudio && (
           <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
             <SyncProgress
               loadingMessage={

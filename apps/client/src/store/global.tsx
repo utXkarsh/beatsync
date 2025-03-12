@@ -154,7 +154,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       set({
         audioSources: sources,
-        isLoadingAudio: false,
         audioPlayer: {
           audioContext,
           sourceNode,

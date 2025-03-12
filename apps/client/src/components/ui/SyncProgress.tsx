@@ -22,6 +22,7 @@ export const SyncProgress = ({
     (state) => state.ntpMeasurements.length / MAX_NTP_MEASUREMENTS
   );
   const isSyncComplete = useGlobalStore((state) => state.isSynced);
+  const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   // Message state based on current progress phase
@@ -65,98 +66,110 @@ export const SyncProgress = ({
   // Calculate the stroke-dashoffset based on progress
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
+  if (isSyncComplete) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-black">
+        <motion.div
+          className="flex flex-col items-center justify-center p-8 bg-yellow-300 border-2 border-black rounded-none max-w-md w-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h2 className="text-2xl font-mono uppercase tracking-tight mb-4 text-black">
+            BEATSYNC READY
+          </h2>
+          <div className="w-full h-px bg-black mb-4"></div>
+          <p className="font-mono text-black mb-8 text-center uppercase text-sm">
+            SYNC COMPLETE — SYSTEM OPERATIONAL
+          </p>
+          <motion.button
+            className="px-8 py-3 bg-black text-yellow-300 rounded-none font-mono uppercase text-sm tracking-wider border-2 border-black cursor-pointer"
+            whileHover={{ backgroundColor: "#333", color: "#FFE600" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setIsLoadingAudio(false)}
+          >
+            START SYSTEM
+          </motion.button>
+          <div className="grid grid-cols-4 gap-2 mt-6 w-full">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-2 bg-black"></div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-white">
+    <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-black">
       <motion.div
-        className="flex flex-col items-center justify-center p-8"
+        className="flex flex-col items-center justify-center p-8 bg-yellow-300 border-2 border-black rounded-none max-w-md w-full"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="relative w-48 h-48 flex items-center justify-center">
-          {/* Neumorphic container */}
-          <div className="absolute inset-0 rounded-full bg-gray-100 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)]"></div>
+        <h2 className="text-2xl font-mono uppercase tracking-tight mb-4 text-black">
+          BEATSYNC CALIBRATING
+        </h2>
+        <div className="w-full h-px bg-black mb-4"></div>
 
-          {/* Progress circle */}
-          <svg className="absolute w-full h-full" viewBox="0 0 100 100">
+        {/* Progress circle */}
+        <div className="relative w-32 h-32 mb-4">
+          <svg className="w-full h-full" viewBox="0 0 100 100">
             {/* Background circle */}
             <circle
               cx="50"
               cy="50"
               r={radius}
               fill="none"
-              stroke=""
-              strokeWidth="8"
-              className="drop-shadow-lg"
+              stroke="#000"
+              strokeWidth="4"
             />
 
-            {/* Progress circle - counterclockwise */}
-            <motion.circle
+            {/* Progress circle */}
+            <circle
               cx="50"
               cy="50"
               r={radius}
               fill="none"
-              className={"stroke-[16px] drop-shadow-lg"}
-              stroke="url(#progressGradient)"
-              strokeLinecap="round"
+              stroke="#000"
+              strokeWidth="8"
+              strokeLinecap="butt"
               strokeDasharray={circumference}
-              initial={{ strokeDashoffset: circumference }}
-              animate={{
-                strokeDashoffset: circumference * (1 - normalizedProgress),
-              }}
-              transition={{
-                duration: 0.3,
-                ease: "easeOut",
-              }}
+              strokeDashoffset={circumference * (1 - normalizedProgress)}
               style={{
                 transformOrigin: "center",
                 transform: "rotate(-90deg)",
               }}
             />
-
-            {/* Gradient definition */}
-            <defs>
-              <linearGradient
-                id="progressGradient"
-                x1="0%"
-                y1="0%"
-                x2="100%"
-                y2="0%"
-              >
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#60a5fa" />
-              </linearGradient>
-            </defs>
           </svg>
 
-          {/* Center neumorphic circle */}
-          <div className="absolute w-28 h-28 rounded-full bg-gray-100 shadow-[4px_4px_8px_rgba(0,0,0,0.1),-4px_-4px_8px_rgba(255,255,255,0.9)] flex items-center justify-center"></div>
-
           {/* Progress text */}
-          <div
-            className="relative z-10 text-2xl font-semibold text-gray-700 font-mono"
-            key={Math.round(normalizedProgress * 100)}
-          >
-            {`${Math.round(normalizedProgress * 100)}%`}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="font-mono text-xl font-bold text-black">
+              {`${Math.round(normalizedProgress * 100)}%`}
+            </div>
           </div>
         </div>
-        <motion.p
-          className="mt-4 text-gray-600 font-medium"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+
+        <p className="font-mono text-black mb-4 text-center uppercase text-sm">
           {message}
-        </motion.p>
-        <motion.p
-          className="text-sm text-gray-500"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 0.8, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+        </p>
+
+        <p className="font-mono text-black mb-6 text-center text-xs">
           {subMessage}
-        </motion.p>
+        </p>
+
+        <div className="grid grid-cols-4 gap-2 mt-2 w-full">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`h-2 ${
+                i <= normalizedProgress * 4 ? "bg-black" : "bg-gray-700"
+              }`}
+            ></div>
+          ))}
+        </div>
       </motion.div>
     </div>
   );
