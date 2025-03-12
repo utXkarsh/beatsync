@@ -1,4 +1,5 @@
 "use client";
+import { fetchYouTubeAudio } from "@/lib/api";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
@@ -93,7 +94,7 @@ export const NewSyncer = () => {
       console.log("WebSocket connection closed");
     };
 
-    ws.onmessage = (msg) => {
+    ws.onmessage = async (msg) => {
       const response = WSResponseSchema.parse(JSON.parse(msg.data));
 
       if (response.type === "NTP_RESPONSE") {
@@ -128,8 +129,17 @@ export const NewSyncer = () => {
         }
       } else if (response.type === "NEW_AUDIO_SOURCE") {
         console.log("Received new audio source:", response);
-        const { title } = response;
+        const { title, id } = response;
         toast(`New audio source added: ${title}`);
+
+        // Fetch the audio now
+        toast("Fetching audio...");
+        setTimeout(async () => {
+          const buffer = await fetchYouTubeAudio(id);
+          console.log("Fetched audio buffer:", buffer);
+          console.log("Type of buffer:", typeof buffer);
+          toast("Audio fetched successfully!");
+        }, 2000);
       }
     };
 
@@ -138,7 +148,7 @@ export const NewSyncer = () => {
       console.log("Running cleanup for WebSocket connection");
       ws.close();
     };
-    // Not including socket in the dependency array because it will trigger the close
+    // Not including socket in the dependency array because it will trigger the close when it's set
   }, [isLoadingRoom, roomId, userId, username, setSocket]);
 
   return (
