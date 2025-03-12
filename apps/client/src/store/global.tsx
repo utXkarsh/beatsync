@@ -57,6 +57,7 @@ interface GlobalState {
   addNTPMeasurement: (measurement: NTPMeasurement) => void;
   offsetEstimate: number;
   roundTripEstimate: number;
+  isSynced: boolean;
 
   // Audio Player
   audioPlayer: AudioPlayerState | null;
@@ -237,6 +238,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
 
     // NTP
+    isSynced: false,
     sendNTPRequest: () => {
       const state = get();
       if (state.ntpMeasurements.length >= MAX_NTP_MEASUREMENTS) {
@@ -246,6 +248,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         set({
           offsetEstimate: averageOffset,
           roundTripEstimate: averageRoundTrip,
+          isSynced: true,
         });
         return;
       }

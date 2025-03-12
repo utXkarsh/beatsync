@@ -1,14 +1,18 @@
 "use client";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
+import { NTPMeasurement } from "@/utils/ntp";
+import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { TrackSelector } from "./TrackSelector";
+import { NTP } from "./room/NTP";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
-import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
-import { toast } from "sonner";
-import { NTPMeasurement } from "@/utils/ntp";
-import { NTP } from "./room/NTP";
+import { SyncProgress } from "./ui/SyncProgress";
+
+// Maximum number of NTP measurements to collect
+const MAX_NTP_MEASUREMENTS = 40;
 
 const handleNTPResponse = (response: NTPResponseMessage) => {
   const t3 = Date.now();
@@ -28,7 +32,6 @@ const handleNTPResponse = (response: NTPResponseMessage) => {
     clockOffset,
   };
 
-  console.log("Measurement ", measurement);
   return measurement;
 };
 
@@ -49,6 +52,8 @@ export const NewSyncer = () => {
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
+  const ntpMeasurements = useGlobalStore((state) => state.ntpMeasurements);
+  const isSynced = useGlobalStore((state) => state.isSynced);
 
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
@@ -67,6 +72,9 @@ export const NewSyncer = () => {
 
     ws.onopen = () => {
       console.log("Connected to WebSocket");
+
+      // Start syncing
+      sendNTPRequest();
     };
 
     ws.onclose = () => {
@@ -133,6 +141,16 @@ export const NewSyncer = () => {
             : "Loading audio"}
           ...
         </span>
+      </div>
+    );
+  }
+
+  if (!isSynced) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-white/90">
+        <SyncProgress
+          progress={ntpMeasurements.length / MAX_NTP_MEASUREMENTS}
+        />
       </div>
     );
   }
