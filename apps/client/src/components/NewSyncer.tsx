@@ -4,7 +4,7 @@ import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
 import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TrackSelector } from "./TrackSelector";
 import { NTP } from "./room/NTP";
@@ -138,6 +138,10 @@ export const NewSyncer = () => {
     // Not including socket in the dependency array because it will trigger the close
   }, [isLoadingRoom, roomId, userId, username, setSocket]);
 
+  const shouldShowSyncProgress = useMemo(() => {
+    return !isSynced || isLoadingRoom || !socket || isLoadingAudio;
+  }, [isSynced, isLoadingRoom, socket, isLoadingAudio]);
+
   return (
     <div>
       <SocketStatus />
@@ -154,15 +158,9 @@ export const NewSyncer = () => {
         <Player />
       </div>
       <AnimatePresence>
-        {!isSynced && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+        {shouldShowSyncProgress && (
+          <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
             <SyncProgress
-              isSyncComplete={isSynced}
               loadingMessage={
                 isLoadingRoom
                   ? "Loading audio"

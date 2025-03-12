@@ -16,12 +16,12 @@ interface SyncProgressProps {
 export const SyncProgress = ({
   isLoading = false,
   loadingMessage = "Loading...",
-  isSyncComplete = false,
 }: SyncProgressProps) => {
   // Internal state for tracking progress animation
   const syncProgress = useGlobalStore(
     (state) => state.ntpMeasurements.length / MAX_NTP_MEASUREMENTS
   );
+  const isSyncComplete = useGlobalStore((state) => state.isSynced);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   // Message state based on current progress phase
@@ -68,7 +68,12 @@ export const SyncProgress = ({
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-white">
-      <div className="flex flex-col items-center justify-center p-8">
+      <motion.div
+        className="flex flex-col items-center justify-center p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="relative w-48 h-48 flex items-center justify-center">
           {/* Neumorphic container */}
           <div className="absolute inset-0 rounded-full bg-gray-100 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)]"></div>
@@ -152,7 +157,7 @@ export const SyncProgress = ({
         >
           {subMessage}
         </motion.p>
-      </div>
+      </motion.div>
     </div>
   );
 };
