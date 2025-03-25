@@ -40,6 +40,7 @@ interface GlobalState {
   schedulePlay: (data: {
     trackTimeSeconds: number;
     targetServerTime: number;
+    trackIndex: number;
   }) => void;
   schedulePause: (data: { targetServerTime: number }) => void;
 
@@ -150,7 +151,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       sourceNode.buffer = sources[0].audioBuffer;
       sourceNode.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      console.log("Initialized audio context in state:", audioContext.state);
 
       set({
         audioSources: sources,
@@ -220,21 +220,24 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         playbackOffset: 0,
       });
     },
-    schedulePlay: ({
-      trackTimeSeconds,
-      targetServerTime,
-    }: {
+    schedulePlay: (data: {
       trackTimeSeconds: number;
       targetServerTime: number;
+      trackIndex: number;
     }) => {
       const state = get();
-      const waitTimeSeconds = getWaitTimeSeconds(state, targetServerTime);
+      const waitTimeSeconds = getWaitTimeSeconds(state, data.targetServerTime);
       console.log(
-        `Playing track at ${trackTimeSeconds} seconds in ${waitTimeSeconds}`
+        `Playing track ${data.trackIndex} at ${data.trackTimeSeconds} seconds in ${waitTimeSeconds}`
       );
 
+      // Update the selected source index if provided
+      if (data.trackIndex !== state.selectedSourceIndex) {
+        set({ selectedSourceIndex: data.trackIndex });
+      }
+
       state.playAudio({
-        offset: trackTimeSeconds,
+        offset: data.trackTimeSeconds,
         when: waitTimeSeconds,
       });
     },
