@@ -1,5 +1,5 @@
 import { AudioSource, UploadAudioSchema } from "@beatsync/shared/types";
-import { randomUUIDv7, Server } from "bun";
+import { Server } from "bun";
 
 import * as path from "path";
 import { errorResponse, jsonResponse } from "../utils/responses";
@@ -33,9 +33,9 @@ export const handleUpload = async (req: Request, server: Server) => {
     const { name, audioData, roomId } = parseResult.data;
 
     // Generate unique filename with UUID and prepend room ID
-    const uuid = randomUUIDv7();
+    const timestamp = Date.now();
     const ext = path.extname(name) || ".mp3"; // Preserve original extension or default to mp3
-    const serverFilename = `room-${roomId}_${uuid}${ext}`;
+    const serverFilename = `room-${roomId}_${timestamp}${ext}`;
     const filePath = path.join(AUDIO_DIR, serverFilename);
 
     // Decode base64 audio data and write to file
