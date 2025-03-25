@@ -1,5 +1,4 @@
 "use client";
-import { fetchYouTubeAudio } from "@/lib/api";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
@@ -7,12 +6,12 @@ import { NTPResponseMessage, WSResponseSchema } from "@beatsync/shared";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AudioUploader } from "./AudioUploader";
 import { NTP } from "./room/NTP";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
 import { TrackSelector } from "./TrackSelector";
 import { SyncProgress } from "./ui/SyncProgress";
-import { YouTubeAudioFetcher } from "./YouTubeAudioFetcher";
 
 const handleNTPResponse = (response: NTPResponseMessage) => {
   const t3 = Date.now();
@@ -48,7 +47,6 @@ export const NewSyncer = () => {
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
   const schedulePlay = useGlobalStore((state) => state.schedulePlay);
   const schedulePause = useGlobalStore((state) => state.schedulePause);
-  const addAudioSource = useGlobalStore((state) => state.addAudioSource);
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
@@ -84,14 +82,14 @@ export const NewSyncer = () => {
     setSocket(ws);
 
     ws.onopen = () => {
-      console.log("Connected to WebSocket");
+      console.log("Websocket onopen fired.");
 
       // Start syncing
       sendNTPRequest();
     };
 
     ws.onclose = () => {
-      console.log("WebSocket connection closed");
+      console.log("Websocket onclose fired.");
     };
 
     ws.onmessage = async (msg) => {
@@ -129,19 +127,7 @@ export const NewSyncer = () => {
         }
       } else if (response.type === "NEW_AUDIO_SOURCE") {
         console.log("Received new audio source:", response);
-        const { title, id } = response;
-
-        // Fetch the audio now
-        const buffer = await fetchYouTubeAudio(id);
-        console.log("Fetched audio buffer:", buffer);
-        console.log("Type of buffer:", typeof buffer);
-
-        // TODO: add more metadata about audio source
-        await addAudioSource({
-          name: title,
-          audioBuffer: buffer,
-        });
-
+        const { title } = response;
         toast(`New audio source added: ${title}`);
       }
     };
@@ -166,9 +152,9 @@ export const NewSyncer = () => {
       <div>
         {isLoadingRoom && <div>Loading...</div>}
         <TrackSelector />
+        <AudioUploader />
         <NTP />
         <Player />
-        <YouTubeAudioFetcher />
       </div>
       <AnimatePresence>
         {isLoadingAudio && (

@@ -150,7 +150,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       sourceNode.buffer = sources[0].audioBuffer;
       sourceNode.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      console.log("Initialized audio context in state:", audioContext.state);
 
       set({
         audioSources: sources,

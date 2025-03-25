@@ -1,6 +1,7 @@
 import { handleGetYouTubeAudio } from "./routes/audio";
 import { handleExtract } from "./routes/extract";
 import { handleRoot } from "./routes/root";
+import { handleUpload } from "./routes/upload";
 import { handleWebSocketUpgrade } from "./routes/websocket";
 import {
   handleClose,
@@ -31,6 +32,9 @@ const server = Bun.serve<WSData, undefined>({
 
         case "/extract":
           return handleExtract(req, server);
+
+        case "/upload":
+          return handleUpload(req, server);
 
         case "/audio":
           return handleGetYouTubeAudio(req, server);

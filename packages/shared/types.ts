@@ -18,6 +18,13 @@ export const PauseActionSchema = z.object({
   type: z.literal(ClientActionEnum.enum.PAUSE),
 });
 
+export const UploadAudioSchema = z.object({
+  name: z.string(),
+  audioData: z.string(), // base64 encoded audio data
+  roomId: z.string(),
+});
+export type UploadAudio = z.infer<typeof UploadAudioSchema>;
+
 export const ExtractAudioSourceSchema = z.object({
   url: z.string().url(),
   roomId: z.string(),
