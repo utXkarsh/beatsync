@@ -1,4 +1,4 @@
-import { handleGetYouTubeAudio } from "./routes/audio";
+import { handleGetAudio } from "./routes/audio";
 import { handleExtract } from "./routes/extract";
 import { handleRoot } from "./routes/root";
 import { handleUpload } from "./routes/upload";
@@ -37,7 +37,7 @@ const server = Bun.serve<WSData, undefined>({
           return handleUpload(req, server);
 
         case "/audio":
-          return handleGetYouTubeAudio(req, server);
+          return handleGetAudio(req, server);
 
         default:
           return errorResponse("Not found", 404);

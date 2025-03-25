@@ -83,6 +83,11 @@ export const AudioSourceSchema = z.object({
 });
 export type AudioSource = z.infer<typeof AudioSourceSchema>;
 
+export const GetAudioSchema = z.object({
+  id: z.string(),
+});
+export type GetAudio = z.infer<typeof GetAudioSchema>;
+
 export const WSResponseSchema = z.discriminatedUnion("type", [
   NTPResponseMessageSchema,
   ScheduledActionSchema,
