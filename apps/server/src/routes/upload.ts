@@ -35,7 +35,7 @@ export const handleUpload = async (req: Request, server: Server) => {
     // Generate unique filename with UUID and prepend room ID
     const uuid = randomUUIDv7();
     const ext = path.extname(name) || ".mp3"; // Preserve original extension or default to mp3
-    const serverFilename = `room-{roomId}_${uuid}${ext}`;
+    const serverFilename = `room-${roomId}_${uuid}${ext}`;
     const filePath = path.join(AUDIO_DIR, serverFilename);
 
     // Decode base64 audio data and write to file

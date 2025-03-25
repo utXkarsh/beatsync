@@ -128,7 +128,7 @@ export const NewSyncer = () => {
       } else if (response.type === "NEW_AUDIO_SOURCE") {
         console.log("Received new audio source:", response);
         const { title } = response;
-        toast(`New audio source added: ${title}`);
+        toast.success(`New audio source added: ${title}`);
       }
     };
 

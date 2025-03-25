@@ -39,7 +39,6 @@ export const AudioUploader = () => {
             roomId,
           });
 
-          toast.success(`Uploaded ${file.name} successfully!`);
           console.log("Upload result:", result);
 
           // Reset the file input
