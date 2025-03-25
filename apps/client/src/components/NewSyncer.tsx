@@ -121,6 +121,7 @@ export const NewSyncer = () => {
           schedulePlay({
             trackTimeSeconds: scheduledAction.trackTimeSeconds,
             targetServerTime: timeToExecute,
+            trackIndex: scheduledAction.trackIndex,
           });
         } else if (scheduledAction.type === "PAUSE") {
           schedulePause({
