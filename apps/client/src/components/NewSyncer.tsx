@@ -1,4 +1,6 @@
 "use client";
+import { fetchAudio } from "@/lib/api";
+import { RawAudioSource } from "@/lib/localTypes";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
@@ -51,7 +53,7 @@ export const NewSyncer = () => {
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
   const isSynced = useGlobalStore((state) => state.isSynced);
-
+  const addAudioSource = useGlobalStore((state) => state.addAudioSource);
   // Transition state for delayed showing of main UI
   const [showingSyncScreen, setShowingSyncScreen] = useState(true);
 
@@ -127,8 +129,23 @@ export const NewSyncer = () => {
         }
       } else if (response.type === "NEW_AUDIO_SOURCE") {
         console.log("Received new audio source:", response);
-        const { title } = response;
-        toast.success(`New audio source added: ${title}`);
+        const { title, id } = response;
+
+        toast.promise(
+          fetchAudio(id).then(async (blob) => {
+            const arrayBuffer = await blob.arrayBuffer();
+            const audioSource: RawAudioSource = {
+              name: title,
+              audioBuffer: arrayBuffer,
+            };
+            return addAudioSource(audioSource);
+          }),
+          {
+            loading: "Loading audio...",
+            success: `Added: ${title}`,
+            error: "Failed to load audio",
+          }
+        );
       }
     };
 

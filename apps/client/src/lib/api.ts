@@ -29,3 +29,19 @@ export const uploadAudioFile = async (data: UploadAudio) => {
     throw error;
   }
 };
+
+export const fetchAudio = async (id: string) => {
+  try {
+    const response = await baseAxios.post<Blob>(
+      "/audio",
+      { id },
+      { responseType: "blob" }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch audio");
+    }
+    throw error;
+  }
+};
