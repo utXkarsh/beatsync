@@ -13,6 +13,7 @@ import { NTP } from "./room/NTP";
 import { Player } from "./room/Player";
 import { SocketStatus } from "./room/SocketStatus";
 import { TrackSelector } from "./TrackSelector";
+import { Button } from "./ui/button";
 import { SyncProgress } from "./ui/SyncProgress";
 
 const handleNTPResponse = (response: NTPResponseMessage) => {
@@ -49,6 +50,7 @@ export const NewSyncer = () => {
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
   const schedulePlay = useGlobalStore((state) => state.schedulePlay);
   const schedulePause = useGlobalStore((state) => state.schedulePause);
+  const setGain = useGlobalStore((state) => state.setGain);
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
@@ -161,6 +163,8 @@ export const NewSyncer = () => {
   return (
     <div>
       <SocketStatus />
+      <Button onClick={() => setGain(0.5)}>Fade out</Button>
+      <Button onClick={() => setGain(1)}>Fade in</Button>
       <div>
         <div>Room: {roomId}</div>
         <div>Username: {username}</div>

@@ -67,6 +67,7 @@ interface GlobalState {
   duration: number;
   volume: number;
   playAudio: (data: { offset: number; when: number }) => void; // time in seconds
+  setGain: (gain: number) => void;
 
   // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
@@ -143,8 +144,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       // Create master gain node for volume control
       const gainNode = audioContext.createGain();
-      gainNode.gain.value = 0.5; // Default volume
-      gainNode.connect(audioContext.destination);
+      gainNode.gain.value = 1.0; // Default volume
       const sourceNode = audioContext.createBufferSource();
 
       // Decode initial first audio source
@@ -375,6 +375,13 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         playbackStartTime: startTime,
         playbackOffset: offset,
       }));
+    },
+
+    setGain: (gain: number) => {
+      const { audioContext, gainNode } = getAudioPlayer(get());
+
+      // Fade over 2 seconds
+      gainNode.gain.linearRampToValueAtTime(gain, audioContext.currentTime + 2);
     },
 
     // Pause playback
