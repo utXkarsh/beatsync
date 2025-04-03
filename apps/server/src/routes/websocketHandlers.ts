@@ -1,14 +1,15 @@
 import {
   ClientActionEnum,
-  NTPRequestMessage,
-  WSResponse,
+  WSBroadcastType,
+  WSRequestSchema,
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
 import { roomManager } from "../store";
-import { deserializeMessage, WSData } from "../utils/websocket";
+import { sendBroadcast, sendUnicast } from "../utils/responses";
+import { WSData } from "../utils/websocket";
 
 const createClientUpdate = (roomId: string) => {
-  const message: WSResponse = {
+  const message: WSBroadcastType = {
     type: "ROOM_EVENT",
     event: {
       type: ClientActionEnum.Enum.CLIENT_CHANGE,
@@ -29,7 +30,9 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
   roomManager.addClient(ws.data);
 
   const message = createClientUpdate(roomId);
-  server.publish(roomId, JSON.stringify(message));
+  sendBroadcast({ server, roomId, message });
+
+  // TODO: Send unicast
 };
 
 export const handleMessage = async (
@@ -37,48 +40,57 @@ export const handleMessage = async (
   message: string | Buffer,
   server: Server
 ) => {
-  const { roomId, clientId: userId, username } = ws.data;
   const t1 = Date.now();
-  const parsedMessage = deserializeMessage(message.toString());
-  console.log(
-    `Room: ${roomId} | User: ${username} | Message: ${JSON.stringify(
-      parsedMessage
-    )}`
-  );
+  const { roomId, username } = ws.data;
 
-  // NTP Request
-  if (parsedMessage.type === ClientActionEnum.Enum.NTP_REQUEST) {
-    const ntpRequest = parsedMessage as NTPRequestMessage;
-    const ntpResponse: WSResponse = {
-      type: "NTP_RESPONSE",
-      t0: ntpRequest.t0, // Echo back the client's t0
-      t1, // Server receive time
-      t2: Date.now(), // Server send time
-    };
+  try {
+    const parsedData = JSON.parse(message.toString());
+    const parsedMessage = WSRequestSchema.parse(parsedData);
 
-    ws.send(JSON.stringify(ntpResponse));
-    return;
-  } else if (
-    parsedMessage.type === ClientActionEnum.enum.PLAY ||
-    parsedMessage.type === ClientActionEnum.enum.PAUSE
-  ) {
-    const scheduledMessage: WSResponse = {
-      type: "SCHEDULED_ACTION",
-      scheduledAction: parsedMessage,
-      timeToExecute: Date.now() + 500, // 500 ms from now
-    };
-    console.log("Publishing message for room", roomId);
-    server.publish(roomId, JSON.stringify(scheduledMessage));
-    return;
+    console.log(
+      `Room: ${roomId} | User: ${username} | Message: ${JSON.stringify(
+        parsedMessage
+      )}`
+    );
+
+    // NTP Request
+    if (parsedMessage.type === ClientActionEnum.enum.NTP_REQUEST) {
+      sendUnicast({
+        ws,
+        message: {
+          type: "NTP_RESPONSE",
+          t0: parsedMessage.t0, // Echo back the client's t0
+          t1, // Server receive time
+          t2: Date.now(), // Server send time
+        },
+      });
+
+      return;
+    } else if (
+      parsedMessage.type === ClientActionEnum.enum.PLAY ||
+      parsedMessage.type === ClientActionEnum.enum.PAUSE
+    ) {
+      sendBroadcast({
+        server,
+        roomId,
+        message: {
+          type: "SCHEDULED_ACTION",
+          scheduledAction: parsedMessage,
+          serverTimeToExecute: Date.now() + 500, // 500 ms from now
+          // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs > 500
+        },
+      });
+
+      return;
+    } else {
+      console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
+    }
+  } catch (error) {
+    console.error("Invalid message format:", error);
+    ws.send(
+      JSON.stringify({ type: "ERROR", message: "Invalid message format" })
+    );
   }
-
-  // Others are just events
-  const event: WSResponse = {
-    type: "ROOM_EVENT",
-    event: parsedMessage,
-  };
-
-  server.publish(roomId, JSON.stringify(event));
 };
 
 export const handleClose = (ws: ServerWebSocket<WSData>, server: Server) => {

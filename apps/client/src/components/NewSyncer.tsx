@@ -6,7 +6,7 @@ import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
 import {
   ClientType,
-  NTPResponseMessage,
+  NTPResponseMessageType,
   WSResponseSchema,
 } from "@beatsync/shared";
 import { Users } from "lucide-react";
@@ -24,7 +24,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { SyncProgress } from "./ui/SyncProgress";
 
-const handleNTPResponse = (response: NTPResponseMessage) => {
+const handleNTPResponse = (response: NTPResponseMessageType) => {
   const t3 = Date.now();
   const { t0, t1, t2 } = response;
 
@@ -51,6 +51,7 @@ export const NewSyncer = () => {
   const username = useRoomStore((state) => state.username);
   const userId = useRoomStore((state) => state.userId);
   const isLoadingRoom = useRoomStore((state) => state.isLoadingRoom);
+  const setUserId = useRoomStore((state) => state.setUserId);
 
   // Audio
   const setSocket = useGlobalStore((state) => state.setSocket);
@@ -121,42 +122,46 @@ export const NewSyncer = () => {
 
         if (event.type === "CLIENT_CHANGE") {
           setClients(event.clients);
+        } else if (event.type === "NEW_AUDIO_SOURCE") {
+          console.log("Received new audio source:", response);
+          const { title, id } = event;
+
+          toast.promise(
+            fetchAudio(id).then(async (blob) => {
+              const arrayBuffer = await blob.arrayBuffer();
+              const audioSource: RawAudioSource = {
+                name: title,
+                audioBuffer: arrayBuffer,
+              };
+              return addAudioSource(audioSource);
+            }),
+            {
+              loading: "Loading audio...",
+              success: `Added: ${title}`,
+              error: "Failed to load audio",
+            }
+          );
         }
       } else if (response.type === "SCHEDULED_ACTION") {
         // handle scheduling action
         console.log("Received scheduled action:", response);
-        const { scheduledAction, timeToExecute } = response;
+        const { scheduledAction, serverTimeToExecute } = response;
 
         if (scheduledAction.type === "PLAY") {
           schedulePlay({
             trackTimeSeconds: scheduledAction.trackTimeSeconds,
-            targetServerTime: timeToExecute,
+            targetServerTime: serverTimeToExecute,
             trackIndex: scheduledAction.trackIndex,
           });
         } else if (scheduledAction.type === "PAUSE") {
           schedulePause({
-            targetServerTime: timeToExecute,
+            targetServerTime: serverTimeToExecute,
           });
         }
-      } else if (response.type === "NEW_AUDIO_SOURCE") {
-        console.log("Received new audio source:", response);
-        const { title, id } = response;
-
-        toast.promise(
-          fetchAudio(id).then(async (blob) => {
-            const arrayBuffer = await blob.arrayBuffer();
-            const audioSource: RawAudioSource = {
-              name: title,
-              audioBuffer: arrayBuffer,
-            };
-            return addAudioSource(audioSource);
-          }),
-          {
-            loading: "Loading audio...",
-            success: `Added: ${title}`,
-            error: "Failed to load audio",
-          }
-        );
+      } else if (response.type === "SET_CLIENT_ID") {
+        setUserId(response.clientId);
+      } else {
+        console.log("Unknown response type:", response);
       }
     };
 

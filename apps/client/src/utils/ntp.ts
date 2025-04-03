@@ -1,4 +1,5 @@
-import { ClientActionEnum, WSRequest } from "@beatsync/shared";
+import { ClientActionEnum } from "@beatsync/shared";
+import { sendWSRequest } from "./ws";
 
 export interface NTPMeasurement {
   t0: number;
@@ -15,11 +16,13 @@ export const _sendNTPRequest = (ws: WebSocket) => {
   }
 
   const t0 = Date.now();
-  const message: WSRequest = {
-    type: ClientActionEnum.enum.NTP_REQUEST,
-    t0,
-  };
-  ws.send(JSON.stringify(message));
+  sendWSRequest({
+    ws,
+    request: {
+      type: ClientActionEnum.enum.NTP_REQUEST,
+      t0,
+    },
+  });
 };
 
 export const calculateOffsetEstimate = (ntpMeasurements: NTPMeasurement[]) => {

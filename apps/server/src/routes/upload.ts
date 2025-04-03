@@ -1,8 +1,8 @@
-import { AudioSource, UploadAudioSchema } from "@beatsync/shared/types";
 import { Server } from "bun";
 
+import { UploadAudioSchema } from "@beatsync/shared";
 import * as path from "path";
-import { errorResponse, jsonResponse } from "../utils/responses";
+import { errorResponse, jsonResponse, sendBroadcast } from "../utils/responses";
 
 const AUDIO_DIR = path.join(process.cwd(), "uploads", "audio");
 
@@ -42,18 +42,21 @@ export const handleUpload = async (req: Request, server: Server) => {
     const audioBuffer = Buffer.from(audioData, "base64");
     await Bun.write(filePath, audioBuffer);
 
-    // Store original filename metadata in audio source
-    const message: AudioSource = {
-      type: "NEW_AUDIO_SOURCE",
-      id: serverFilename,
-      title: name, // Keep original name for display
-      duration: 1, // TODO: lol calculate this later properly
-      addedAt: Date.now(),
-      addedBy: roomId,
-    };
-
-    // Broadcast to all clients in the room
-    server.publish(roomId, JSON.stringify(message));
+    sendBroadcast({
+      server,
+      roomId,
+      message: {
+        type: "ROOM_EVENT",
+        event: {
+          type: "NEW_AUDIO_SOURCE",
+          id: serverFilename,
+          title: name, // Keep original name for display
+          duration: 1, // TODO: lol calculate this later properly
+          addedAt: Date.now(),
+          addedBy: roomId,
+        },
+      },
+    });
 
     // Return success response with the file details
     return jsonResponse({

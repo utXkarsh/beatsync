@@ -1,4 +1,4 @@
-import { GetAudioSchema } from "@beatsync/shared/types";
+import { GetAudioSchema } from "@beatsync/shared";
 import { Server } from "bun";
 import * as path from "path";
 import { errorResponse } from "../utils/responses";

@@ -1,4 +1,4 @@
-import { UploadAudio } from "@beatsync/shared";
+import { UploadAudioType } from "@beatsync/shared";
 import axios from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -10,7 +10,7 @@ const baseAxios = axios.create({
   baseURL: BASE_URL,
 });
 
-export const uploadAudioFile = async (data: UploadAudio) => {
+export const uploadAudioFile = async (data: UploadAudioType) => {
   try {
     const response = await baseAxios.post<{
       success: boolean;
