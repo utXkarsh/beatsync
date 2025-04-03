@@ -24,6 +24,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { SyncProgress } from "./ui/SyncProgress";
 
+// TODO: USE react-use-websocket
 const handleNTPResponse = (response: NTPResponseMessageType) => {
   const t3 = Date.now();
   const { t0, t1, t2 } = response;
