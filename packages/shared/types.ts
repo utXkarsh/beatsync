@@ -1,9 +1,15 @@
 import { z } from "zod";
 
+export const ClientSchema = z.object({
+  username: z.string(),
+  clientId: z.string(),
+});
+export type ClientType = z.infer<typeof ClientSchema>;
+
 export const ClientActionEnum = z.enum([
   "PLAY",
   "PAUSE",
-  "JOIN",
+  "CLIENT_CHANGE",
   "NTP_REQUEST",
 ]);
 export type ClientAction = z.infer<typeof ClientActionEnum>;
@@ -39,10 +45,9 @@ export const NTPResponseMessageSchema = z.object({
   t2: z.number(), // Server send timestamp
 });
 
-const JoinMessageSchema = z.object({
-  type: z.literal(ClientActionEnum.enum.JOIN),
-  username: z.string(),
-  userId: z.string(),
+export const ClientChangeMessageSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.CLIENT_CHANGE),
+  clients: z.array(ClientSchema),
 });
 
 const NTPRequestMessageSchema = z.object({
@@ -53,7 +58,7 @@ const NTPRequestMessageSchema = z.object({
 export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
-  JoinMessageSchema,
+  ClientChangeMessageSchema,
   NTPRequestMessageSchema,
 ]);
 

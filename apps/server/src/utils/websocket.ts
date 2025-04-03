@@ -2,7 +2,7 @@ import { WSRequestSchema } from "@beatsync/shared";
 
 export interface WSData {
   roomId: string;
-  userId: string;
+  clientId: string;
   username: string;
 }
 

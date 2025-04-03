@@ -54,7 +54,7 @@ const server = Bun.serve<WSData, undefined>({
     },
 
     close(ws) {
-      handleClose(ws);
+      handleClose(ws, server);
     },
   },
 });

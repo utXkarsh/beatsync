@@ -4,19 +4,31 @@ import {
   WSResponse,
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
+import { roomManager } from "../store";
 import { deserializeMessage, WSData } from "../utils/websocket";
 
-export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
-  const { roomId } = ws.data;
-  ws.subscribe(roomId);
+const createClientUpdate = (roomId: string) => {
   const message: WSResponse = {
     type: "ROOM_EVENT",
     event: {
-      type: ClientActionEnum.Enum.JOIN,
-      username: ws.data.username,
-      userId: ws.data.userId,
+      type: ClientActionEnum.Enum.CLIENT_CHANGE,
+      clients: roomManager.getClients(roomId),
     },
   };
+  return message;
+};
+
+export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
+  console.log(
+    `WebSocket connection opened for user ${ws.data.username} in room ${ws.data.roomId}`
+  );
+
+  const { roomId } = ws.data;
+  ws.subscribe(roomId);
+
+  roomManager.addClient(ws.data);
+
+  const message = createClientUpdate(roomId);
   server.publish(roomId, JSON.stringify(message));
 };
 
@@ -25,7 +37,7 @@ export const handleMessage = async (
   message: string | Buffer,
   server: Server
 ) => {
-  const { roomId, userId, username } = ws.data;
+  const { roomId, clientId: userId, username } = ws.data;
   const t1 = Date.now();
   const parsedMessage = deserializeMessage(message.toString());
   console.log(
@@ -46,7 +58,10 @@ export const handleMessage = async (
 
     ws.send(JSON.stringify(ntpResponse));
     return;
-  } else if (parsedMessage.type === "PLAY" || parsedMessage.type === "PAUSE") {
+  } else if (
+    parsedMessage.type === ClientActionEnum.enum.PLAY ||
+    parsedMessage.type === ClientActionEnum.enum.PAUSE
+  ) {
     const scheduledMessage: WSResponse = {
       type: "SCHEDULED_ACTION",
       scheduledAction: parsedMessage,
@@ -66,7 +81,14 @@ export const handleMessage = async (
   server.publish(roomId, JSON.stringify(event));
 };
 
-export const handleClose = (ws: any) => {
-  console.log(`Connection closed`);
+export const handleClose = (ws: ServerWebSocket<WSData>, server: Server) => {
+  console.log(
+    `WebSocket connection closed for user ${ws.data.username} in room ${ws.data.roomId}`
+  );
   ws.unsubscribe(ws.data.roomId);
+
+  roomManager.removeClient(ws.data.roomId, ws.data.clientId);
+
+  const message = createClientUpdate(ws.data.roomId);
+  server.publish(ws.data.roomId, JSON.stringify(message));
 };
