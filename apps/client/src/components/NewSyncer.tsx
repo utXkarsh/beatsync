@@ -171,7 +171,7 @@ export const NewSyncer = () => {
       ws.close();
     };
     // Not including socket in the dependency array because it will trigger the close when it's set
-  }, [isLoadingRoom, roomId, userId, username, setSocket]);
+  }, [isLoadingRoom, roomId, username, setSocket]);
 
   // Local state to the syncer:
   const [clients, setClients] = useState<ClientType[]>([]);
