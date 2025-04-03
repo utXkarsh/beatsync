@@ -269,7 +269,7 @@ export const NewSyncer = () => {
 
       <div className="flex items-center gap-2">
         <SocketStatus />
-        <Button onClick={() => setGain(0.5)} variant="outline" size="sm">
+        <Button onClick={() => setGain(0.1)} variant="outline" size="sm">
           Fade out
         </Button>
         <Button onClick={() => setGain(1)} variant="outline" size="sm">
