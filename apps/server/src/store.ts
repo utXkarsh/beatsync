@@ -9,6 +9,9 @@ interface RoomData {
   intervalId?: NodeJS.Timeout; // https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
 }
 
+const AUDIO_LOW = 0.2;
+const AUDIO_HIGH = 1.0;
+
 class RoomManager {
   rooms = new Map<string, RoomData>();
 
@@ -56,7 +59,7 @@ class RoomManager {
     const updateSpatialAudio = () => {
       const clients = Array.from(room.clients.values()); // get most recent
       console.log(
-        `LOOP ${loopCount}: Current focus index: ${focusIndex}, Connected clients: ${clients.length}`
+        `ROOM ${roomId} LOOP ${loopCount}: Current focus index: ${focusIndex}, Connected clients: ${clients.length}`
       );
       if (clients.length === 0) return;
 
@@ -69,8 +72,14 @@ class RoomManager {
           ws: client.ws,
           message: {
             type: "SET_GAIN",
-            gain: index === focusIndex ? 1.0 : 0.2,
-            // gain: loopCount % 2 === 0 ? 1.0 : 0.3,
+            gain:
+              clients.length === 1
+                ? loopCount % 2 === 0
+                  ? AUDIO_HIGH
+                  : AUDIO_LOW
+                : index === focusIndex
+                ? AUDIO_HIGH
+                : AUDIO_LOW,
           },
         });
       });

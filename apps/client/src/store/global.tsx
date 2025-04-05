@@ -393,20 +393,39 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    setGain: (gain) => {
+    setGain: (gain: number) => {
       const { audioContext, gainNode } = getAudioPlayer(get());
 
       // Get current time
       const now = audioContext.currentTime;
 
+      // Get the current gain value
+      const currentGain = gainNode.gain.value;
+
       // Cancel any scheduled changes
       gainNode.gain.cancelScheduledValues(now);
 
       // Set the current value
-      gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+      gainNode.gain.setValueAtTime(currentGain, now);
 
-      // Then schedule the ramp to the new value
-      gainNode.gain.linearRampToValueAtTime(gain, now + 0.5);
+      // Determine if we're increasing or decreasing volume
+      if (gain > currentGain) {
+        // Fast attack (volume increasing) - 0.2 seconds
+        gainNode.gain.linearRampToValueAtTime(gain, now + 1);
+        console.log(
+          `Volume increasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
+            2
+          )} in 0.2s`
+        );
+      } else {
+        // Slow decay (volume decreasing) - 2.0 seconds
+        gainNode.gain.exponentialRampToValueAtTime(gain, now + 1.5);
+        console.log(
+          `Volume decreasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
+            2
+          )} in 1.0s`
+        );
+      }
     },
 
     // Pause playback
