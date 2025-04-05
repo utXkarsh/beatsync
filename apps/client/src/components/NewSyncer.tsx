@@ -128,14 +128,28 @@ export const NewSyncer = () => {
           const { title, id } = event;
 
           toast.promise(
-            fetchAudio(id).then(async (blob) => {
-              const arrayBuffer = await blob.arrayBuffer();
-              const audioSource: RawAudioSource = {
-                name: title,
-                audioBuffer: arrayBuffer,
-              };
-              return addAudioSource(audioSource);
-            }),
+            fetchAudio(id)
+              .then(async (blob) => {
+                console.log("Audio fetched successfully:", id);
+                try {
+                  const arrayBuffer = await blob.arrayBuffer();
+                  console.log("ArrayBuffer created successfully");
+
+                  const audioSource: RawAudioSource = {
+                    name: title,
+                    audioBuffer: arrayBuffer,
+                  };
+
+                  return addAudioSource(audioSource);
+                } catch (error) {
+                  console.error("Error processing audio data:", error);
+                  throw new Error("Failed to process audio data");
+                }
+              })
+              .catch((error) => {
+                console.error("Error fetching audio:", error);
+                throw error;
+              }),
             {
               loading: "Loading audio...",
               success: `Added: ${title}`,

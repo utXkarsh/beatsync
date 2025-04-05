@@ -32,12 +32,20 @@ export const uploadAudioFile = async (data: UploadAudioType) => {
 
 export const fetchAudio = async (id: string) => {
   try {
-    const response = await baseAxios.post<Blob>(
-      "/audio",
-      { id },
-      { responseType: "blob" }
-    );
-    return response.data;
+    const response = await fetch(`${BASE_URL}/audio`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
+
+    if (!response.ok) {
+      console.error(`RESPONSE NOT OK`);
+      throw new Error(`Failed to fetch audio: ${response.statusText}`);
+    }
+
+    return await response.blob();
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Failed to fetch audio");
