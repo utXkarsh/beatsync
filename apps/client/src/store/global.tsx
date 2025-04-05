@@ -52,6 +52,7 @@ interface GlobalState {
   // trackTimeSeconds is the number of seconds into the track to play at (ie. location of the slider)
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
+  startSpatialAudio: () => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -283,6 +284,18 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
+    startSpatialAudio: () => {
+      const state = get();
+      const { socket } = getSocket(state);
+
+      sendWSRequest({
+        ws: socket,
+        request: {
+          type: ClientActionEnum.enum.START_SPATIAL_AUDIO,
+        },
+      });
+    },
+
     // NTP
     isSynced: false,
     sendNTPRequest: () => {
@@ -380,15 +393,24 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    setGain: (gain: number) => {
+    setGain: (gain) => {
       const { audioContext, gainNode } = getAudioPlayer(get());
 
-      // Fade over 2 seconds
-      gainNode.gain.linearRampToValueAtTime(gain, audioContext.currentTime + 2);
+      // Get current time
+      const now = audioContext.currentTime;
+
+      // Cancel any scheduled changes
+      gainNode.gain.cancelScheduledValues(now);
+
+      // Set the current value
+      gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+
+      // Then schedule the ramp to the new value
+      gainNode.gain.linearRampToValueAtTime(gain, now + 0.5);
     },
 
     // Pause playback
-    pauseAudio: ({ when }: { when: number }) => {
+    pauseAudio: ({ when }) => {
       const state = get();
       const { sourceNode, audioContext } = getAudioPlayer(state);
 

@@ -14,8 +14,14 @@ const SetClientID = z.object({
   clientId: z.string(),
 });
 
+const SetGain = z.object({
+  type: z.literal("SET_GAIN"),
+  gain: z.number().min(0).max(1),
+});
+
 export const WSUnicastSchema = z.discriminatedUnion("type", [
   NTPResponseMessageSchema,
   SetClientID,
+  SetGain,
 ]);
 export type WSUnicastType = z.infer<typeof WSUnicastSchema>;

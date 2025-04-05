@@ -34,7 +34,7 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
   const { roomId } = ws.data;
   ws.subscribe(roomId);
 
-  roomManager.addClient(ws.data);
+  roomManager.addClient(ws);
 
   const message = createClientUpdate(roomId);
   sendBroadcast({ server, roomId, message });
@@ -87,6 +87,14 @@ export const handleMessage = async (
       });
 
       return;
+    } else if (
+      parsedMessage.type === ClientActionEnum.enum.START_SPATIAL_AUDIO
+    ) {
+      // Start loop only if not already started
+      const room = roomManager.getRoomState(roomId);
+      if (!room || room.intervalId) return; // do nothing if no room or interval already exists
+
+      roomManager.startInterval(roomId);
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }

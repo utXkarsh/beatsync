@@ -4,7 +4,9 @@ import { PauseActionSchema, PlayActionSchema } from "./WSRequest";
 const ClientSchema = z.object({
   username: z.string(),
   clientId: z.string(),
+  ws: z.any(),
 });
+
 export type ClientType = z.infer<typeof ClientSchema>;
 
 const ClientChangeMessageSchema = z.object({

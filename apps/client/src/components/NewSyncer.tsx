@@ -161,6 +161,9 @@ export const NewSyncer = () => {
         }
       } else if (response.type === "SET_CLIENT_ID") {
         setUserId(response.clientId);
+      } else if (response.type === "SET_GAIN") {
+        console.log("Received gain:", response.gain);
+        setGain(response.gain);
       } else {
         console.log("Unknown response type:", response);
       }
