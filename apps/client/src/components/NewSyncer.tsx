@@ -20,7 +20,6 @@ import { SocketStatus } from "./room/SocketStatus";
 import { TrackSelector } from "./TrackSelector";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { SyncProgress } from "./ui/SyncProgress";
 
@@ -176,8 +175,8 @@ export const NewSyncer = () => {
       } else if (response.type === "SET_CLIENT_ID") {
         setUserId(response.clientId);
       } else if (response.type === "SET_GAIN") {
-        console.log("Received gain:", response.gain);
-        setGain(response.gain);
+        console.log("Received gain:", response);
+        setGain(response);
       } else {
         console.log("Unknown response type:", response);
       }
@@ -292,12 +291,12 @@ export const NewSyncer = () => {
 
       <div className="flex items-center gap-2">
         <SocketStatus />
-        <Button onClick={() => setGain(0.1)} variant="outline" size="sm">
+        {/* <Button onClick={() => setGain(0.1, )} variant="outline" size="sm">
           Fade out
         </Button>
         <Button onClick={() => setGain(1)} variant="outline" size="sm">
           Fade in
-        </Button>
+        </Button> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

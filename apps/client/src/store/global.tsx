@@ -69,7 +69,7 @@ interface GlobalState {
   duration: number;
   volume: number;
   playAudio: (data: { offset: number; when: number }) => void; // time in seconds
-  setGain: (gain: number) => void;
+  setGain: ({ gain, rampTime }: { gain: number; rampTime: number }) => void;
 
   // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
@@ -393,7 +393,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    setGain: (gain: number) => {
+    setGain: ({ gain, rampTime }) => {
       const { audioContext, gainNode } = getAudioPlayer(get());
 
       // Get current time
@@ -408,24 +408,26 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // Set the current value
       gainNode.gain.setValueAtTime(currentGain, now);
 
-      // Determine if we're increasing or decreasing volume
-      if (gain > currentGain) {
-        // Fast attack (volume increasing) - 0.2 seconds
-        gainNode.gain.linearRampToValueAtTime(gain, now + 1);
-        console.log(
-          `Volume increasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
-            2
-          )} in 0.2s`
-        );
-      } else {
-        // Slow decay (volume decreasing) - 2.0 seconds
-        gainNode.gain.exponentialRampToValueAtTime(gain, now + 1.5);
-        console.log(
-          `Volume decreasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
-            2
-          )} in 1.0s`
-        );
-      }
+      gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
+
+      // // Determine if we're increasing or decreasing volume
+      // if (gain > currentGain) {
+      //   // Fast attack (volume increasing) - 0.2 seconds
+      //   gainNode.gain.linearRampToValueAtTime(gain, now + 1);
+      //   console.log(
+      //     `Volume increasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
+      //       2
+      //     )} in 0.2s`
+      //   );
+      // } else {
+      //   // Slow decay (volume decreasing) - 2.0 seconds
+      //   gainNode.gain.exponentialRampToValueAtTime(gain, now + 1.5);
+      //   console.log(
+      //     `Volume decreasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
+      //       2
+      //     )} in 1.0s`
+      //   );
+      // }
     },
 
     // Pause playback

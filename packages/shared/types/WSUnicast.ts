@@ -17,6 +17,7 @@ const SetClientID = z.object({
 const SetGain = z.object({
   type: z.literal("SET_GAIN"),
   gain: z.number().min(0).max(1),
+  rampTime: z.number(),
 });
 
 export const WSUnicastSchema = z.discriminatedUnion("type", [
