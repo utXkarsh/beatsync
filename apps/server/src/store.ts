@@ -12,7 +12,7 @@ interface RoomData {
 const AUDIO_LOW = 0.2;
 const AUDIO_HIGH = 1.0;
 const volumeUpRampTime = 0.5;
-const volumeDownRampTime = 1.2;
+const volumeDownRampTime = 1.7;
 
 class RoomManager {
   rooms = new Map<string, RoomData>();
@@ -73,7 +73,7 @@ class RoomManager {
         type: "SCHEDULED_ACTION",
         serverTimeToExecute: Date.now() + 500,
         scheduledAction: {
-          type: "SET_GAINS",
+          type: "SPATIAL_CONFIG",
           gains: Object.fromEntries(
             clients.map((client, index) => {
               const isFocused = index === focusIndex;

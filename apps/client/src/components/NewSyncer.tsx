@@ -1,6 +1,7 @@
 "use client";
 import { fetchAudio } from "@/lib/api";
 import { RawAudioSource } from "@/lib/localTypes";
+import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
@@ -65,6 +66,8 @@ export const NewSyncer = () => {
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
   const isSynced = useGlobalStore((state) => state.isSynced);
   const addAudioSource = useGlobalStore((state) => state.addAudioSource);
+  const spatialConfig = useGlobalStore((state) => state.spatialConfig);
+
   // Transition state for delayed showing of main UI
   const [showingSyncScreen, setShowingSyncScreen] = useState(true);
 
@@ -171,7 +174,7 @@ export const NewSyncer = () => {
           schedulePause({
             targetServerTime: serverTimeToExecute,
           });
-        } else if (scheduledAction.type === "SET_GAINS") {
+        } else if (scheduledAction.type === "SPATIAL_CONFIG") {
           processGains(scheduledAction);
         }
       } else if (response.type === "SET_CLIENT_ID") {
@@ -254,34 +257,59 @@ export const NewSyncer = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {clients.map((client) => (
-                  <div
-                    key={client.clientId}
-                    className="flex items-center gap-3"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                      // src={`https://avatar.vercel.sh/${client.username}`}
-                      />
-                      <AvatarFallback
-                        className={generateColor(client.username)}
+                {clients.map((client) => {
+                  const user = spatialConfig?.gains[client.clientId];
+                  const isActive = user?.gain === 1;
+                  const isCurrentUser = client.clientId === userId;
+                  return (
+                    <motion.div
+                      key={client.clientId}
+                      className={cn(
+                        "flex items-center gap-3 p-2 rounded-md transition-colors duration-300",
+                        isActive ? "bg-primary/5" : "bg-transparent"
+                      )}
+                      initial={{ opacity: 0.8 }}
+                      animate={{
+                        opacity: 1,
+                        scale: isActive ? 1.02 : 1,
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage />
+                        <AvatarFallback
+                          className={generateColor(client.username)}
+                        >
+                          {client.username.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium">
+                          {client.username}
+                        </span>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {client.clientId}
+                        </span>
+                      </div>
+                      <Badge
+                        variant={
+                          isActive
+                            ? "default"
+                            : isCurrentUser
+                            ? "secondary"
+                            : "outline"
+                        }
+                        className="ml-auto text-xs shrink-0"
                       >
-                        {client.username.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        {client.username}
-                      </span>
-                      <span className="text-xs text-muted-foreground truncate">
-                        {client.clientId}
-                      </span>
-                    </div>
-                    <Badge variant="outline" className="ml-auto text-xs">
-                      {client.clientId === userId ? "You" : "Connected"}
-                    </Badge>
-                  </div>
-                ))}
+                        {isActive
+                          ? "Active"
+                          : isCurrentUser
+                          ? "You"
+                          : "Connected"}
+                      </Badge>
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </CardContent>

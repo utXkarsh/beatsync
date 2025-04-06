@@ -25,8 +25,8 @@ const AudioSourceSchema = z.object({
 });
 export type AudioSourceType = z.infer<typeof AudioSourceSchema>;
 
-const SetGainsSchema = z.object({
-  type: z.literal("SET_GAINS"),
+const SpatialConfigSchema = z.object({
+  type: z.literal("SPATIAL_CONFIG"),
   // Map of user id -> {gain, rampTime} to set
   gains: z.record(
     z.string(),
@@ -34,7 +34,7 @@ const SetGainsSchema = z.object({
   ),
 });
 
-export type SetGainsSchemaType = z.infer<typeof SetGainsSchema>;
+export type SpatialConfigType = z.infer<typeof SpatialConfigSchema>;
 
 const ScheduledActionSchema = z.object({
   type: z.literal("SCHEDULED_ACTION"),
@@ -42,7 +42,7 @@ const ScheduledActionSchema = z.object({
   scheduledAction: z.discriminatedUnion("type", [
     PlayActionSchema,
     PauseActionSchema,
-    SetGainsSchema,
+    SpatialConfigSchema,
   ]),
 });
 

@@ -7,7 +7,7 @@ import {
   calculateWaitTimeMilliseconds,
 } from "@/utils/ntp";
 import { sendWSRequest } from "@/utils/ws";
-import { ClientActionEnum, SetGainsSchemaType } from "@beatsync/shared";
+import { ClientActionEnum, SpatialConfigType } from "@beatsync/shared";
 import { create } from "zustand";
 import { useRoomStore } from "./room";
 
@@ -54,6 +54,8 @@ interface GlobalState {
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
   startSpatialAudio: () => void;
+  spatialConfig?: SpatialConfigType;
+  setSpatialConfig: (config: SpatialConfigType) => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -70,7 +72,7 @@ interface GlobalState {
   duration: number;
   volume: number;
   playAudio: (data: { offset: number; when: number }) => void; // time in seconds
-  processGains: (gains: SetGainsSchemaType) => void;
+  processGains: (gains: SpatialConfigType) => void;
 
   // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
@@ -201,6 +203,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         console.error("Failed to decode audio data:", error);
       }
     },
+    setSpatialConfig: (spatialConfig) => set({ spatialConfig }),
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
     setSelectedSourceIndex: (index) => {
       // Stop any current playback
@@ -394,7 +397,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    processGains: ({ gains }) => {
+    processGains: (config) => {
+      set({ spatialConfig: config });
+      const { gains } = config;
       // Extract out what this client's gain is:
       const state = get();
       const userId = useRoomStore.getState().userId;
@@ -411,17 +416,8 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       gainNode.gain.cancelScheduledValues(now);
       gainNode.gain.setValueAtTime(currentGain, now);
 
-      // Set new gain
-
-      const isLeavingFocus = gain < currentGain;
-
-      if (isLeavingFocus) {
-        // Want to add a bit of release so it doesn't disappear immediately, ramp slower
-        gainNode.gain.linearRampToValueAtTime(0, now + rampTime + 0.5);
-      } else {
-        // Default
-        gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
-      }
+      // Ramp time is set server side
+      gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
     },
 
     // Pause playback
