@@ -217,160 +217,240 @@ export const NewSyncer = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Check if the current user's device is the active one in spatial audio
+  const isCurrentDeviceActive = spatialConfig?.gains[userId]?.gain === 1;
+
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 justify-between">
-        <Card className="w-full md:w-2/3">
-          <CardHeader>
-            <CardTitle>Room Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground">Room ID</span>
-                <span className="font-medium">{roomId}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground">Username</span>
-                <span className="font-medium">{username}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground">User ID</span>
-                <span className="font-medium truncate">{userId}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <>
+      {isCurrentDeviceActive && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.8 }}
+            transition={{ duration: 1.5 }}
+            className="fixed inset-0 pointer-events-none -z-10 bg-gradient-to-br from-blue-500/30 via-pink-400/20 to-blue-300/15 blur-lg"
+          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            transition={{ duration: 1.2 }}
+            className="fixed inset-0 pointer-events-none -z-10 bg-radial-gradient from-pink-500/40 via-transparent to-transparent blur-xl mix-blend-soft-light"
+          />
 
-        <Card className="w-full md:w-1/3">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="flex items-center gap-2">
-              <Users size={18} />
-              <span>Connected Users</span>
-            </CardTitle>
-            <Badge variant="outline">{clients.length}</Badge>
-          </CardHeader>
-          <CardContent>
-            {clients.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                No other users connected
+          {/* Additional color spots */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.3, 0.5, 0.3],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="fixed top-[10%] left-[15%] w-[30vw] h-[30vw] rounded-full bg-pink-500/10 blur-3xl pointer-events-none -z-10"
+          />
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.2, 0.4, 0.2],
+              scale: [1, 1.15, 1],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+            className="fixed bottom-[20%] right-[10%] w-[25vw] h-[25vw] rounded-full bg-purple-500/10 blur-3xl pointer-events-none -z-10"
+          />
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.15, 0.3, 0.15],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 4,
+            }}
+            className="fixed top-[40%] right-[20%] w-[20vw] h-[20vw] rounded-full bg-blue-400/10 blur-3xl pointer-events-none -z-10"
+          />
+        </>
+      )}
+      <div className="container mx-auto p-4 space-y-6 relative">
+        <div className="flex flex-col md:flex-row gap-4 justify-between">
+          <Card className="w-full md:w-2/3">
+            <CardHeader>
+              <CardTitle>Room Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col">
+                  <span className="text-sm text-muted-foreground">Room ID</span>
+                  <span className="font-medium">{roomId}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm text-muted-foreground">
+                    Username
+                  </span>
+                  <span className="font-medium">{username}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm text-muted-foreground">User ID</span>
+                  <span className="font-medium truncate">{userId}</span>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {clients.map((client) => {
-                  const user = spatialConfig?.gains[client.clientId];
-                  const isActive = user?.gain === 1;
-                  const isCurrentUser = client.clientId === userId;
-                  return (
-                    <motion.div
-                      key={client.clientId}
-                      className={cn(
-                        "flex items-center gap-3 p-2 rounded-md transition-colors duration-300",
-                        isActive ? "bg-primary/5" : "bg-transparent"
-                      )}
-                      initial={{ opacity: 0.8 }}
-                      animate={{
-                        opacity: 1,
-                        scale: isActive ? 1.02 : 1,
-                      }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage />
-                        <AvatarFallback
-                          className={generateColor(client.username)}
-                        >
-                          {client.username.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium">
-                          {client.username}
-                        </span>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {client.clientId}
-                        </span>
-                      </div>
-                      <Badge
-                        variant={
-                          isActive
-                            ? "default"
-                            : isCurrentUser
-                            ? "secondary"
-                            : "outline"
-                        }
-                        className="ml-auto text-xs shrink-0"
+            </CardContent>
+          </Card>
+
+          <Card className="w-full md:w-1/3">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Users size={18} />
+                <span>Connected Users</span>
+              </CardTitle>
+              <Badge variant="outline">{clients.length}</Badge>
+            </CardHeader>
+            <CardContent>
+              {clients.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  No other users connected
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {clients.map((client) => {
+                    const user = spatialConfig?.gains[client.clientId];
+                    const isActive = user?.gain === 1;
+                    const isFocused = user?.gain === 0; // The focused/active device in spatial audio
+                    const isCurrentUser = client.clientId === userId;
+                    return (
+                      <motion.div
+                        key={client.clientId}
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-md transition-all duration-300",
+                          isFocused
+                            ? "bg-primary/20 shadow-md shadow-primary/20"
+                            : isActive
+                            ? "bg-primary/5"
+                            : "bg-transparent"
+                        )}
+                        initial={{ opacity: 0.8 }}
+                        animate={{
+                          opacity: 1,
+                          scale: isFocused ? 1.05 : isActive ? 1.02 : 1,
+                        }}
+                        transition={{ duration: 0.3 }}
                       >
-                        {isActive
-                          ? "Active"
-                          : isCurrentUser
-                          ? "You"
-                          : "Connected"}
-                      </Badge>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage />
+                          <AvatarFallback
+                            className={generateColor(client.username)}
+                          >
+                            {client.username.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium">
+                            {client.username}
+                          </span>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {client.clientId}
+                          </span>
+                        </div>
+                        <Badge
+                          variant={
+                            isFocused
+                              ? "default"
+                              : isActive
+                              ? "secondary"
+                              : isCurrentUser
+                              ? "secondary"
+                              : "outline"
+                          }
+                          className={cn(
+                            "ml-auto text-xs shrink-0",
+                            isFocused ? "bg-primary animate-pulse" : ""
+                          )}
+                        >
+                          {isFocused
+                            ? "Focused"
+                            : isActive
+                            ? "Active"
+                            : isCurrentUser
+                            ? "You"
+                            : "Connected"}
+                        </Badge>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="flex items-center gap-2">
-        <SocketStatus />
-        {/* <Button onClick={() => setGain(0.1, )} variant="outline" size="sm">
+        <div className="flex items-center gap-2">
+          <SocketStatus />
+          {/* <Button onClick={() => setGain(0.1, )} variant="outline" size="sm">
           Fade out
         </Button>
         <Button onClick={() => setGain(1)} variant="outline" size="sm">
           Fade in
         </Button> */}
-      </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Music Controls</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <TrackSelector />
+              <Player />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload Music</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AudioUploader />
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Music Controls</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <TrackSelector />
-            <Player />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Music</CardTitle>
+            <CardTitle>Network Synchronization</CardTitle>
           </CardHeader>
           <CardContent>
-            <AudioUploader />
+            <NTP />
           </CardContent>
         </Card>
+
+        <AnimatePresence>
+          {isLoadingAudio && (
+            <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+              <SyncProgress
+                loadingMessage={
+                  isLoadingRoom
+                    ? "Loading audio"
+                    : !socket
+                    ? "Connecting to server"
+                    : "Loading room"
+                }
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Network Synchronization</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <NTP />
-        </CardContent>
-      </Card>
-
-      <AnimatePresence>
-        {isLoadingAudio && (
-          <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-            <SyncProgress
-              loadingMessage={
-                isLoadingRoom
-                  ? "Loading audio"
-                  : !socket
-                  ? "Connecting to server"
-                  : "Loading room"
-              }
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    </>
   );
 };
