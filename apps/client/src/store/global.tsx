@@ -54,6 +54,7 @@ interface GlobalState {
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
   startSpatialAudio: () => void;
+  stopSpatialAudio: () => void;
   spatialConfig?: SpatialConfigType;
   setSpatialConfig: (config: SpatialConfigType) => void;
 
@@ -149,7 +150,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       // Create master gain node for volume control
       const gainNode = audioContext.createGain();
-      gainNode.gain.value = 1.0; // Default volume
+      gainNode.gain.value = 1; // Default volume
       const sourceNode = audioContext.createBufferSource();
 
       // Decode initial first audio source
@@ -298,6 +299,24 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           type: ClientActionEnum.enum.START_SPATIAL_AUDIO,
         },
       });
+    },
+
+    stopSpatialAudio: () => {
+      const state = get();
+      const { socket } = getSocket(state);
+
+      sendWSRequest({
+        ws: socket,
+        request: {
+          type: ClientActionEnum.enum.STOP_SPATIAL_AUDIO,
+        },
+      });
+
+      // Reset gain node to 0.8
+      const { gainNode } = getAudioPlayer(state);
+      gainNode.gain.value = 1;
+
+      set({ spatialConfig: undefined });
     },
 
     // NTP

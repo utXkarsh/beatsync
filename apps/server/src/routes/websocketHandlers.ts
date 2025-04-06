@@ -95,6 +95,14 @@ export const handleMessage = async (
       if (!room || room.intervalId) return; // do nothing if no room or interval already exists
 
       roomManager.startInterval({ server, roomId });
+    } else if (
+      parsedMessage.type === ClientActionEnum.enum.STOP_SPATIAL_AUDIO
+    ) {
+      // Stop the spatial audio interval if it exists
+      const room = roomManager.getRoomState(roomId);
+      if (!room || !room.intervalId) return; // do nothing if no room or no interval exists
+
+      roomManager.stopInterval(roomId);
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }
