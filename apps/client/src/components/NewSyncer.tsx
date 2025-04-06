@@ -59,7 +59,7 @@ export const NewSyncer = () => {
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
   const schedulePlay = useGlobalStore((state) => state.schedulePlay);
   const schedulePause = useGlobalStore((state) => state.schedulePause);
-  const setGain = useGlobalStore((state) => state.setGain);
+  const processGains = useGlobalStore((state) => state.processGains);
   // Socket
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
@@ -171,12 +171,11 @@ export const NewSyncer = () => {
           schedulePause({
             targetServerTime: serverTimeToExecute,
           });
+        } else if (scheduledAction.type === "SET_GAINS") {
+          processGains(scheduledAction);
         }
       } else if (response.type === "SET_CLIENT_ID") {
         setUserId(response.clientId);
-      } else if (response.type === "SET_GAIN") {
-        console.log("Received gain:", response);
-        setGain(response);
       } else {
         console.log("Unknown response type:", response);
       }

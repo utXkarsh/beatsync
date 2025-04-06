@@ -1,6 +1,6 @@
-import { ClientType } from "@beatsync/shared";
-import { ServerWebSocket } from "bun";
-import { sendUnicast } from "./utils/responses";
+import { ClientType, WSBroadcastType } from "@beatsync/shared";
+import { Server, ServerWebSocket } from "bun";
+import { sendBroadcast } from "./utils/responses";
 import { WSData } from "./utils/websocket";
 
 interface RoomData {
@@ -49,7 +49,7 @@ class RoomManager {
     return Array.from(room.clients.values());
   }
 
-  startInterval(roomId: string) {
+  startInterval({ server, roomId }: { server: Server; roomId: string }) {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
@@ -68,42 +68,32 @@ class RoomManager {
       // Move focus to next client, wrap around if needed
       focusIndex = (focusIndex + 1) % clients.length;
 
-      // Set gain for each client - focused client gets 1.0, others get 0.5
-      clients.forEach((client, index) => {
-        if (clients.length === 1) {
-          sendUnicast({
-            ws: client.ws,
-            message: {
-              type: "SET_GAIN",
-              gain: loopCount % 2 === 0 ? AUDIO_HIGH : AUDIO_LOW,
-              rampTime:
-                loopCount % 2 === 0 ? volumeUpRampTime : volumeDownRampTime,
-            },
-          });
-        } else {
-          // Normal case, multiple clients
-          const isVolumeGoingUp = index === focusIndex;
-          const gain = isVolumeGoingUp ? AUDIO_HIGH : AUDIO_LOW;
-          const rampTime = isVolumeGoingUp
-            ? volumeUpRampTime
-            : volumeDownRampTime;
+      // Set gain for each client - focused client gets AUDIO_HIGH, others get AUDIO_LOW
+      const message: WSBroadcastType = {
+        type: "SCHEDULED_ACTION",
+        serverTimeToExecute: Date.now() + 500,
+        scheduledAction: {
+          type: "SET_GAINS",
+          gains: Object.fromEntries(
+            clients.map((client, index) => {
+              const isFocused = index === focusIndex;
+              return [
+                client.clientId,
+                {
+                  gain: isFocused ? AUDIO_HIGH : AUDIO_LOW,
+                  rampTime: isFocused ? volumeUpRampTime : volumeDownRampTime,
+                },
+              ];
+            })
+          ),
+        },
+      };
 
-          sendUnicast({
-            ws: client.ws,
-            message: {
-              type: "SET_GAIN",
-              gain,
-              rampTime,
-            },
-          });
-        }
-      });
-
+      sendBroadcast({ server, roomId, message });
       loopCount++;
     };
 
-    // Change every two seconds
-    room.intervalId = setInterval(updateSpatialAudio, 2000);
+    room.intervalId = setInterval(updateSpatialAudio, 1000);
   }
 
   stopInterval(roomId: string) {

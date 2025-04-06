@@ -7,8 +7,9 @@ import {
   calculateWaitTimeMilliseconds,
 } from "@/utils/ntp";
 import { sendWSRequest } from "@/utils/ws";
-import { ClientActionEnum } from "@beatsync/shared";
+import { ClientActionEnum, SetGainsSchemaType } from "@beatsync/shared";
 import { create } from "zustand";
+import { useRoomStore } from "./room";
 
 export const MAX_NTP_MEASUREMENTS = 40;
 
@@ -69,7 +70,7 @@ interface GlobalState {
   duration: number;
   volume: number;
   playAudio: (data: { offset: number; when: number }) => void; // time in seconds
-  setGain: ({ gain, rampTime }: { gain: number; rampTime: number }) => void;
+  processGains: (gains: SetGainsSchemaType) => void;
 
   // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
@@ -393,21 +394,20 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    setGain: ({ gain, rampTime }) => {
-      const { audioContext, gainNode } = getAudioPlayer(get());
+    processGains: ({ gains }) => {
+      // Extract out what this client's gain is:
+      const state = get();
+      const userId = useRoomStore.getState().userId;
+      const user = gains[userId];
+      const { gain, rampTime } = user;
 
-      // Get current time
+      // Process
+      const { audioContext, gainNode } = getAudioPlayer(state);
+
       const now = audioContext.currentTime;
-
-      // Get the current gain value
       const currentGain = gainNode.gain.value;
-
-      // Cancel any scheduled changes
       gainNode.gain.cancelScheduledValues(now);
-
-      // Set the current value
       gainNode.gain.setValueAtTime(currentGain, now);
-
       gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
 
       // // Determine if we're increasing or decreasing volume

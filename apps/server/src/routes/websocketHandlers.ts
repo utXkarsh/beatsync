@@ -94,7 +94,7 @@ export const handleMessage = async (
       const room = roomManager.getRoomState(roomId);
       if (!room || room.intervalId) return; // do nothing if no room or interval already exists
 
-      roomManager.startInterval(roomId);
+      roomManager.startInterval({ server, roomId });
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }
