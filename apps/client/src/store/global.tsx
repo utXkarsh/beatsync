@@ -406,28 +406,22 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       const now = audioContext.currentTime;
       const currentGain = gainNode.gain.value;
+
+      // Reset
       gainNode.gain.cancelScheduledValues(now);
       gainNode.gain.setValueAtTime(currentGain, now);
-      gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
 
-      // // Determine if we're increasing or decreasing volume
-      // if (gain > currentGain) {
-      //   // Fast attack (volume increasing) - 0.2 seconds
-      //   gainNode.gain.linearRampToValueAtTime(gain, now + 1);
-      //   console.log(
-      //     `Volume increasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
-      //       2
-      //     )} in 0.2s`
-      //   );
-      // } else {
-      //   // Slow decay (volume decreasing) - 2.0 seconds
-      //   gainNode.gain.exponentialRampToValueAtTime(gain, now + 1.5);
-      //   console.log(
-      //     `Volume decreasing: ${currentGain.toFixed(2)} → ${gain.toFixed(
-      //       2
-      //     )} in 1.0s`
-      //   );
-      // }
+      // Set new gain
+
+      const isLeavingFocus = gain < currentGain;
+
+      if (isLeavingFocus) {
+        // Want to add a bit of release so it doesn't disappear immediately, ramp slower
+        gainNode.gain.linearRampToValueAtTime(0, now + rampTime + 0.5);
+      } else {
+        // Default
+        gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
+      }
     },
 
     // Pause playback
