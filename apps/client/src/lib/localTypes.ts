@@ -6,4 +6,5 @@ export interface LocalAudioSource {
 export interface RawAudioSource {
   name: string;
   audioBuffer: ArrayBuffer;
+  id: string; // Optional ID for tracking downloaded audio files
 }

@@ -12,6 +12,7 @@ export const ClientActionEnum = z.enum([
   "NTP_REQUEST",
   "START_SPATIAL_AUDIO",
   "STOP_SPATIAL_AUDIO",
+  "REUPLOAD_AUDIO",
 ]);
 
 export const NTPRequestPacketSchema = z.object({
@@ -37,11 +38,21 @@ const StopSpatialAudioSchema = z.object({
   type: z.literal(ClientActionEnum.enum.STOP_SPATIAL_AUDIO),
 });
 
+const ReuploadAudioSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.REUPLOAD_AUDIO),
+  audioId: z.string(),
+  audioName: z.string(),
+});
+
 export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
   NTPRequestPacketSchema,
   StartSpatialAudioSchema,
   StopSpatialAudioSchema,
+  ReuploadAudioSchema,
 ]);
 export type WSRequestType = z.infer<typeof WSRequestSchema>;
+export type PlayActionType = z.infer<typeof PlayActionSchema>;
+export type PauseActionType = z.infer<typeof PauseActionSchema>;
+export type ReuploadAudioType = z.infer<typeof ReuploadAudioSchema>;

@@ -130,6 +130,16 @@ export const NewSyncer = () => {
           console.log("Received new audio source:", response);
           const { title, id } = event;
 
+          // Check if we already have this audio file downloaded
+          const hasDownloaded = useGlobalStore
+            .getState()
+            .hasDownloadedAudio(id);
+
+          if (hasDownloaded) {
+            console.log(`Audio file ${id} already downloaded, skipping fetch`);
+            return;
+          }
+
           toast.promise(
             fetchAudio(id)
               .then(async (blob) => {
@@ -141,6 +151,7 @@ export const NewSyncer = () => {
                   const audioSource: RawAudioSource = {
                     name: title,
                     audioBuffer: arrayBuffer,
+                    id: id, // Include ID in the RawAudioSource
                   };
 
                   return addAudioSource(audioSource);

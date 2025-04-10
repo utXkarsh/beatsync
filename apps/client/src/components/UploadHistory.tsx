@@ -1,7 +1,9 @@
 "use client";
 
 import { useGlobalStore } from "@/store/global";
-import { History } from "lucide-react";
+import { History, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 // Helper function to format relative time
@@ -18,6 +20,16 @@ const formatRelativeTime = (timestamp: number): string => {
 
 export const UploadHistory = () => {
   const uploadHistory = useGlobalStore((state) => state.uploadHistory);
+  const reuploadAudio = useGlobalStore((state) => state.reuploadAudio);
+
+  const handleReupload = (item: {
+    name: string;
+    timestamp: number;
+    id: string;
+  }) => {
+    reuploadAudio(item.id, item.name);
+    toast.success(`Rebroadcasting ${item.name} to all users`);
+  };
 
   return (
     <Card>
@@ -33,20 +45,32 @@ export const UploadHistory = () => {
             No upload history yet
           </div>
         ) : (
-          <div className="space-y-3 max-h-48 overflow-y-auto">
+          <div className="space-y-3 max-h-48 overflow-y-auto w-full">
             {uploadHistory.map((item) => (
               <div
                 key={`${item.name}-${item.timestamp}`}
                 className="flex items-center justify-between p-2 rounded-md bg-muted/30"
               >
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium truncate max-w-[200px]">
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="text-sm font-medium truncate">
                     {item.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {formatRelativeTime(item.timestamp)}
                   </span>
                 </div>
+
+                {item.id && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleReupload(item)}
+                    className="h-8 w-8 p-0 flex-shrink-0 ml-2"
+                    title="Reupload to all users"
+                  >
+                    <RefreshCw size={14} />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
