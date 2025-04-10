@@ -292,14 +292,14 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     setSelectedAudioId: (audioId) => {
       // Stop any current playback
       const state = get();
-      if (state.isPlaying) {
-        try {
-          const { sourceNode } = getAudioPlayer(state);
-          sourceNode.stop();
-        } catch (e) {
-          console.warn("Error stopping playback during track switch:", e);
-        }
-      }
+      // if (state.isPlaying) {
+      //   try {
+      //     const { sourceNode } = getAudioPlayer(state);
+      //     sourceNode.stop();
+      //   } catch (e) {
+      //     console.warn("Error stopping playback during track switch:", e);
+      //   }
+      // }
 
       // Find the new audio source for duration
       const audioIndex = state.findAudioIndexById(audioId);

@@ -19,7 +19,6 @@ export const metadata: Metadata = {
     "Synchronize music playback across multiple devices in real-time",
   keywords: ["music", "sync", "audio", "collaboration", "real-time"],
   authors: [{ name: "BeatSync Team" }],
-  themeColor: "#000000",
 };
 
 export default function RootLayout({
