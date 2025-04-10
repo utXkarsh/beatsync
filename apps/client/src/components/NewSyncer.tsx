@@ -23,6 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { SyncProgress } from "./ui/SyncProgress";
+import { UploadHistory } from "./UploadHistory";
 
 // TODO: USE react-use-websocket
 const handleNTPResponse = (response: NTPResponseMessageType) => {
@@ -416,14 +417,18 @@ export const NewSyncer = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload Music</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AudioUploader />
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Music</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AudioUploader />
+              </CardContent>
+            </Card>
+
+            <UploadHistory />
+          </div>
         </div>
 
         <Card>

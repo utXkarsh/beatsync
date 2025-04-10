@@ -35,6 +35,8 @@ interface GlobalState {
   audioSources: LocalAudioSource[];
   isLoadingAudio: boolean;
   selectedSourceIndex: number;
+  uploadHistory: { name: string; timestamp: number }[];
+  addToUploadHistory: (name: string) => void;
   setAudioSources: (sources: LocalAudioSource[]) => void;
   addAudioSource: (source: RawAudioSource) => Promise<void>;
   setIsLoadingAudio: (isLoading: boolean) => void;
@@ -177,6 +179,14 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     audioSources: [],
     isLoadingAudio: true,
     selectedSourceIndex: 0,
+    uploadHistory: [],
+    addToUploadHistory: (name) =>
+      set((state) => ({
+        uploadHistory: [
+          ...state.uploadHistory,
+          { name, timestamp: Date.now() },
+        ],
+      })),
     setAudioSources: (sources) => set({ audioSources: sources }),
     addAudioSource: async (source: RawAudioSource) => {
       const state = get();
@@ -192,6 +202,10 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           "Decoded audio setting state to add audio source",
           source.name
         );
+
+        // Add to upload history when adding an audio source
+        state.addToUploadHistory(source.name);
+
         set((state) => ({
           audioSources: [
             ...state.audioSources,
