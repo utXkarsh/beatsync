@@ -58,7 +58,7 @@ export const Join = () => {
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Join SyncBeat Room</CardTitle>
+          <CardTitle className="text-center">Beatsync | Join Room</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

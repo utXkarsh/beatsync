@@ -1,6 +1,12 @@
 import { formatTime } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
-import { Pause, Play, RocketIcon, StopCircleIcon } from "lucide-react";
+import {
+  Pause,
+  Play,
+  RefreshCw,
+  RocketIcon,
+  StopCircleIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
@@ -115,7 +121,11 @@ export const Player = () => {
           size="sm"
           className="flex-1 min-w-[80px]"
         >
-          <Play className="h-4 w-4 mr-1" />
+          {isPlaying ? (
+            <RefreshCw className="h-4 w-4 mr-1" />
+          ) : (
+            <Play className="h-4 w-4 mr-1" />
+          )}
           {isPlaying ? "Restart" : "Play"}
         </Button>
         <Button

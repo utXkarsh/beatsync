@@ -11,7 +11,7 @@ import {
   NTPResponseMessageType,
   WSResponseSchema,
 } from "@beatsync/shared";
-import { Hand, Users } from "lucide-react";
+import { AlertTriangle, Hand, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -375,16 +375,7 @@ export const NewSyncer = () => {
                 <Users size={18} />
                 <span>Connected Users</span>
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={handleMoveToFront}
-                >
-                  <Hand size={14} />
-                  <span>Move to Front</span>
-                </Button>
+              <div className="flex items-center">
                 <Badge variant="outline">{clients.length}</Badge>
               </div>
             </CardHeader>
@@ -462,6 +453,17 @@ export const NewSyncer = () => {
                   })}
                 </div>
               )}
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full flex items-center justify-center gap-1"
+                  onClick={handleMoveToFront}
+                >
+                  <Hand size={14} />
+                  <span>Move to Front</span>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -482,6 +484,12 @@ export const NewSyncer = () => {
               <CardTitle>Music Controls</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md">
+                <p className="text-sm text-yellow-500 flex items-center gap-2">
+                  <AlertTriangle size={16} />
+                  <span>These controls affect all users in the room.</span>
+                </p>
+              </div>
               <TrackSelector />
               <Player />
             </CardContent>

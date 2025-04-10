@@ -1,7 +1,7 @@
 "use client";
 
 import { useGlobalStore } from "@/store/global";
-import { History, RefreshCw } from "lucide-react";
+import { CloudUpload, History } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -68,7 +68,7 @@ export const UploadHistory = () => {
                     className="h-8 w-8 p-0 flex-shrink-0 ml-2"
                     title="Reupload to all users"
                   >
-                    <RefreshCw size={14} />
+                    <CloudUpload size={14} />
                   </Button>
                 )}
               </div>
