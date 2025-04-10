@@ -15,6 +15,7 @@ export const Player = () => {
   );
   const selectedAudioId = useGlobalStore((state) => state.selectedAudioId);
   const audioSources = useGlobalStore((state) => state.audioSources);
+  const currentTime = useGlobalStore((state) => state.currentTime);
 
   // Local state for slider
   const [sliderPosition, setSliderPosition] = useState(0);
@@ -29,8 +30,17 @@ export const Player = () => {
     );
     if (audioSource?.audioBuffer) {
       setTrackDuration(audioSource.audioBuffer.duration);
+      // Reset slider position when track changes
+      setSliderPosition(0);
     }
   }, [selectedAudioId, audioSources]);
+
+  // Sync with currentTime when it changes (e.g., after pausing)
+  useEffect(() => {
+    if (!isPlaying) {
+      setSliderPosition(currentTime);
+    }
+  }, [currentTime, isPlaying]);
 
   // Update slider position during playback
   useEffect(() => {
