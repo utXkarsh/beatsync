@@ -9,10 +9,10 @@ interface RoomData {
   intervalId?: NodeJS.Timeout; // https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
 }
 
-const AUDIO_LOW = 0.2;
+const AUDIO_LOW = 0.15;
 const AUDIO_HIGH = 1.0;
 const volumeUpRampTime = 0.5;
-const volumeDownRampTime = 1.7;
+const volumeDownRampTime = 0.5;
 
 class RoomManager {
   rooms = new Map<string, RoomData>();
