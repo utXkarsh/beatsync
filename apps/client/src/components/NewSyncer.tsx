@@ -180,7 +180,7 @@ export const NewSyncer = () => {
           schedulePlay({
             trackTimeSeconds: scheduledAction.trackTimeSeconds,
             targetServerTime: serverTimeToExecute,
-            trackIndex: scheduledAction.trackIndex,
+            audioId: scheduledAction.audioId,
           });
         } else if (scheduledAction.type === "PAUSE") {
           schedulePause({

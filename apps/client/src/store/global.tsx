@@ -8,6 +8,7 @@ import {
 } from "@/utils/ntp";
 import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum, SpatialConfigType } from "@beatsync/shared";
+import { toast } from "sonner";
 import { create } from "zustand";
 import { useRoomStore } from "./room";
 
@@ -18,6 +19,7 @@ export const MAX_NTP_MEASUREMENTS = 40;
 interface StaticAudioSource {
   name: string;
   url: string;
+  id: string;
 }
 
 interface AudioPlayerState {
@@ -34,7 +36,7 @@ interface GlobalState {
   // Audio Sources
   audioSources: LocalAudioSource[];
   isLoadingAudio: boolean;
-  selectedSourceIndex: number;
+  selectedAudioId: string;
   uploadHistory: { name: string; timestamp: number; id: string }[];
   downloadedAudioIds: Set<string>;
   addToUploadHistory: (name: string, id: string) => void;
@@ -44,11 +46,12 @@ interface GlobalState {
   setAudioSources: (sources: LocalAudioSource[]) => void;
   addAudioSource: (source: RawAudioSource) => Promise<void>;
   setIsLoadingAudio: (isLoading: boolean) => void;
-  setSelectedSourceIndex: (index: number) => void;
+  setSelectedAudioId: (audioId: string) => void;
+  findAudioIndexById: (audioId: string) => number | null;
   schedulePlay: (data: {
     trackTimeSeconds: number;
     targetServerTime: number;
-    trackIndex: number;
+    audioId: string;
   }) => void;
   schedulePause: (data: { targetServerTime: number }) => void;
 
@@ -79,7 +82,11 @@ interface GlobalState {
   currentTime: number;
   duration: number;
   volume: number;
-  playAudio: (data: { offset: number; when: number }) => void; // time in seconds
+  playAudio: (data: {
+    offset: number;
+    when: number;
+    audioIndex?: number;
+  }) => void;
   processGains: (gains: SpatialConfigType) => void;
 
   // When to pause in relative seconds from now
@@ -98,9 +105,9 @@ interface GlobalState {
 
 // Audio sources
 const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
-  { name: "Trndsttr (Lucian Remix)", url: "/trndsttr.mp3" },
-  { name: "Wonder", url: "/wonder.mp3" },
-  { name: "Chess", url: "/chess.mp3" },
+  { name: "Trndsttr (Lucian Remix)", url: "/trndsttr.mp3", id: "static-0" },
+  { name: "Wonder", url: "/wonder.mp3", id: "static-1" },
+  { name: "Chess", url: "/chess.mp3", id: "static-2" },
 ];
 
 const getAudioPlayer = (state: GlobalState) => {
@@ -136,6 +143,7 @@ export const initializeAudioSources = async (
       return {
         name: source.name,
         audioBuffer,
+        id: source.id,
       };
     })
   );
@@ -183,7 +191,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Audio Sources
     audioSources: [],
     isLoadingAudio: true,
-    selectedSourceIndex: 0,
+    selectedAudioId: "static-0",
     uploadHistory: [],
     downloadedAudioIds: new Set<string>(),
     addToUploadHistory: (name, id) =>
@@ -244,6 +252,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
             {
               name: source.name,
               audioBuffer,
+              id: source.id,
             },
           ],
         }));
@@ -253,7 +262,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
     setSpatialConfig: (spatialConfig) => set({ spatialConfig }),
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
-    setSelectedSourceIndex: (index) => {
+    setSelectedAudioId: (audioId) => {
       // Stop any current playback
       const state = get();
       if (state.isPlaying) {
@@ -267,32 +276,51 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       // Reset timing state
       set({
-        selectedSourceIndex: index,
+        selectedAudioId: audioId,
         isPlaying: false,
         currentTime: 0,
         playbackStartTime: 0,
         playbackOffset: 0,
       });
     },
+    findAudioIndexById: (audioId: string) => {
+      const state = get();
+      // Look through the audioSources for a matching ID
+      const index = state.audioSources.findIndex(
+        (source) => source.id === audioId
+      );
+      return index >= 0 ? index : null; // Return null if not found
+    },
     schedulePlay: (data: {
       trackTimeSeconds: number;
       targetServerTime: number;
-      trackIndex: number;
+      audioId: string;
     }) => {
       const state = get();
       const waitTimeSeconds = getWaitTimeSeconds(state, data.targetServerTime);
       console.log(
-        `Playing track ${data.trackIndex} at ${data.trackTimeSeconds} seconds in ${waitTimeSeconds}`
+        `Playing track ${data.audioId} at ${data.trackTimeSeconds} seconds in ${waitTimeSeconds}`
       );
 
-      // Update the selected source index if provided
-      if (data.trackIndex !== state.selectedSourceIndex) {
-        set({ selectedSourceIndex: data.trackIndex });
+      // Update the selected audio ID
+      if (data.audioId !== state.selectedAudioId) {
+        set({ selectedAudioId: data.audioId });
+      }
+
+      // Find the index of the audio to play
+      const audioIndex = state.findAudioIndexById(data.audioId);
+      if (audioIndex === null) {
+        console.error(
+          `Cannot play audio: No index found: ${data.audioId} ${data.trackTimeSeconds}`
+        );
+        toast.error("Audio file not found. Please reupload the audio file.");
+        return;
       }
 
       state.playAudio({
         offset: data.trackTimeSeconds,
         when: waitTimeSeconds,
+        audioIndex, // Pass the found index for actual playback
       });
     },
     schedulePause: ({ targetServerTime }: { targetServerTime: number }) => {
@@ -314,12 +342,18 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       const state = get();
       const { socket } = getSocket(state);
 
+      // Make sure we have a selected audio ID
+      if (!state.selectedAudioId) {
+        console.error("Cannot broadcast play: No audio selected");
+        return;
+      }
+
       sendWSRequest({
         ws: socket,
         request: {
           type: ClientActionEnum.enum.PLAY,
           trackTimeSeconds: trackTimeSeconds ?? state.getCurrentTrackPosition(),
-          trackIndex: state.selectedSourceIndex,
+          audioId: state.selectedAudioId,
         },
       });
     },
@@ -433,7 +467,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
 
     // Play the current source
-    playAudio: async ({ offset, when }: { offset: number; when: number }) => {
+    playAudio: async (data: {
+      offset: number;
+      when: number;
+      audioIndex?: number;
+    }) => {
       const state = get();
       const { sourceNode, audioContext, gainNode } = getAudioPlayer(state);
 
@@ -449,15 +487,22 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         sourceNode.stop();
       } catch (_) {}
 
-      const startTime = audioContext.currentTime + when;
+      const startTime = audioContext.currentTime + data.when;
+      const audioIndex = data.audioIndex ?? 0;
 
       // Create a new source node
       const newSourceNode = audioContext.createBufferSource();
-      newSourceNode.buffer =
-        state.audioSources[state.selectedSourceIndex].audioBuffer;
+      newSourceNode.buffer = state.audioSources[audioIndex].audioBuffer;
       newSourceNode.connect(gainNode);
-      newSourceNode.start(startTime, offset);
-      console.log("Started playback at offset:", offset, "with delay:", when);
+      newSourceNode.start(startTime, data.offset);
+      console.log(
+        "Started playback at offset:",
+        data.offset,
+        "with delay:",
+        data.when,
+        "audio index:",
+        audioIndex
+      );
 
       // Update state with the new source node and tracking info
       set((state) => ({
@@ -468,11 +513,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         },
         isPlaying: true,
         playbackStartTime: startTime,
-        playbackOffset: offset,
+        playbackOffset: data.offset,
       }));
     },
 
-    processGains: (config) => {
+    processGains: (config: SpatialConfigType) => {
       set({ spatialConfig: config });
       const { gains } = config;
       // Extract out what this client's gain is:
@@ -496,11 +541,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
 
     // Pause playback
-    pauseAudio: ({ when }) => {
+    pauseAudio: (data: { when: number }) => {
       const state = get();
       const { sourceNode, audioContext } = getAudioPlayer(state);
 
-      const stopTime = audioContext.currentTime + when;
+      const stopTime = audioContext.currentTime + data.when;
       sourceNode.stop(stopTime);
 
       // Calculate current position in the track at the time of pausing
@@ -509,7 +554,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       console.log(
         "Stopping at:",
-        when,
+        data.when,
         "Current track position:",
         currentTrackPosition
       );

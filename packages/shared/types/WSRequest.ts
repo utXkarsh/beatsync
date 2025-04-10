@@ -23,7 +23,7 @@ export const NTPRequestPacketSchema = z.object({
 export const PlayActionSchema = z.object({
   type: z.literal(ClientActionEnum.enum.PLAY),
   trackTimeSeconds: z.number(),
-  trackIndex: z.number(),
+  audioId: z.string(),
 });
 
 export const PauseActionSchema = z.object({
