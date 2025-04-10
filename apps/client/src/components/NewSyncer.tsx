@@ -386,7 +386,7 @@ export const NewSyncer = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {clients.map((client) => {
+                  {[...clients].reverse().map((client) => {
                     const user = spatialConfig?.gains[client.clientId];
                     const isActive = user?.gain === 1;
                     const isFocused = user?.gain === 0; // The focused/active device in spatial audio

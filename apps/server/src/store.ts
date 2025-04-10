@@ -60,9 +60,15 @@ class RoomManager {
 
     if (clientIndex === -1) return clients; // Client not found
 
-    // Move the client to the front
+    // Move the client to the end
     const [client] = clients.splice(clientIndex, 1);
-    clients.unshift(client);
+    clients.push(client);
+
+    // Update the clients map to maintain the new order
+    room.clients.clear();
+    clients.forEach((client) => {
+      room.clients.set(client.clientId, client);
+    });
 
     return clients;
   }
