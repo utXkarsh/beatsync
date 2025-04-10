@@ -105,9 +105,17 @@ interface GlobalState {
 
 // Audio sources
 const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
-  { name: "Trndsttr (Lucian Remix)", url: "/trndsttr.mp3", id: "static-0" },
+  {
+    name: "Black Coast - TRNDSTTR (Lucian Remix)",
+    url: "/trndsttr.mp3",
+    id: "static-0",
+  },
   { name: "Wonder", url: "/wonder.mp3", id: "static-1" },
-  { name: "Chess", url: "/chess.mp3", id: "static-2" },
+  {
+    name: "joyful - chess (slowed)",
+    url: "/joyful - chess (slowed).mp3",
+    id: "static-2",
+  },
 ];
 
 const getAudioPlayer = (state: GlobalState) => {
@@ -246,16 +254,21 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         state.markAudioAsDownloaded(source.id);
         state.addToUploadHistory(source.name, source.id);
 
-        set((state) => ({
-          audioSources: [
-            ...state.audioSources,
-            {
-              name: source.name,
-              audioBuffer,
-              id: source.id,
-            },
-          ],
-        }));
+        const newAudioSource = {
+          name: source.name,
+          audioBuffer,
+          id: source.id,
+        };
+
+        set((state) => {
+          // If this is the currently selected audio, update the duration
+          const shouldUpdateDuration = source.id === state.selectedAudioId;
+
+          return {
+            audioSources: [...state.audioSources, newAudioSource],
+            ...(shouldUpdateDuration ? { duration: audioBuffer.duration } : {}),
+          };
+        });
       } catch (error) {
         console.error("Failed to decode audio data:", error);
       }
@@ -274,6 +287,15 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         }
       }
 
+      // Find the new audio source for duration
+      const audioIndex = state.findAudioIndexById(audioId);
+      let newDuration = 0;
+
+      if (audioIndex !== null) {
+        const audioSource = state.audioSources[audioIndex];
+        newDuration = audioSource.audioBuffer.duration;
+      }
+
       // Reset timing state
       set({
         selectedAudioId: audioId,
@@ -281,6 +303,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         currentTime: 0,
         playbackStartTime: 0,
         playbackOffset: 0,
+        duration: newDuration,
       });
     },
     findAudioIndexById: (audioId: string) => {
@@ -489,10 +512,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       const startTime = audioContext.currentTime + data.when;
       const audioIndex = data.audioIndex ?? 0;
+      const audioBuffer = state.audioSources[audioIndex].audioBuffer;
 
       // Create a new source node
       const newSourceNode = audioContext.createBufferSource();
-      newSourceNode.buffer = state.audioSources[audioIndex].audioBuffer;
+      newSourceNode.buffer = audioBuffer;
       newSourceNode.connect(gainNode);
       newSourceNode.start(startTime, data.offset);
       console.log(
@@ -514,6 +538,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         isPlaying: true,
         playbackStartTime: startTime,
         playbackOffset: data.offset,
+        duration: audioBuffer.duration || 0, // Set the duration
       }));
     },
 
