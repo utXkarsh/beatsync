@@ -13,6 +13,7 @@ export const ClientActionEnum = z.enum([
   "START_SPATIAL_AUDIO",
   "STOP_SPATIAL_AUDIO",
   "REUPLOAD_AUDIO",
+  "REORDER_CLIENT",
 ]);
 
 export const NTPRequestPacketSchema = z.object({
@@ -44,6 +45,11 @@ const ReuploadAudioSchema = z.object({
   audioName: z.string(),
 });
 
+const ReorderClientSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.REORDER_CLIENT),
+  clientId: z.string(),
+});
+
 export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
@@ -51,8 +57,10 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
   StartSpatialAudioSchema,
   StopSpatialAudioSchema,
   ReuploadAudioSchema,
+  ReorderClientSchema,
 ]);
 export type WSRequestType = z.infer<typeof WSRequestSchema>;
 export type PlayActionType = z.infer<typeof PlayActionSchema>;
 export type PauseActionType = z.infer<typeof PauseActionSchema>;
 export type ReuploadAudioType = z.infer<typeof ReuploadAudioSchema>;
+export type ReorderClientType = z.infer<typeof ReorderClientSchema>;

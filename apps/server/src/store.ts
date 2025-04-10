@@ -49,6 +49,24 @@ class RoomManager {
     return Array.from(room.clients.values());
   }
 
+  reorderClients(roomId: string, clientId: string): ClientType[] {
+    const room = this.rooms.get(roomId);
+    if (!room) return [];
+
+    const clients = Array.from(room.clients.values());
+    const clientIndex = clients.findIndex(
+      (client) => client.clientId === clientId
+    );
+
+    if (clientIndex === -1) return clients; // Client not found
+
+    // Move the client to the front
+    const [client] = clients.splice(clientIndex, 1);
+    clients.unshift(client);
+
+    return clients;
+  }
+
   startInterval({ server, roomId }: { server: Server; roomId: string }) {
     const room = this.rooms.get(roomId);
     if (!room) return;

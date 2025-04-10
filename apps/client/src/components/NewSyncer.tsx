@@ -6,11 +6,12 @@ import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
 import {
+  ClientActionEnum,
   ClientType,
   NTPResponseMessageType,
   WSResponseSchema,
 } from "@beatsync/shared";
-import { Users } from "lucide-react";
+import { Hand, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import { SocketStatus } from "./room/SocketStatus";
 import { TrackSelector } from "./TrackSelector";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { SyncProgress } from "./ui/SyncProgress";
 import { UploadHistory } from "./UploadHistory";
@@ -207,6 +209,20 @@ export const NewSyncer = () => {
   // Local state to the syncer:
   const [clients, setClients] = useState<ClientType[]>([]);
 
+  // Function to request client reordering
+  const handleMoveToFront = () => {
+    if (!socket || !userId) return;
+
+    socket.send(
+      JSON.stringify({
+        type: ClientActionEnum.enum.REORDER_CLIENT,
+        clientId: userId,
+      })
+    );
+
+    toast.success("Moved to the front");
+  };
+
   // Generate a color based on username for avatar fallback
   const generateColor = (username: string) => {
     const colors = [
@@ -238,37 +254,37 @@ export const NewSyncer = () => {
         <>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
+            animate={{ opacity: 0.9 }}
             transition={{ duration: 1.5 }}
-            className="fixed inset-0 pointer-events-none -z-10 bg-gradient-to-br from-blue-500/30 via-pink-400/20 to-blue-300/15 blur-lg"
+            className="fixed inset-0 pointer-events-none -z-10 bg-gradient-to-br from-blue-600/50 via-pink-500/30 to-blue-400/25 blur-lg"
           />
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
+            animate={{ opacity: 0.85 }}
             transition={{ duration: 1.2 }}
-            className="fixed inset-0 pointer-events-none -z-10 bg-radial-gradient from-pink-500/40 via-transparent to-transparent blur-xl mix-blend-soft-light"
+            className="fixed inset-0 pointer-events-none -z-10 bg-radial-gradient from-pink-600/50 via-transparent to-transparent blur-xl mix-blend-screen"
           />
 
           {/* Additional color spots */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{
-              opacity: [0.3, 0.5, 0.3],
-              scale: [1, 1.1, 1],
+              opacity: [0.5, 0.7, 0.5],
+              scale: [1, 1.15, 1],
             }}
             transition={{
               duration: 8,
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="fixed top-[10%] left-[15%] w-[30vw] h-[30vw] rounded-full bg-pink-500/10 blur-3xl pointer-events-none -z-10"
+            className="fixed top-[10%] left-[15%] w-[30vw] h-[30vw] rounded-full bg-pink-600/20 blur-3xl pointer-events-none -z-10"
           />
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{
-              opacity: [0.2, 0.4, 0.2],
-              scale: [1, 1.15, 1],
+              opacity: [0.4, 0.6, 0.4],
+              scale: [1, 1.2, 1],
             }}
             transition={{
               duration: 10,
@@ -276,14 +292,14 @@ export const NewSyncer = () => {
               ease: "easeInOut",
               delay: 2,
             }}
-            className="fixed bottom-[20%] right-[10%] w-[25vw] h-[25vw] rounded-full bg-purple-500/10 blur-3xl pointer-events-none -z-10"
+            className="fixed bottom-[20%] right-[10%] w-[25vw] h-[25vw] rounded-full bg-purple-600/20 blur-3xl pointer-events-none -z-10"
           />
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{
-              opacity: [0.15, 0.3, 0.15],
-              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3],
+              scale: [1, 1.15, 1],
             }}
             transition={{
               duration: 12,
@@ -291,7 +307,39 @@ export const NewSyncer = () => {
               ease: "easeInOut",
               delay: 4,
             }}
-            className="fixed top-[40%] right-[20%] w-[20vw] h-[20vw] rounded-full bg-blue-400/10 blur-3xl pointer-events-none -z-10"
+            className="fixed top-[40%] right-[20%] w-[20vw] h-[20vw] rounded-full bg-blue-500/20 blur-3xl pointer-events-none -z-10"
+          />
+
+          {/* New highlight spots for extra pop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+            className="fixed top-[30%] left-[30%] w-[15vw] h-[15vw] rounded-full bg-cyan-500/20 blur-2xl pointer-events-none -z-10"
+          />
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0.2, 0.5, 0.2],
+              scale: [1, 1.15, 1],
+              x: [0, 10, 0],
+            }}
+            transition={{
+              duration: 9,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 3,
+            }}
+            className="fixed bottom-[35%] left-[15%] w-[18vw] h-[18vw] rounded-full bg-indigo-500/20 blur-2xl pointer-events-none -z-10"
           />
         </>
       )}
@@ -327,7 +375,18 @@ export const NewSyncer = () => {
                 <Users size={18} />
                 <span>Connected Users</span>
               </CardTitle>
-              <Badge variant="outline">{clients.length}</Badge>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={handleMoveToFront}
+                >
+                  <Hand size={14} />
+                  <span>Move to Front</span>
+                </Button>
+                <Badge variant="outline">{clients.length}</Badge>
+              </div>
             </CardHeader>
             <CardContent>
               {clients.length === 0 ? (
@@ -386,7 +445,7 @@ export const NewSyncer = () => {
                               : "outline"
                           }
                           className={cn(
-                            "ml-auto text-xs shrink-0",
+                            "ml-auto text-xs shrink-0 min-w-[70px] text-center",
                             isFocused ? "bg-primary animate-pulse" : ""
                           )}
                         >

@@ -121,6 +121,25 @@ export const handleMessage = async (
           },
         },
       });
+    } else if (parsedMessage.type === ClientActionEnum.enum.REORDER_CLIENT) {
+      // Handle client reordering
+      const reorderedClients = roomManager.reorderClients(
+        roomId,
+        parsedMessage.clientId
+      );
+
+      // Broadcast the updated client order to all clients
+      sendBroadcast({
+        server,
+        roomId,
+        message: {
+          type: "ROOM_EVENT",
+          event: {
+            type: ClientActionEnum.Enum.CLIENT_CHANGE,
+            clients: reorderedClients,
+          },
+        },
+      });
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }

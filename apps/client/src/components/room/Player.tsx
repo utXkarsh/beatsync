@@ -1,5 +1,6 @@
 import { formatTime } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
+import { Pause, Play, RocketIcon, StopCircleIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
@@ -20,6 +21,7 @@ export const Player = () => {
   // Local state for slider
   const [sliderPosition, setSliderPosition] = useState(0);
   const [trackDuration, setTrackDuration] = useState(0);
+  const [spatialAudioActive, setSpatialAudioActive] = useState(false);
 
   // Find the selected audio source and its duration
   useEffect(() => {
@@ -77,8 +79,18 @@ export const Player = () => {
     [isPlaying, broadcastPause, broadcastPlay]
   );
 
+  const handleSpatialAudioToggle = () => {
+    if (spatialAudioActive) {
+      stopSpatialAudio();
+      setSpatialAudioActive(false);
+    } else {
+      startSpatialAudio();
+      setSpatialAudioActive(true);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="w-full">
         <Slider
           value={[sliderPosition]}
@@ -87,7 +99,7 @@ export const Player = () => {
           step={0.1}
           onValueChange={handleSliderChange}
           onValueCommit={handleSliderCommit}
-          className="my-4"
+          className="my-3"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{formatTime(sliderPosition)}</span>
@@ -95,31 +107,44 @@ export const Player = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           onClick={() => broadcastPlay(sliderPosition)}
           variant={isPlaying ? "secondary" : "default"}
           disabled={!selectedAudioId}
+          size="sm"
+          className="flex-1 min-w-[80px]"
         >
+          <Play className="h-4 w-4 mr-1" />
           {isPlaying ? "Restart" : "Play"}
         </Button>
         <Button
           onClick={broadcastPause}
           variant="outline"
           disabled={!isPlaying || !selectedAudioId}
+          size="sm"
+          className="flex-1 min-w-[80px]"
         >
+          <Pause className="h-4 w-4 mr-1" />
           Pause
         </Button>
         <Button
-          onClick={startSpatialAudio}
+          onClick={handleSpatialAudioToggle}
           variant="outline"
           size="sm"
-          className="ml-auto"
+          className="flex-1 min-w-[140px] mt-2 sm:mt-0"
         >
-          Start Spatial Audio
-        </Button>
-        <Button onClick={stopSpatialAudio} variant="outline" size="sm">
-          Stop Spatial Audio
+          {spatialAudioActive ? (
+            <>
+              <StopCircleIcon className="h-4 w-4 mr-1" />
+              Stop Spatial
+            </>
+          ) : (
+            <>
+              <RocketIcon className="h-4 w-4 mr-1" />
+              Start Spatial
+            </>
+          )}
         </Button>
       </div>
     </div>
