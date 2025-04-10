@@ -6,6 +6,14 @@ export const NTP = () => {
   const ntpMeasurements = useGlobalStore((state) => state.ntpMeasurements);
   const offsetEstimate = useGlobalStore((state) => state.offsetEstimate);
   const roundTripEstimate = useGlobalStore((state) => state.roundTripEstimate);
+  const resetNTPConfig = useGlobalStore((state) => state.resetNTPConfig);
+  const pauseAudio = useGlobalStore((state) => state.pauseAudio);
+
+  const resync = () => {
+    pauseAudio({ when: 0 });
+    resetNTPConfig();
+    sendNTPRequest();
+  };
 
   return (
     <div>
@@ -14,7 +22,7 @@ export const NTP = () => {
       )}
       <p>Offset: {offsetEstimate} ms</p>
       <p>Round trip: {roundTripEstimate} ms</p>
-      <Button onClick={sendNTPRequest}>Sync</Button>
+      <Button onClick={resync}>Resync</Button>
     </div>
   );
 };

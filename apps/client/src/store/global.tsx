@@ -60,6 +60,7 @@ interface GlobalState {
 
   // NTP
   sendNTPRequest: () => void;
+  resetNTPConfig: () => void;
   ntpMeasurements: NTPMeasurement[];
   addNTPMeasurement: (measurement: NTPMeasurement) => void;
   offsetEstimate: number;
@@ -340,6 +341,15 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       // Send the first one
       _sendNTPRequest(socket);
+    },
+
+    resetNTPConfig() {
+      set({
+        ntpMeasurements: [],
+        offsetEstimate: 0,
+        roundTripEstimate: 0,
+        isSynced: false,
+      });
     },
 
     // NTP
