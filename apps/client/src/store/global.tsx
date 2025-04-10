@@ -110,11 +110,25 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
     url: "/trndsttr.mp3",
     id: "static-0",
   },
-  { name: "Wonder", url: "/wonder.mp3", id: "static-1" },
+  {
+    name: "Illenium - Fractures (feat. Nevve)",
+    url: "Illenium - Fractures (feat. Nevve).mp3",
+    id: "static-1",
+  },
+  {
+    name: "INZO x ILLUSIO - Just A Mirage",
+    url: "INZO x ILLUSIO - Just A Mirage.mp3",
+    id: "static-2",
+  },
+  {
+    name: "DROELOE x San Holo - Lines of the Broken (ft. CUT)",
+    url: "DROELOE x San Holo - Lines of the Broken (ft. CUT).mp3",
+    id: "static-3",
+  },
   {
     name: "joyful - chess (slowed)",
     url: "/joyful - chess (slowed).mp3",
-    id: "static-2",
+    id: "static-4",
   },
 ];
 
