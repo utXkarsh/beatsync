@@ -24,7 +24,9 @@ class RoomManager {
       this.rooms.set(roomId, { clients: new Map(), roomId });
     }
 
-    this.rooms.get(roomId)!.clients.set(clientId, { username, clientId, ws });
+    this.rooms
+      .get(roomId)!
+      .clients.set(clientId, { username, clientId, ws, rtt: 0 });
   }
 
   removeClient(roomId: string, clientId: string) {
@@ -73,6 +75,28 @@ class RoomManager {
     return clients;
   }
 
+  // Method to get the maximum RTT of all clients in a room
+  getMaxRTT(roomId: string): number {
+    const room = this.rooms.get(roomId);
+    if (!room || room.clients.size === 0) return 0;
+
+    const clients = Array.from(room.clients.values());
+    const maxRTT = Math.max(...clients.map((client) => client.rtt));
+    return maxRTT;
+  }
+
+  // Method to update the RTT for a specific client
+  updateClientRTT(roomId: string, clientId: string, rtt: number) {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    const client = room.clients.get(clientId);
+    if (client) {
+      client.rtt = rtt;
+      room.clients.set(clientId, client);
+    }
+  }
+
   startInterval({ server, roomId }: { server: Server; roomId: string }) {
     const room = this.rooms.get(roomId);
     if (!room) return;
@@ -95,7 +119,7 @@ class RoomManager {
       // Set gain for each client - focused client gets AUDIO_HIGH, others get AUDIO_LOW
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: Date.now() + 500,
+        serverTimeToExecute: Date.now() + this.getMaxRTT(roomId) + 250, // Dynamic delay based on max RTT + 250ms
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           gains: Object.fromEntries(

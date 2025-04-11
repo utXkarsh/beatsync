@@ -5,6 +5,7 @@ import {
   _sendNTPRequest,
   calculateOffsetEstimate,
   calculateWaitTimeMilliseconds,
+  sendRTTMeasurement,
 } from "@/utils/ntp";
 import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum, SpatialConfigType } from "@beatsync/shared";
@@ -450,6 +451,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           roundTripEstimate: averageRoundTrip,
           isSynced: true,
         });
+        
+        // Send the average RTT to the server after all measurements are complete
+        const { socket } = getSocket(state);
+        console.log(`Sending average RTT of ${averageRoundTrip}ms to server`);
+        sendRTTMeasurement(socket, averageRoundTrip);
         return;
       }
 

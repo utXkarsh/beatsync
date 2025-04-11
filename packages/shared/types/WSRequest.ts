@@ -10,6 +10,7 @@ export const ClientActionEnum = z.enum([
   "PAUSE",
   "CLIENT_CHANGE",
   "NTP_REQUEST",
+  "NTP_RESULT",
   "START_SPATIAL_AUDIO",
   "STOP_SPATIAL_AUDIO",
   "REUPLOAD_AUDIO",
@@ -19,6 +20,11 @@ export const ClientActionEnum = z.enum([
 export const NTPRequestPacketSchema = z.object({
   type: z.literal(ClientActionEnum.enum.NTP_REQUEST),
   t0: z.number(), // Client send timestamp
+});
+
+export const NTPResultPacketSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.NTP_RESULT),
+  rtt: z.number(), // Round-trip time in milliseconds
 });
 
 export const PlayActionSchema = z.object({
@@ -54,6 +60,7 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
   NTPRequestPacketSchema,
+  NTPResultPacketSchema,
   StartSpatialAudioSchema,
   StopSpatialAudioSchema,
   ReuploadAudioSchema,

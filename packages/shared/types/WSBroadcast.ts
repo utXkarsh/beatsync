@@ -5,6 +5,7 @@ const ClientSchema = z.object({
   username: z.string(),
   clientId: z.string(),
   ws: z.any(),
+  rtt: z.number().nonnegative().default(0), // Round-trip time in milliseconds
 });
 
 export type ClientType = z.infer<typeof ClientSchema>;
@@ -27,7 +28,6 @@ export type AudioSourceType = z.infer<typeof AudioSourceSchema>;
 
 const SpatialConfigSchema = z.object({
   type: z.literal("SPATIAL_CONFIG"),
-  // Map of user id -> {gain, rampTime} to set
   gains: z.record(
     z.string(),
     z.object({ gain: z.number().min(0).max(1), rampTime: z.number() })
