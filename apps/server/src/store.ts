@@ -1,12 +1,19 @@
-import { ClientType, WSBroadcastType } from "@beatsync/shared";
+import {
+  ClientType,
+  GRID,
+  PositionType,
+  WSBroadcastType,
+} from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
 import { sendBroadcast } from "./utils/responses";
+import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
 import { WSData } from "./utils/websocket";
 
 interface RoomData {
   clients: Map<string, ClientType>;
   roomId: string;
   intervalId?: NodeJS.Timeout; // https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
+  listeningSource: PositionType;
 }
 
 const AUDIO_LOW = 0.15;
@@ -21,12 +28,26 @@ class RoomManager {
     const { roomId, username, clientId } = ws.data;
     const room = this.rooms.get(roomId);
     if (!room) {
-      this.rooms.set(roomId, { clients: new Map(), roomId });
+      this.rooms.set(roomId, {
+        clients: new Map(),
+        roomId,
+        listeningSource: { x: 50, y: 50 }, // Center of the grid
+      });
     }
 
-    this.rooms
-      .get(roomId)!
-      .clients.set(clientId, { username, clientId, ws, rtt: 0 });
+    const currentRoom = this.rooms.get(roomId)!;
+
+    // Add the new client
+    currentRoom.clients.set(clientId, {
+      username,
+      clientId,
+      ws,
+      rtt: 0,
+      position: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y }, // Initial position at center
+    });
+
+    positionClientsInCircle(currentRoom.clients);
+    debugClientPositions(currentRoom.clients);
   }
 
   removeClient(roomId: string, clientId: string) {

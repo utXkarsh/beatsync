@@ -1,13 +1,26 @@
 import { z } from "zod";
 import { PauseActionSchema, PlayActionSchema } from "./WSRequest";
 
+export const GRID = {
+  SIZE: 100,
+  ORIGIN_X: 50,
+  ORIGIN_Y: 50,
+  CLIENT_RADIUS: 25,
+} as const;
+
+const PositionSchema = z.object({
+  x: z.number().min(0).max(GRID.SIZE),
+  y: z.number().min(0).max(GRID.SIZE),
+});
+export type PositionType = z.infer<typeof PositionSchema>;
+
 const ClientSchema = z.object({
   username: z.string(),
   clientId: z.string(),
   ws: z.any(),
   rtt: z.number().nonnegative().default(0), // Round-trip time in milliseconds
+  position: PositionSchema,
 });
-
 export type ClientType = z.infer<typeof ClientSchema>;
 
 const ClientChangeMessageSchema = z.object({

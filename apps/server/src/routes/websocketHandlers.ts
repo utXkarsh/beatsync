@@ -76,7 +76,7 @@ export const handleMessage = async (
       const rtt = parsedMessage.rtt;
       roomManager.updateClientRTT(roomId, ws.data.clientId, rtt);
       console.log(`Updated RTT for ${username} to ${rtt}ms in room ${roomId}`);
-      
+
       return;
     } else if (
       parsedMessage.type === ClientActionEnum.enum.PLAY ||
@@ -85,9 +85,11 @@ export const handleMessage = async (
       // Get maximum RTT in the room and add a buffer of 250ms
       const maxRTT = roomManager.getMaxRTT(roomId);
       const dynamicDelay = maxRTT + 250;
-      
-      console.log(`Room ${roomId}: Using dynamic delay of ${dynamicDelay}ms (maxRTT: ${maxRTT}ms + 250ms buffer)`);
-      
+
+      console.log(
+        `Room ${roomId}: Using dynamic delay of ${dynamicDelay}ms (maxRTT: ${maxRTT}ms + 250ms buffer)`
+      );
+
       sendBroadcast({
         server,
         roomId,
