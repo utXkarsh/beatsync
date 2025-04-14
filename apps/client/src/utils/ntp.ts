@@ -25,22 +25,6 @@ export const _sendNTPRequest = (ws: WebSocket) => {
   });
 };
 
-// Send estimated RTT measurement back to the server after all measurements are complete
-export const sendRTTMeasurement = (ws: WebSocket, rtt: number) => {
-  if (ws.readyState !== WebSocket.OPEN) {
-    console.error("Cannot send RTT measurement: WebSocket is not open");
-    return;
-  }
-
-  sendWSRequest({
-    ws,
-    request: {
-      type: ClientActionEnum.enum.NTP_RESULT,
-      rtt,
-    },
-  });
-};
-
 export const calculateOffsetEstimate = (ntpMeasurements: NTPMeasurement[]) => {
   // We take the best half of the measurements
   // We take the half of the requests with the smallest round-trip delays because higher delays are probably due to random network conditions

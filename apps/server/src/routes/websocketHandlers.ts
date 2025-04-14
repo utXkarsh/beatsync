@@ -71,32 +71,18 @@ export const handleMessage = async (
       });
 
       return;
-    } else if (parsedMessage.type === ClientActionEnum.enum.NTP_RESULT) {
-      // Store the RTT for this client
-      const rtt = parsedMessage.rtt;
-      roomManager.updateClientRTT(roomId, ws.data.clientId, rtt);
-      console.log(`Updated RTT for ${username} to ${rtt}ms in room ${roomId}`);
-
-      return;
     } else if (
       parsedMessage.type === ClientActionEnum.enum.PLAY ||
       parsedMessage.type === ClientActionEnum.enum.PAUSE
     ) {
-      // Get maximum RTT in the room and add a buffer of 250ms
-      const maxRTT = roomManager.getMaxRTT(roomId);
-      const dynamicDelay = maxRTT + 500;
-
-      console.log(
-        `Room ${roomId}: Using dynamic delay of ${dynamicDelay}ms (maxRTT: ${maxRTT}ms + 250ms buffer)`
-      );
-
       sendBroadcast({
         server,
         roomId,
         message: {
           type: "SCHEDULED_ACTION",
           scheduledAction: parsedMessage,
-          serverTimeToExecute: Date.now() + dynamicDelay,
+          serverTimeToExecute: Date.now() + 500, // 500 ms from now
+          // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs > 500
         },
       });
 
