@@ -213,6 +213,12 @@ export const ConnectedUsers = () => {
             <div
               ref={gridRef}
               className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden"
+              style={{
+                backgroundSize: "10% 10%",
+                backgroundImage:
+                  "linear-gradient(to right, rgba(55, 65, 81, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(55, 65, 81, 0.1) 1px, transparent 1px)",
+                backgroundPosition: "0 0",
+              }}
               onClick={handleGridClick}
               onMouseMove={handleDragMove}
               onMouseUp={handleDragEnd}
