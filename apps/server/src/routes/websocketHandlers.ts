@@ -84,7 +84,7 @@ export const handleMessage = async (
     ) {
       // Get maximum RTT in the room and add a buffer of 250ms
       const maxRTT = roomManager.getMaxRTT(roomId);
-      const dynamicDelay = maxRTT + 250;
+      const dynamicDelay = maxRTT + 500;
 
       console.log(
         `Room ${roomId}: Using dynamic delay of ${dynamicDelay}ms (maxRTT: ${maxRTT}ms + 250ms buffer)`
