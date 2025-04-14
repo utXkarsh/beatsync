@@ -176,7 +176,7 @@ export const WebSocketManager = ({
       ws.close();
     };
     // Not including socket in the dependency array because it will trigger the close when it's set
-  }, []);
+  }, [isLoadingRoom]);
 
   return null; // This is a non-visual component
 };

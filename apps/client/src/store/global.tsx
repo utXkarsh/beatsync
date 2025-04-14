@@ -113,17 +113,17 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
   },
   {
     name: "Illenium - Fractures (feat. Nevve)",
-    url: "Illenium - Fractures (feat. Nevve).mp3",
+    url: "/Illenium - Fractures (feat. Nevve).mp3",
     id: "static-1",
   },
   {
     name: "INZO x ILLUSIO - Just A Mirage",
-    url: "INZO x ILLUSIO - Just A Mirage.mp3",
+    url: "/INZO x ILLUSIO - Just A Mirage.mp3",
     id: "static-2",
   },
   {
     name: "DROELOE x San Holo - Lines of the Broken (ft. CUT)",
-    url: "DROELOE x San Holo - Lines of the Broken (ft. CUT).mp3",
+    url: "/DROELOE x San Holo - Lines of the Broken (ft. CUT).mp3",
     id: "static-3",
   },
   {
@@ -214,7 +214,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Audio Sources
     audioSources: [],
     isLoadingAudio: true,
-    selectedAudioId: "static-0",
+    selectedAudioId: STATIC_AUDIO_SOURCES[0].id,
     uploadHistory: [],
     downloadedAudioIds: new Set<string>(),
     addToUploadHistory: (name, id) =>
@@ -451,7 +451,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           roundTripEstimate: averageRoundTrip,
           isSynced: true,
         });
-        
+
         // Send the average RTT to the server after all measurements are complete
         const { socket } = getSocket(state);
         console.log(`Sending average RTT of ${averageRoundTrip}ms to server`);
