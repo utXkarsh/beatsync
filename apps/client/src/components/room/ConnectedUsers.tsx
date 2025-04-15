@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { ClientType, GRID, WSResponseSchema } from "@beatsync/shared";
-import { Hand, Move, Users } from "lucide-react";
+import { Hand, HeadphonesIcon, Mic, Move, Users } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
@@ -30,14 +30,31 @@ export const ConnectedUsers = () => {
   // Get clients directly from WebSocket events
   const [clients, setClients] = useState<ClientType[]>([]);
 
-  // Add back state for listening source position
-  const [listeningSource] = useState({
+  // Make listening source position mutable with state
+  const [listeningSource, setListeningSource] = useState({
     x: GRID.SIZE / 2,
     y: GRID.SIZE / 2,
   });
 
+  // State to track dragging status
+  const [isDraggingSource, setIsDraggingSource] = useState(false);
+
   // Add animation sync timestamp
   const [animationSyncKey, setAnimationSyncKey] = useState(Date.now());
+
+  // Reference to track last execution time
+  const lastLogTimeRef = useRef(0);
+
+  // Manual throttle implementation for position logging
+  const throttledLogListeningSource = (x: number, y: number) => {
+    const now = Date.now();
+    if (now - lastLogTimeRef.current >= 100) {
+      console.log("Listening source update:", {
+        position: { x, y },
+      });
+      lastLogTimeRef.current = now;
+    }
+  };
 
   // Set up an effect to listen for client changes via WebSocket
   useEffect(() => {
@@ -86,32 +103,34 @@ export const ConnectedUsers = () => {
     toast.success("Moved to the front");
   };
 
-  // Function to update client position wrapped in useCallback to prevent recreation on every render
-  const updatePosition = useCallback(
-    (x: number, y: number) => {
-      if (!socket || !userId) return;
+  // Function to update listening source position
+  const updateListeningSource = (x: number, y: number) => {
+    // Ensure values are within grid bounds
+    const boundedX = Math.max(0, Math.min(GRID.SIZE, x));
+    const boundedY = Math.max(0, Math.min(GRID.SIZE, y));
 
-      // Ensure values are within grid bounds
-      const boundedX = Math.max(0, Math.min(GRID.SIZE, x));
-      const boundedY = Math.max(0, Math.min(GRID.SIZE, y));
+    // Update local state immediately for smooth dragging
+    setListeningSource({
+      x: boundedX,
+      y: boundedY,
+    });
 
-      socket.send(
-        JSON.stringify({
-          type: "UPDATE_POSITION",
-          clientId: userId,
-          position: {
-            x: boundedX,
-            y: boundedY,
-          },
-        })
-      );
-    },
-    [socket, userId]
-  );
+    // Throttled logging - will execute at most once every 1000ms
+    throttledLogListeningSource(boundedX, boundedY);
+  };
 
-  // Handle grid click to move client position
-  const handleGridClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!gridRef.current || !socket || !userId) return;
+  // Handlers for dragging the listening source
+  const handleSourceMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent grid click handler from firing
+    setIsDraggingSource(true);
+  };
+
+  const handleSourceMouseUp = () => {
+    setIsDraggingSource(false);
+  };
+
+  const handleSourceMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingSource || !gridRef.current) return;
 
     const rect = gridRef.current.getBoundingClientRect();
     const gridWidth = rect.width;
@@ -121,8 +140,23 @@ export const ConnectedUsers = () => {
     const x = Math.round(((e.clientX - rect.left) / gridWidth) * GRID.SIZE);
     const y = Math.round(((e.clientY - rect.top) / gridHeight) * GRID.SIZE);
 
-    updatePosition(x, y);
+    updateListeningSource(x, y);
   };
+
+  // Add event listeners for mouse up even outside the grid
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDraggingSource(false);
+    };
+
+    if (isDraggingSource) {
+      window.addEventListener("mouseup", handleGlobalMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, [isDraggingSource]);
 
   // Generate a color based on username for avatar fallback
   const generateColor = (username: string) => {
@@ -168,7 +202,7 @@ export const ConnectedUsers = () => {
             <div
               ref={gridRef}
               className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)]"
-              onClick={handleGridClick}
+              onMouseMove={handleSourceMouseMove}
             >
               <TooltipProvider>
                 {clients.map((client) => {
@@ -261,27 +295,35 @@ export const ConnectedUsers = () => {
                   );
                 })}
 
-                {/* Add back Listening Source Indicator */}
+                {/* Listening Source Indicator with drag capability */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className="absolute transform -translate-x-1/2 -translate-y-1/2 z-40"
+                      className="absolute transform -translate-x-1/2 -translate-y-1/2 z-40 cursor-move"
                       style={{
                         left: `${listeningSource.x}%`,
                         top: `${listeningSource.y}%`,
                       }}
+                      onMouseDown={handleSourceMouseDown}
+                      onMouseUp={handleSourceMouseUp}
                     >
-                      <span className="relative flex h-3 w-3">
-                        <span
-                          key={`source-ping-${animationSyncKey}`}
-                          className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-                        ></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
-                      </span>
+                      <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/20 p-1">
+                        <span className="relative flex h-3 w-3">
+                          <span
+                            key={`source-ping-${animationSyncKey}`}
+                            className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"
+                          ></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+                        </span>
+                        <HeadphonesIcon className="absolute h-2 w-2 text-emerald-200 opacity-80" />
+                      </div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <div className="text-xs font-medium">Listening Source</div>
+                    <div className="text-xs text-muted-foreground">
+                      Drag to reposition
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -364,6 +406,26 @@ export const ConnectedUsers = () => {
             <Hand size={14} />
             <span>Move to Front</span>
           </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center justify-center"
+                  onClick={() => {
+                    updateListeningSource(GRID.SIZE / 2, GRID.SIZE / 2);
+                    toast.info("Listening source centered");
+                  }}
+                >
+                  <Mic size={14} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <span className="text-xs">Center listening source</span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
