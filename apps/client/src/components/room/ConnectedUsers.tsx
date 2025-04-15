@@ -18,6 +18,9 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 
+// Add custom scrollbar styles
+import "./scrollbar.css";
+
 export const ConnectedUsers = () => {
   const userId = useRoomStore((state) => state.userId);
   const socket = useGlobalStore((state) => state.socket);
@@ -282,7 +285,7 @@ export const ConnectedUsers = () => {
             </div>
 
             {/* List of connected users */}
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
               {[...clients].map((client) => {
                 const user = spatialConfig?.gains[client.clientId];
                 const isActive = user?.gain === 1;
