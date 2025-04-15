@@ -94,7 +94,13 @@ export const Player = () => {
           onValueChange={handleSliderChange}
           onValueCommit={handleSliderCommit}
           className="my-3"
+          disabled={isPlaying}
         />
+        {isPlaying && (
+          <div className="text-xs text-yellow-500 mt-1 text-center">
+            You must pause to seek
+          </div>
+        )}
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{formatTime(sliderPosition)}</span>
           <span>{formatTime(trackDuration)}</span>
