@@ -27,6 +27,15 @@ export const ConnectedUsers = () => {
   // Get clients directly from WebSocket events
   const [clients, setClients] = useState<ClientType[]>([]);
 
+  // Add back state for listening source position
+  const [listeningSource] = useState({
+    x: GRID.SIZE / 2,
+    y: GRID.SIZE / 2,
+  });
+
+  // Add animation sync timestamp
+  const [animationSyncKey, setAnimationSyncKey] = useState(Date.now());
+
   // Set up an effect to listen for client changes via WebSocket
   useEffect(() => {
     if (socket) {
@@ -39,6 +48,8 @@ export const ConnectedUsers = () => {
             data.event?.type === "CLIENT_CHANGE"
           ) {
             setClients(data.event.clients);
+            // Update animation sync key when clients change
+            setAnimationSyncKey(Date.now());
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -150,13 +161,7 @@ export const ConnectedUsers = () => {
             {/* 2D Grid Layout */}
             <div
               ref={gridRef}
-              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden"
-              style={{
-                backgroundSize: "10% 10%",
-                backgroundImage:
-                  "linear-gradient(to right, rgba(55, 65, 81, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(55, 65, 81, 0.1) 1px, transparent 1px)",
-                backgroundPosition: "0 0",
-              }}
+              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)]"
               onClick={handleGridClick}
             >
               <TooltipProvider>
@@ -165,10 +170,6 @@ export const ConnectedUsers = () => {
                   const isActive = user?.gain === 1;
                   const isFocused = user?.gain === 0; // The focused/active device in spatial audio
                   const isCurrentUser = client.clientId === userId;
-
-                  // Position calculations
-                  const left = `${client.position.x}%`;
-                  const top = `${client.position.y}%`;
 
                   return (
                     <Tooltip key={client.clientId}>
@@ -179,8 +180,8 @@ export const ConnectedUsers = () => {
                             isFocused ? "z-30" : isActive ? "z-20" : "z-10"
                           )}
                           style={{
-                            left,
-                            top,
+                            left: `${client.position.x}%`,
+                            top: `${client.position.y}%`,
                           }}
                           initial={{ opacity: 0.8 }}
                           animate={{
@@ -223,14 +224,15 @@ export const ConnectedUsers = () => {
                             )}
                             {/* Add ping effect to all clients */}
                             <span
-                              className="absolute inset-0 rounded-full opacity-75 animate-ping"
-                              style={{
-                                backgroundColor: isFocused
-                                  ? "rgb(16 185 129 / 0.4)"
+                              key={`ping-${animationSyncKey}`}
+                              className={cn(
+                                "absolute inset-0 rounded-full opacity-75 animate-ping",
+                                isFocused
+                                  ? "bg-emerald-400/40"
                                   : isActive
-                                  ? "rgb(99 102 241 / 0.4)"
-                                  : "rgb(156 163 175 / 0.3)",
-                              }}
+                                  ? "bg-indigo-500/40"
+                                  : "bg-gray-400/30"
+                              )}
                             ></span>
                           </div>
                         </motion.div>
@@ -252,6 +254,30 @@ export const ConnectedUsers = () => {
                     </Tooltip>
                   );
                 })}
+
+                {/* Add back Listening Source Indicator */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="absolute transform -translate-x-1/2 -translate-y-1/2 z-40"
+                      style={{
+                        left: `${listeningSource.x}%`,
+                        top: `${listeningSource.y}%`,
+                      }}
+                    >
+                      <span className="relative flex h-3 w-3">
+                        <span
+                          key={`source-ping-${animationSyncKey}`}
+                          className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                        ></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <div className="text-xs font-medium">Listening Source</div>
+                  </TooltipContent>
+                </Tooltip>
               </TooltipProvider>
             </div>
 
