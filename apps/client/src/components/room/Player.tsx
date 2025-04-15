@@ -8,6 +8,7 @@ import {
   StopCircleIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useWakeLock } from "react-screen-wake-lock";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
 
@@ -28,6 +29,21 @@ export const Player = () => {
   const [sliderPosition, setSliderPosition] = useState(0);
   const [trackDuration, setTrackDuration] = useState(0);
   const [spatialAudioActive, setSpatialAudioActive] = useState(false);
+  const [requestedLock, setRequestedLock] = useState(false);
+
+  // Wake lock
+  const { request } = useWakeLock({
+    onRequest: () => {
+      console.log("Screen Wake: requested!");
+      setRequestedLock(true);
+    },
+    onError: () => console.log("Screen Wake: An error happened"),
+    onRelease: () => {
+      console.log("Screen Wake: released!");
+      setRequestedLock(false);
+    },
+    reacquireOnPageVisible: true,
+  });
 
   // Find the selected audio source and its duration
   useEffect(() => {
@@ -82,6 +98,12 @@ export const Player = () => {
       setSpatialAudioActive(true);
     }
   };
+
+  useEffect(() => {
+    if (requestedLock) return;
+    // Acquire wake lock
+    request();
+  }, [request, requestedLock]);
 
   return (
     <div className="space-y-3">
