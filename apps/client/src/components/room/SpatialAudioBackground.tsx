@@ -6,23 +6,24 @@ import { motion } from "motion/react";
 export const SpatialAudioBackground = () => {
   const userId = useRoomStore((state) => state.userId);
   const spatialConfig = useGlobalStore((state) => state.spatialConfig);
-  
-  // Check if the current user's device is the active one in spatial audio
-  const isCurrentDeviceActive = spatialConfig?.gains[userId]?.gain === 1;
 
-  if (!isCurrentDeviceActive) return null;
+  // Get the current user's gain value (0 to 1), default to 0 if not found
+  const gain = spatialConfig?.gains[userId]?.gain ?? 0;
+
+  // If gain is 0, don't render anything
+  if (gain <= 0) return null;
 
   return (
     <>
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.9 }}
+        animate={{ opacity: gain }}
         transition={{ duration: 1.5 }}
         className="fixed inset-0 pointer-events-none -z-10 bg-gradient-to-br from-blue-600/50 via-pink-500/30 to-blue-400/25 blur-lg"
       />
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.85 }}
+        animate={{ opacity: gain }}
         transition={{ duration: 1.2 }}
         className="fixed inset-0 pointer-events-none -z-10 bg-radial-gradient from-pink-600/50 via-transparent to-transparent blur-xl mix-blend-screen"
       />
@@ -31,7 +32,7 @@ export const SpatialAudioBackground = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
-          opacity: [0.5, 0.7, 0.5],
+          opacity: [gain * 0.6, gain, gain * 0.6],
           scale: [1, 1.15, 1],
         }}
         transition={{
@@ -45,7 +46,7 @@ export const SpatialAudioBackground = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
-          opacity: [0.4, 0.6, 0.4],
+          opacity: [gain * 0.5, gain * 0.9, gain * 0.5],
           scale: [1, 1.2, 1],
         }}
         transition={{
@@ -60,7 +61,7 @@ export const SpatialAudioBackground = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
-          opacity: [0.3, 0.5, 0.3],
+          opacity: [gain * 0.4, gain * 0.8, gain * 0.4],
           scale: [1, 1.15, 1],
         }}
         transition={{
@@ -76,7 +77,7 @@ export const SpatialAudioBackground = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
-          opacity: [0.3, 0.6, 0.3],
+          opacity: [gain * 0.4, gain * 0.8, gain * 0.4],
           scale: [1, 1.1, 1],
         }}
         transition={{
@@ -91,7 +92,7 @@ export const SpatialAudioBackground = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
-          opacity: [0.2, 0.5, 0.2],
+          opacity: [gain * 0.3, gain * 0.7, gain * 0.3],
           scale: [1, 1.15, 1],
           x: [0, 10, 0],
         }}
