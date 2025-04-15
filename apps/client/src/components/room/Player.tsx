@@ -69,21 +69,9 @@ export const Player = () => {
   }, []);
 
   // Handle slider release - seek to that position
-  const handleSliderCommit = useCallback(
-    (value: number[]) => {
-      const position = value[0];
-      if (isPlaying) {
-        broadcastPause();
-        setTimeout(() => {
-          broadcastPlay(position);
-        }, 100);
-      } else {
-        // Just update position for next play
-        setSliderPosition(position);
-      }
-    },
-    [isPlaying, broadcastPause, broadcastPlay]
-  );
+  const handleSliderCommit = (value: number[]) => {
+    console.log(value);
+  };
 
   const handleSpatialAudioToggle = () => {
     if (spatialAudioActive) {
@@ -101,7 +89,7 @@ export const Player = () => {
         <Slider
           value={[sliderPosition]}
           min={0}
-          max={trackDuration || 100}
+          max={trackDuration}
           step={0.1}
           onValueChange={handleSliderChange}
           onValueCommit={handleSliderCommit}
