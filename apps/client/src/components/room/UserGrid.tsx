@@ -304,12 +304,23 @@ export const ConnectedUsers = () => {
                 {/* Listening Source Indicator with drag capability */}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div
+                    <motion.div
                       className="absolute transform -translate-x-1/2 -translate-y-1/2 z-40 cursor-move"
                       style={{
                         left: `${listeningSource.x}%`,
                         top: `${listeningSource.y}%`,
                       }}
+                      {...(!isDraggingSource && {
+                        animate: {
+                          left: `${listeningSource.x}%`,
+                          top: `${listeningSource.y}%`,
+                        },
+                        transition: {
+                          type: "tween",
+                          duration: 0.15,
+                          ease: "linear",
+                        },
+                      })}
                       onMouseDown={handleSourceMouseDown}
                       onMouseUp={handleSourceMouseUp}
                     >
@@ -323,7 +334,7 @@ export const ConnectedUsers = () => {
                         </span>
                         <HeadphonesIcon className="absolute h-2 w-2 text-emerald-200 opacity-80" />
                       </div>
-                    </div>
+                    </motion.div>
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <div className="text-xs font-medium">Listening Source</div>
