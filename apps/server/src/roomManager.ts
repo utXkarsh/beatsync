@@ -136,6 +136,7 @@ class RoomManager {
         serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS, // Dynamic delay based on max RTT + 250ms
         scheduledAction: {
           type: "SPATIAL_CONFIG",
+          listeningSource: room.listeningSource,
           gains: Object.fromEntries(
             clients.map((client, index) => {
               const isFocused = index === focusIndex;
@@ -217,6 +218,7 @@ class RoomManager {
         serverTimeToExecute: Date.now() + 0,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
+          listeningSource: room.listeningSource,
           gains,
         },
       },

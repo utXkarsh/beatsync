@@ -25,6 +25,12 @@ export const ConnectedUsers = () => {
   const userId = useRoomStore((state) => state.userId);
   const socket = useGlobalStore((state) => state.socket);
   const spatialConfig = useGlobalStore((state) => state.spatialConfig);
+  const listeningSource = useGlobalStore(
+    (state) => state.listeningSourcePosition
+  );
+  const setListeningSourcePosition = useGlobalStore(
+    (state) => state.setListeningSourcePosition
+  );
   const gridRef = useRef<HTMLDivElement>(null);
   const updateListeningSourceSocket = useGlobalStore(
     (state) => state.updateListeningSource
@@ -32,12 +38,6 @@ export const ConnectedUsers = () => {
 
   // Get clients directly from WebSocket events
   const [clients, setClients] = useState<ClientType[]>([]);
-
-  // Make listening source position mutable with state
-  const [listeningSource, setListeningSource] = useState({
-    x: GRID.SIZE / 2,
-    y: GRID.SIZE / 2,
-  });
 
   // State to track dragging status
   const [isDraggingSource, setIsDraggingSource] = useState(false);
@@ -117,13 +117,11 @@ export const ConnectedUsers = () => {
     const boundedX = Math.max(0, Math.min(GRID.SIZE, x));
     const boundedY = Math.max(0, Math.min(GRID.SIZE, y));
 
-    // Update local state immediately for smooth dragging
-    setListeningSource({
+    setListeningSourcePosition({
       x: boundedX,
       y: boundedY,
     });
-
-    // Throttled logging - will execute at most once every 1000ms
+    // Throttled logging - will execute at most once every 100ms
     throttleUpdateSourcePosition(boundedX, boundedY);
   };
 

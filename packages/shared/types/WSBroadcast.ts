@@ -45,6 +45,7 @@ const SpatialConfigSchema = z.object({
     z.string(),
     z.object({ gain: z.number().min(0).max(1), rampTime: z.number() })
   ),
+  listeningSource: PositionSchema,
 });
 
 export type SpatialConfigType = z.infer<typeof SpatialConfigSchema>;

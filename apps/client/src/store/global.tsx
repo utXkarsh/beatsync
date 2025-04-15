@@ -9,6 +9,7 @@ import {
 import { sendWSRequest } from "@/utils/ws";
 import {
   ClientActionEnum,
+  GRID,
   PositionType,
   SpatialConfigType,
 } from "@beatsync/shared";
@@ -71,6 +72,8 @@ interface GlobalState {
   spatialConfig?: SpatialConfigType;
   setSpatialConfig: (config: SpatialConfigType) => void;
   updateListeningSource: (position: PositionType) => void;
+  listeningSourcePosition: PositionType;
+  setListeningSourcePosition: (position: PositionType) => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -92,7 +95,7 @@ interface GlobalState {
     when: number;
     audioIndex?: number;
   }) => void;
-  processGains: (gains: SpatialConfigType) => void;
+  processSpatialConfig: (config: SpatialConfigType) => void;
 
   // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
@@ -296,6 +299,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     updateListeningSource: ({ x, y }) => {
       const state = get();
       const { socket } = getSocket(state);
+
+      // Update local state
+      set({ listeningSourcePosition: { x, y } });
 
       sendWSRequest({
         ws: socket,
@@ -570,9 +576,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    processGains: (config: SpatialConfigType) => {
+    processSpatialConfig: (config: SpatialConfigType) => {
       set({ spatialConfig: config });
-      const { gains } = config;
+      const { gains, listeningSource } = config;
+      set({ listeningSourcePosition: listeningSource });
+
       // Extract out what this client's gain is:
       const state = get();
       const userId = useRoomStore.getState().userId;
@@ -617,6 +625,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         isPlaying: false,
         currentTime: currentTrackPosition,
       }));
+    },
+
+    listeningSourcePosition: { x: GRID.SIZE / 2, y: GRID.SIZE / 2 },
+    setListeningSourcePosition: (position: PositionType) => {
+      set({ listeningSourcePosition: position });
     },
   };
 });

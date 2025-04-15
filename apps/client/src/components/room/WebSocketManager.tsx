@@ -53,7 +53,9 @@ export const WebSocketManager = ({
   const socket = useGlobalStore((state) => state.socket);
   const schedulePlay = useGlobalStore((state) => state.schedulePlay);
   const schedulePause = useGlobalStore((state) => state.schedulePause);
-  const processGains = useGlobalStore((state) => state.processGains);
+  const processSpatialConfig = useGlobalStore(
+    (state) => state.processSpatialConfig
+  );
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
   const addAudioSource = useGlobalStore((state) => state.addAudioSource);
@@ -161,7 +163,7 @@ export const WebSocketManager = ({
             targetServerTime: serverTimeToExecute,
           });
         } else if (scheduledAction.type === "SPATIAL_CONFIG") {
-          processGains(scheduledAction);
+          processSpatialConfig(scheduledAction);
         }
       } else if (response.type === "SET_CLIENT_ID") {
         setUserId(response.clientId);
