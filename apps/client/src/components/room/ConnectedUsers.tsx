@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
-import { ClientType, GRID } from "@beatsync/shared";
+import { ClientType, GRID, WSResponseSchema } from "@beatsync/shared";
 import { Hand, Move, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -46,11 +46,14 @@ export const ConnectedUsers = () => {
       const handleMessage = (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
+          // Validate the data using Zod schema
+          const response = WSResponseSchema.parse(data);
+
           if (
-            data.type === "ROOM_EVENT" &&
-            data.event?.type === "CLIENT_CHANGE"
+            response.type === "ROOM_EVENT" &&
+            response.event?.type === "CLIENT_CHANGE"
           ) {
-            setClients(data.event.clients);
+            setClients(response.event.clients);
             // Update animation sync key when clients change
             setAnimationSyncKey(Date.now());
           }
