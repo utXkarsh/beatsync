@@ -9,6 +9,8 @@ import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
 import { WSData } from "./utils/websocket";
 
+export const SCHEDULE_TIME_MS = 750;
+
 interface RoomData {
   clients: Map<string, ClientType>;
   roomId: string;
@@ -140,7 +142,8 @@ class RoomManager {
       // Set gain for each client - focused client gets AUDIO_HIGH, others get AUDIO_LOW
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: Date.now() + this.getMaxRTT(roomId) + 500, // Dynamic delay based on max RTT + 250ms
+        serverTimeToExecute:
+          Date.now() + this.getMaxRTT(roomId) + SCHEDULE_TIME_MS, // Dynamic delay based on max RTT + 250ms
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           gains: Object.fromEntries(

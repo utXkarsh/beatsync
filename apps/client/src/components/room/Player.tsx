@@ -142,7 +142,7 @@ export const Player = () => {
           ) : (
             <Play className="h-4 w-4 mr-1" />
           )}
-          {isPlaying ? "Restart" : "Play"}
+          {isPlaying ? "Resync" : "Play"}
         </Button>
         <Button
           onClick={broadcastPause}
@@ -172,6 +172,10 @@ export const Player = () => {
             </>
           )}
         </Button>
+      </div>
+      <div className="text-xs text-muted-foreground mt-2">
+        If you experience synchronization issues, try pressing{" "}
+        <span className="font-semibold">Resync</span> a few times
       </div>
     </div>
   );

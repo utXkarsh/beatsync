@@ -4,7 +4,7 @@ import {
   WSRequestSchema,
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
-import { roomManager } from "../store";
+import { roomManager, SCHEDULE_TIME_MS } from "../store";
 import { sendBroadcast, sendUnicast } from "../utils/responses";
 import { WSData } from "../utils/websocket";
 
@@ -81,7 +81,7 @@ export const handleMessage = async (
         message: {
           type: "SCHEDULED_ACTION",
           scheduledAction: parsedMessage,
-          serverTimeToExecute: Date.now() + 500, // 500 ms from now
+          serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS, // 500 ms from now
           // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs > 500
         },
       });
