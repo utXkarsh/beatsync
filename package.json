@@ -5,7 +5,8 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "start": "turbo run start",
-    "server": "turbo start --filter=server"
+    "server": "turbo start --filter=server",
+    "client": "turbo start --filter=client"
   },
   "workspaces": [
     "apps/*",
