@@ -140,6 +140,15 @@ export const handleMessage = async (
           },
         },
       });
+    } else if (
+      parsedMessage.type === ClientActionEnum.enum.SET_LISTENING_SOURCE
+    ) {
+      // Handle listening source update
+      roomManager.updateListeningSource({
+        roomId,
+        position: parsedMessage,
+        server,
+      });
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }

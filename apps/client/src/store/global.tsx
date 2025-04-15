@@ -7,7 +7,11 @@ import {
   calculateWaitTimeMilliseconds,
 } from "@/utils/ntp";
 import { sendWSRequest } from "@/utils/ws";
-import { ClientActionEnum, SpatialConfigType } from "@beatsync/shared";
+import {
+  ClientActionEnum,
+  PositionType,
+  SpatialConfigType,
+} from "@beatsync/shared";
 import { toast } from "sonner";
 import { create } from "zustand";
 import { useRoomStore } from "./room";
@@ -66,6 +70,7 @@ interface GlobalState {
   stopSpatialAudio: () => void;
   spatialConfig?: SpatialConfigType;
   setSpatialConfig: (config: SpatialConfigType) => void;
+  updateListeningSource: (position: PositionType) => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -288,6 +293,15 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }
     },
     setSpatialConfig: (spatialConfig) => set({ spatialConfig }),
+    updateListeningSource: ({ x, y }) => {
+      const state = get();
+      const { socket } = getSocket(state);
+
+      sendWSRequest({
+        ws: socket,
+        request: { type: ClientActionEnum.enum.SET_LISTENING_SOURCE, x, y },
+      });
+    },
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
     setSelectedAudioId: (audioId) => {
       // Stop any current playback

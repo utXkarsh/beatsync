@@ -5,6 +5,7 @@ import {
   WSBroadcastType,
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
+import { gainFromDistanceExp } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
 import { WSData } from "./utils/websocket";
@@ -98,16 +99,6 @@ class RoomManager {
     return clients;
   }
 
-  // Method to get the maximum RTT of all clients in a room
-  getMaxRTT(roomId: string): number {
-    const room = this.rooms.get(roomId);
-    if (!room || room.clients.size === 0) return 0;
-
-    const clients = Array.from(room.clients.values());
-    const maxRTT = Math.max(...clients.map((client) => client.rtt));
-    return maxRTT;
-  }
-
   // Method to update the RTT for a specific client
   updateClientRTT(roomId: string, clientId: string, rtt: number) {
     const room = this.rooms.get(roomId);
@@ -142,8 +133,7 @@ class RoomManager {
       // Set gain for each client - focused client gets AUDIO_HIGH, others get AUDIO_LOW
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute:
-          Date.now() + this.getMaxRTT(roomId) + SCHEDULE_TIME_MS, // Dynamic delay based on max RTT + 250ms
+        serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS, // Dynamic delay based on max RTT + 250ms
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           gains: Object.fromEntries(
@@ -174,6 +164,63 @@ class RoomManager {
 
     clearInterval(room.intervalId);
     room.intervalId = undefined;
+  }
+
+  updateListeningSource({
+    roomId,
+    position,
+    server,
+  }: {
+    roomId: string;
+    position: PositionType;
+    server: Server;
+  }) {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    room.listeningSource = position;
+
+    // Calculate gains for each client based on distance from listening source
+    const clients = Array.from(room.clients.values());
+    console.log(
+      `Updating spatial audio for ${clients.length} clients based on listening source at (${position.x}, ${position.y})`
+    );
+
+    const gains = Object.fromEntries(
+      clients.map((client) => {
+        const gain = gainFromDistanceExp({
+          client: client.position,
+          source: position,
+        });
+
+        console.log(
+          `Client ${client.username} at (${client.position.x}, ${
+            client.position.y
+          }) - gain: ${gain.toFixed(2)}`
+        );
+        return [
+          client.clientId,
+          {
+            gain,
+            rampTime: 0.25, // Use a moderate ramp time for smooth transitions
+          },
+        ];
+      })
+    );
+
+    // Send the updated gains to all clients
+    sendBroadcast({
+      server,
+      roomId,
+      message: {
+        type: "SCHEDULED_ACTION",
+        serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS,
+        scheduledAction: {
+          type: "SPATIAL_CONFIG",
+          gains,
+        },
+      },
+    });
   }
 }
 

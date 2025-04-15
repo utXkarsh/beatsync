@@ -26,6 +26,9 @@ export const ConnectedUsers = () => {
   const socket = useGlobalStore((state) => state.socket);
   const spatialConfig = useGlobalStore((state) => state.spatialConfig);
   const gridRef = useRef<HTMLDivElement>(null);
+  const updateListeningSourceSocket = useGlobalStore(
+    (state) => state.updateListeningSource
+  );
 
   // Get clients directly from WebSocket events
   const [clients, setClients] = useState<ClientType[]>([]);
@@ -46,12 +49,17 @@ export const ConnectedUsers = () => {
   const lastLogTimeRef = useRef(0);
 
   // Manual throttle implementation for position logging
-  const throttledLogListeningSource = (x: number, y: number) => {
+  const throttleUpdateSourcePosition = (x: number, y: number) => {
     const now = Date.now();
     if (now - lastLogTimeRef.current >= 100) {
+      // Callback here
       console.log("Listening source update:", {
         position: { x, y },
       });
+
+      updateListeningSourceSocket({ x, y });
+
+      // Essential.
       lastLogTimeRef.current = now;
     }
   };
@@ -104,7 +112,7 @@ export const ConnectedUsers = () => {
   };
 
   // Function to update listening source position
-  const updateListeningSource = (x: number, y: number) => {
+  const onMouseMoveSource = (x: number, y: number) => {
     // Ensure values are within grid bounds
     const boundedX = Math.max(0, Math.min(GRID.SIZE, x));
     const boundedY = Math.max(0, Math.min(GRID.SIZE, y));
@@ -116,7 +124,7 @@ export const ConnectedUsers = () => {
     });
 
     // Throttled logging - will execute at most once every 1000ms
-    throttledLogListeningSource(boundedX, boundedY);
+    throttleUpdateSourcePosition(boundedX, boundedY);
   };
 
   // Handlers for dragging the listening source
@@ -140,7 +148,7 @@ export const ConnectedUsers = () => {
     const x = Math.round(((e.clientX - rect.left) / gridWidth) * GRID.SIZE);
     const y = Math.round(((e.clientY - rect.top) / gridHeight) * GRID.SIZE);
 
-    updateListeningSource(x, y);
+    onMouseMoveSource(x, y);
   };
 
   // Add event listeners for mouse up even outside the grid
@@ -414,7 +422,7 @@ export const ConnectedUsers = () => {
                   size="sm"
                   className="flex items-center justify-center"
                   onClick={() => {
-                    updateListeningSource(GRID.SIZE / 2, GRID.SIZE / 2);
+                    onMouseMoveSource(GRID.SIZE / 2, GRID.SIZE / 2);
                     toast.info("Listening source centered");
                   }}
                 >

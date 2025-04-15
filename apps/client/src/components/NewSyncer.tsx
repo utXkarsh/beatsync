@@ -2,21 +2,21 @@
 import { useGlobalStore } from "@/store/global";
 import { ClientType } from "@beatsync/shared";
 import { useEffect, useState } from "react";
-import { ConnectedUsers } from "./room/ConnectedUsers";
 import { MusicControls } from "./room/MusicControls";
 import { MusicUpload } from "./room/MusicUpload";
 import { RoomInfo } from "./room/RoomInfo";
+import { SocketStatus } from "./room/SocketStatus";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
 import { SyncStatus } from "./room/SyncStatus";
+import { ConnectedUsers } from "./room/UserGrid";
 import { WebSocketManager } from "./room/WebSocketManager";
-import { SocketStatus } from "./room/SocketStatus";
 
 // Main component has been refactored into smaller components
 
 export const NewSyncer = () => {
   // Get sync state from store
   const isSynced = useGlobalStore((state) => state.isSynced);
-  
+
   // Transition state for delayed showing of main UI
   const [showingSyncScreen, setShowingSyncScreen] = useState(true);
 
@@ -38,10 +38,10 @@ export const NewSyncer = () => {
     <>
       {/* WebSocket connection manager (non-visual component) */}
       <WebSocketManager onClientsChange={handleClientsChange} />
-      
+
       {/* Spatial audio background effects */}
       <SpatialAudioBackground />
-      
+
       <div className="container mx-auto p-4 space-y-6 relative">
         <div className="flex flex-col md:flex-row gap-4 justify-between">
           {/* Room information card */}

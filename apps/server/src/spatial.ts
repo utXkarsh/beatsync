@@ -9,13 +9,19 @@ function calculateEuclideanDistance(
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function gainFromDistanceExp(
-  client: PositionType,
-  source: PositionType,
+export function gainFromDistanceExp({
+  client,
+  source,
   falloff = 0.05,
   minGain = 0.15,
-  maxGain = 1.0
-): number {
+  maxGain = 1.0,
+}: {
+  client: PositionType;
+  source: PositionType;
+  falloff?: number;
+  minGain?: number;
+  maxGain?: number;
+}): number {
   const distance = calculateEuclideanDistance(client, source);
   const gain = maxGain * Math.exp(-falloff * distance);
   return Math.max(minGain, gain);
