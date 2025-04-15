@@ -174,8 +174,9 @@ export const Player = () => {
         </Button>
       </div>
       <div className="text-xs text-muted-foreground mt-2">
-        If you experience synchronization issues, try pressing{" "}
-        <span className="font-semibold">Resync</span> a few times
+        Especially on mobile devices, syncing is unstable. If you experience
+        issues, try pressing <span className="font-semibold">Resync</span> a few
+        times
       </div>
     </div>
   );
