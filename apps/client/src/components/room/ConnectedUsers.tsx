@@ -26,7 +26,6 @@ export const ConnectedUsers = () => {
 
   // Get clients directly from WebSocket events
   const [clients, setClients] = useState<ClientType[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
 
   // Set up an effect to listen for client changes via WebSocket
   useEffect(() => {
@@ -108,67 +107,6 @@ export const ConnectedUsers = () => {
     updatePosition(x, y);
   };
 
-  // Handle drag start for current user's avatar
-  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!userId) return;
-    setIsDragging(true);
-    e.stopPropagation();
-  };
-
-  // Handle drag movement
-  const handleDragMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !gridRef.current || !userId) return;
-
-    const rect = gridRef.current.getBoundingClientRect();
-    const gridWidth = rect.width;
-    const gridHeight = rect.height;
-
-    // Calculate position as percentage of grid size
-    const x = Math.round(((e.clientX - rect.left) / gridWidth) * GRID.SIZE);
-    const y = Math.round(((e.clientY - rect.top) / gridHeight) * GRID.SIZE);
-
-    updatePosition(x, y);
-  };
-
-  // Handle drag end
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
-  // Set up global mouse event listeners for dragging
-  useEffect(() => {
-    if (isDragging) {
-      const handleMouseMove = (e: MouseEvent) => {
-        if (!gridRef.current || !userId) return;
-
-        const rect = gridRef.current.getBoundingClientRect();
-        const gridWidth = rect.width;
-        const gridHeight = rect.height;
-
-        // Calculate position as percentage of grid size
-        const x = Math.round(((e.clientX - rect.left) / gridWidth) * GRID.SIZE);
-        const y = Math.round(((e.clientY - rect.top) / gridHeight) * GRID.SIZE);
-
-        // Only update if within bounds
-        if (x >= 0 && x <= GRID.SIZE && y >= 0 && y <= GRID.SIZE) {
-          updatePosition(x, y);
-        }
-      };
-
-      const handleMouseUp = () => {
-        setIsDragging(false);
-      };
-
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
-  }, [isDragging, userId, updatePosition]);
-
   // Generate a color based on username for avatar fallback
   const generateColor = (username: string) => {
     const colors = [
@@ -220,8 +158,6 @@ export const ConnectedUsers = () => {
                 backgroundPosition: "0 0",
               }}
               onClick={handleGridClick}
-              onMouseMove={handleDragMove}
-              onMouseUp={handleDragEnd}
             >
               <TooltipProvider>
                 {clients.map((client) => {
@@ -240,11 +176,6 @@ export const ConnectedUsers = () => {
                         <motion.div
                           className={cn(
                             "absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300",
-                            isCurrentUser && isDragging
-                              ? "cursor-grabbing"
-                              : isCurrentUser
-                              ? "cursor-grab"
-                              : "",
                             isFocused ? "z-30" : isActive ? "z-20" : "z-10"
                           )}
                           style={{
@@ -257,9 +188,6 @@ export const ConnectedUsers = () => {
                             scale: isFocused ? 1.2 : isActive ? 1.1 : 1,
                           }}
                           transition={{ duration: 0.3 }}
-                          onMouseDown={
-                            isCurrentUser ? handleDragStart : undefined
-                          }
                         >
                           <div
                             className={cn(
@@ -293,6 +221,17 @@ export const ConnectedUsers = () => {
                             {isActive && !isFocused && (
                               <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-secondary" />
                             )}
+                            {/* Add ping effect to all clients */}
+                            <span
+                              className="absolute inset-0 rounded-full opacity-75 animate-ping"
+                              style={{
+                                backgroundColor: isFocused
+                                  ? "rgb(16 185 129 / 0.4)"
+                                  : isActive
+                                  ? "rgb(99 102 241 / 0.4)"
+                                  : "rgb(156 163 175 / 0.3)",
+                              }}
+                            ></span>
                           </div>
                         </motion.div>
                       </TooltipTrigger>

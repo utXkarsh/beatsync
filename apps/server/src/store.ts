@@ -33,7 +33,7 @@ class RoomManager {
       this.rooms.set(roomId, {
         clients: new Map(),
         roomId,
-        listeningSource: { x: 50, y: 50 }, // Center of the grid
+        listeningSource: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y }, // Center of the grid
       });
     }
 
@@ -45,7 +45,7 @@ class RoomManager {
       clientId,
       ws,
       rtt: 0,
-      position: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y }, // Initial position at center
+      position: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y - 20 }, // Initial position at center
     });
 
     positionClientsInCircle(currentRoom.clients);
