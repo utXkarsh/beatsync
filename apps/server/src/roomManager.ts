@@ -214,7 +214,7 @@ class RoomManager {
       roomId,
       message: {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS,
+        serverTimeToExecute: Date.now() + 0,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           gains,
