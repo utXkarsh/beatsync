@@ -56,7 +56,7 @@ export const ConnectedUsers = () => {
   // Manual throttle implementation for position logging
   const throttleUpdateSourcePosition = (x: number, y: number) => {
     const now = Date.now();
-    if (now - lastLogTimeRef.current >= 33) {
+    if (now - lastLogTimeRef.current >= 100) {
       // ~30fps throttle - balance between smoothness and network traffic
       console.log("Listening source update:", { position: { x, y } });
       updateListeningSourceSocket({ x, y });
