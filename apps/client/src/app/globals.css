@@ -145,3 +145,11 @@
     }
   }
 }
+
+@theme inline {
+  --font-sans: var(--font-proxima-nova);
+  --font-suisse: var(--font-suisse-intl);
+  --font-circular: var(--font-circular-std);
+  --font-sofia: var(--font-sofia-pro);
+  --font-proxima: var(--font-proxima-nova);
+}
