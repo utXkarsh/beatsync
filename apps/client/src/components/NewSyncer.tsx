@@ -8,7 +8,7 @@ import { RoomInfo } from "./room/RoomInfo";
 import { SocketStatus } from "./room/SocketStatus";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
 import { SyncStatus } from "./room/SyncStatus";
-import { ConnectedUsers } from "./room/UserGrid";
+import { UserGrid } from "./room/UserGrid";
 import { WebSocketManager } from "./room/WebSocketManager";
 
 // Main component has been refactored into smaller components
@@ -48,7 +48,7 @@ export const NewSyncer = () => {
           <RoomInfo />
 
           {/* Connected users card */}
-          <ConnectedUsers />
+          <UserGrid />
         </div>
 
         <div className="flex items-center gap-2">

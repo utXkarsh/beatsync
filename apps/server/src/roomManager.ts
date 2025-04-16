@@ -183,9 +183,6 @@ class RoomManager {
 
     // Calculate gains for each client based on distance from listening source
     const clients = Array.from(room.clients.values());
-    console.log(
-      `Updating spatial audio for ${clients.length} clients based on listening source at (${position.x}, ${position.y})`
-    );
 
     const gains = Object.fromEntries(
       clients.map((client) => {
