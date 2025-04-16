@@ -74,6 +74,8 @@ interface GlobalState {
   updateListeningSource: (position: PositionType) => void;
   listeningSourcePosition: PositionType;
   setListeningSourcePosition: (position: PositionType) => void;
+  isDraggingListeningSource: boolean;
+  setIsDraggingListeningSource: (isDragging: boolean) => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -577,12 +579,16 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
 
     processSpatialConfig: (config: SpatialConfigType) => {
+      const state = get();
       set({ spatialConfig: config });
       const { gains, listeningSource } = config;
-      set({ listeningSourcePosition: listeningSource });
+
+      // Don't set if we were the ones dragging the listening source
+      if (!state.isDraggingListeningSource) {
+        set({ listeningSourcePosition: listeningSource });
+      }
 
       // Extract out what this client's gain is:
-      const state = get();
       const userId = useRoomStore.getState().userId;
       const user = gains[userId];
       const { gain, rampTime } = user;
@@ -630,6 +636,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     listeningSourcePosition: { x: GRID.SIZE / 2, y: GRID.SIZE / 2 },
     setListeningSourcePosition: (position: PositionType) => {
       set({ listeningSourcePosition: position });
+    },
+
+    isDraggingListeningSource: false,
+    setIsDraggingListeningSource: (isDragging) => {
+      set({ isDraggingListeningSource: isDragging });
     },
   };
 });

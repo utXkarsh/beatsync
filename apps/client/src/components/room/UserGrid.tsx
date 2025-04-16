@@ -40,7 +40,12 @@ export const ConnectedUsers = () => {
   const [clients, setClients] = useState<ClientType[]>([]);
 
   // State to track dragging status
-  const [isDraggingSource, setIsDraggingSource] = useState(false);
+  const isDraggingListeningSource = useGlobalStore(
+    (state) => state.isDraggingListeningSource
+  );
+  const setIsDraggingListeningSource = useGlobalStore(
+    (state) => state.setIsDraggingListeningSource
+  );
 
   // Add animation sync timestamp
   const [animationSyncKey, setAnimationSyncKey] = useState(Date.now());
@@ -51,15 +56,11 @@ export const ConnectedUsers = () => {
   // Manual throttle implementation for position logging
   const throttleUpdateSourcePosition = (x: number, y: number) => {
     const now = Date.now();
-    if (now - lastLogTimeRef.current >= 100) {
-      // Callback here
-      console.log("Listening source update:", {
-        position: { x, y },
-      });
-
+    if (now - lastLogTimeRef.current >= 33) {
+      // ~30fps throttle - balance between smoothness and network traffic
+      console.log("Listening source update:", { position: { x, y } });
       updateListeningSourceSocket({ x, y });
-
-      // Essential.
+      // setListeningSourcePosition({ x, y });
       lastLogTimeRef.current = now;
     }
   };
@@ -128,15 +129,15 @@ export const ConnectedUsers = () => {
   // Handlers for dragging the listening source
   const handleSourceMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent grid click handler from firing
-    setIsDraggingSource(true);
+    setIsDraggingListeningSource(true);
   };
 
   const handleSourceMouseUp = () => {
-    setIsDraggingSource(false);
+    setIsDraggingListeningSource(false);
   };
 
   const handleSourceMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingSource || !gridRef.current) return;
+    if (!isDraggingListeningSource || !gridRef.current) return;
 
     const rect = gridRef.current.getBoundingClientRect();
     const gridWidth = rect.width;
@@ -152,17 +153,17 @@ export const ConnectedUsers = () => {
   // Add event listeners for mouse up even outside the grid
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      setIsDraggingSource(false);
+      setIsDraggingListeningSource(false);
     };
 
-    if (isDraggingSource) {
+    if (isDraggingListeningSource) {
       window.addEventListener("mouseup", handleGlobalMouseUp);
     }
 
     return () => {
       window.removeEventListener("mouseup", handleGlobalMouseUp);
     };
-  }, [isDraggingSource]);
+  }, [isDraggingListeningSource, setIsDraggingListeningSource]);
 
   // Generate a color based on username for avatar fallback
   const generateColor = (username: string) => {
@@ -207,7 +208,7 @@ export const ConnectedUsers = () => {
             {/* 2D Grid Layout */}
             <div
               ref={gridRef}
-              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)]"
+              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none"
               onMouseMove={handleSourceMouseMove}
             >
               <TooltipProvider>
@@ -305,12 +306,13 @@ export const ConnectedUsers = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <motion.div
-                      className="absolute transform -translate-x-1/2 -translate-y-1/2 z-40 cursor-move"
+                      className="absolute z-40 cursor-move"
                       style={{
                         left: `${listeningSource.x}%`,
                         top: `${listeningSource.y}%`,
+                        transform: "translate(-50%, -50%)",
                       }}
-                      {...(!isDraggingSource && {
+                      {...(!isDraggingListeningSource && {
                         animate: {
                           left: `${listeningSource.x}%`,
                           top: `${listeningSource.y}%`,
