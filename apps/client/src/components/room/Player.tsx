@@ -4,13 +4,16 @@ import {
   Pause,
   Play,
   RefreshCw,
+  Repeat,
   RocketIcon,
+  Shuffle,
+  SkipBack,
+  SkipForward,
   StopCircleIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
-
 export const Player = () => {
   const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
   const broadcastPause = useGlobalStore((state) => state.broadcastPause);
@@ -86,6 +89,23 @@ export const Player = () => {
   return (
     <div className="space-y-3">
       <div className="w-full">
+        <div className="flex items-center justify-center gap-6 mb-2">
+          <button className="text-gray-400 hover:text-white transition-colors">
+            <Shuffle className="w-5 h-5" />
+          </button>
+          <button className="text-gray-400 hover:text-white transition-colors">
+            <SkipBack className="w-6 h-6" />
+          </button>
+          <button className="bg-white text-black rounded-full p-2 hover:scale-105 transition-transform">
+            <Play className="w-6 h-6 fill-current" />
+          </button>
+          <button className="text-gray-400 hover:text-white transition-colors">
+            <SkipForward className="w-6 h-6" />
+          </button>
+          <button className="text-gray-400 hover:text-white transition-colors">
+            <Repeat className="w-5 h-5" />
+          </button>
+        </div>
         <Slider
           value={[sliderPosition]}
           min={0}
