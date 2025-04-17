@@ -234,7 +234,7 @@ export const SyncProgress = ({
           </motion.p>
 
           {/* Progress bar */}
-          <div className="w-full h-[4px] bg-neutral-800 rounded-full overflow-hidden">
+          <div className="w-full h-[4px] bg-neutral-800 rounded-full overflow-hidden mt-4 mb-2">
             <motion.div
               className="h-full bg-neutral-300"
               initial={{ width: "0%" }}
