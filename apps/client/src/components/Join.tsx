@@ -9,6 +9,7 @@ import {
 import { validateFullRoomId, validatePartialRoomId } from "@/lib/room";
 import { useRoomStore } from "@/store/room";
 import { motion } from "framer-motion";
+import { LogIn, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -20,6 +21,7 @@ interface JoinFormData {
 
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const usernameInputRef = useRef<HTMLInputElement>(null);
   const setRoomId = useRoomStore((state) => state.setRoomId);
   const setUsername = useRoomStore((state) => state.setUsername);
@@ -29,6 +31,7 @@ export const Join = () => {
     handleSubmit,
     formState: { errors },
     control,
+    watch,
   } = useForm<JoinFormData>({
     defaultValues: {
       roomId: "",
@@ -37,12 +40,14 @@ export const Join = () => {
   });
 
   const router = useRouter();
+  const username = watch("username");
 
   const onSubmit = (data: JoinFormData) => {
     setIsJoining(true);
     // Validate roomId
     if (!validateFullRoomId(data.roomId)) {
       alert("Invalid room ID");
+      setIsJoining(false);
       return;
     }
 
@@ -52,6 +57,23 @@ export const Join = () => {
     router.push(`/room/${data.roomId}`);
   };
 
+  const handleCreateRoom = () => {
+    if (!username) {
+      alert("Please enter a username first");
+      usernameInputRef.current?.focus();
+      return;
+    }
+
+    setIsCreating(true);
+
+    // Generate a random 6-digit room ID
+    const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
+
+    setRoomId(newRoomId);
+    setUsername(username);
+    router.push(`/room/${newRoomId}`);
+  };
+
   return (
     <motion.div
       className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-neutral-950 backdrop-blur-sm"
@@ -59,9 +81,9 @@ export const Join = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="w-full max-w-md px-1">
+      <div className="w-full px-1">
         <motion.div
-          className="flex flex-col items-center justify-center p-5 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg max-w-sm mx-auto"
+          className="flex flex-col items-center justify-center p-5 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg max-w-[26rem] mx-auto"
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -173,27 +195,45 @@ export const Join = () => {
               )}
             </motion.div>
 
-            <motion.div
-              className="mt-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
-              <Button
-                type="submit"
-                className="w-full px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer duration-500"
-                disabled={isJoining}
+            <div className="flex flex-col gap-2.5 mt-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
               >
-                Join Room
-              </Button>
-            </motion.div>
+                <Button
+                  type="submit"
+                  className="w-full px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-medium text-xs cursor-pointer duration-500 flex items-center justify-center"
+                  disabled={isJoining || isCreating}
+                >
+                  <LogIn size={14} className="mr-1.5" />
+                  <span>Join room</span>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.35 }}
+              >
+                <Button
+                  type="button"
+                  onClick={handleCreateRoom}
+                  className="w-full px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full font-medium text-xs cursor-pointer duration-500 flex items-center justify-center"
+                  disabled={isJoining || isCreating}
+                >
+                  <PlusCircle size={14} className="mr-1.5" />
+                  <span>Create room</span>
+                </Button>
+              </motion.div>
+            </div>
           </form>
 
           <motion.p
             className="text-neutral-500 mt-4 text-center text-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.35 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
           >
             For best experience, use a laptop with Chrome browser. Only use the
             native device speakers, and make sure silent mode is off.
