@@ -11,7 +11,6 @@ export const SyncStatus = () => {
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const resetNTPConfig = useGlobalStore((state) => state.resetNTPConfig);
   const pauseAudio = useGlobalStore((state) => state.pauseAudio);
-
   const resync = () => {
     pauseAudio({ when: 0 });
     resetNTPConfig();
@@ -24,20 +23,20 @@ export const SyncStatus = () => {
       <div className="fixed top-0 left-0 right-0 h-8 bg-black/80 backdrop-blur-md z-50 flex items-center px-4 border-b border-zinc-800">
         <div className="flex items-center space-x-3 text-xs text-zinc-400">
           <div className="flex items-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5"></div>
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>
             <span>Synced</span>
           </div>
 
-          <div className="text-zinc-500">|</div>
+          <div className="text-neutral-500">|</div>
 
           <div className="flex items-center space-x-3">
-            <span>Offset: {offsetEstimate.toFixed(1)} ms</span>
-            <span>RTT: {roundTripEstimate.toFixed(1)} ms</span>
+            <span>Offset: {offsetEstimate.toFixed(2)} ms</span>
+            <span>RTT: {roundTripEstimate.toFixed(2)} ms</span>
           </div>
 
           <button
             onClick={resync}
-            className="text-zinc-400 hover:text-white transition-colors ml-1 cursor-pointer"
+            className="text-neutral-400 hover:text-white transition-colors ml-1 cursor-pointer"
           >
             Resync
           </button>
