@@ -15,7 +15,7 @@ export function positionClientsInCircle(
     const client = clients.values().next().value!;
     client.position = {
       x: GRID.ORIGIN_X,
-      y: GRID.ORIGIN_Y,
+      y: GRID.ORIGIN_Y - 25,
     };
     return;
   }

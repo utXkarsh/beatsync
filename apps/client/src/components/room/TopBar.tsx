@@ -36,13 +36,13 @@ export const TopBar = () => {
         <div className="flex items-center space-x-3 text-xs text-neutral-400">
           <Link
             href="/"
-            className="font-medium hover:text-neutral-200 transition-colors"
+            className="font-medium hover:text-white transition-colors"
           >
             Beatsync
           </Link>
           <div className="flex items-center">
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>
-            <span>Connected</span>
+            <span>Synced</span>
           </div>
           <div className="flex items-center">
             <Hash size={12} className="mr-1.5" />

@@ -46,7 +46,7 @@ class RoomManager {
       clientId,
       ws,
       rtt: 0,
-      position: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y - 20 }, // Initial position at center
+      position: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y - 25 }, // Initial position at center
     });
 
     positionClientsInCircle(currentRoom.clients);
