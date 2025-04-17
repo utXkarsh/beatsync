@@ -117,6 +117,10 @@ interface GlobalState {
   // Add function to get current position
   getCurrentTrackPosition: () => number;
 
+  // Shuffle state
+  isShuffled: boolean;
+  toggleShuffle: () => void;
+
   // Add these functions for track skipping
   skipToNextTrack: () => void;
   skipToPreviousTrack: () => void;
@@ -663,47 +667,54 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     setConnectedClients: (clients) => set({ connectedClients: clients }),
     skipToNextTrack: () => {
       const state = get();
-      const { audioSources, selectedAudioId } = state;
-      if (audioSources.length === 0) return;
+      const { audioSources, selectedAudioId, isShuffled } = state;
+      if (audioSources.length <= 1) return; // Can't skip if only one track
 
       const currentIndex = state.findAudioIndexById(selectedAudioId);
-      if (currentIndex === null) return; // Should not happen ideally
+      if (currentIndex === null) return;
 
-      const nextIndex = (currentIndex + 1) % audioSources.length;
+      let nextIndex: number;
+      if (isShuffled) {
+        // Shuffle logic: pick a random index DIFFERENT from the current one
+        do {
+          nextIndex = Math.floor(Math.random() * audioSources.length);
+        } while (nextIndex === currentIndex);
+      } else {
+        // Normal sequential logic
+        nextIndex = (currentIndex + 1) % audioSources.length;
+      }
+
       const nextAudioId = audioSources[nextIndex].id;
-
-      // setSelectedAudioId stops playback and resets state. It returns if the track *was* playing.
       const wasPlaying = state.setSelectedAudioId(nextAudioId);
 
-      // If it was playing before skipping, automatically start playing the next track from the beginning.
       if (wasPlaying) {
-        // Use a minimal delay to ensure state updates before broadcasting play
-        setTimeout(() => {
-          state.broadcastPlay(0);
-        }, 0);
+        state.broadcastPlay(0);
       }
     },
 
     skipToPreviousTrack: () => {
       const state = get();
-      const { audioSources, selectedAudioId } = state;
+      const { audioSources, selectedAudioId /* isShuffled */ } = state; // Note: isShuffled is NOT used here currently
       if (audioSources.length === 0) return;
 
       const currentIndex = state.findAudioIndexById(selectedAudioId);
-      if (currentIndex === null) return; // Should not happen ideally
+      if (currentIndex === null) return;
 
+      // Previous track always goes to the actual previous in the list, even if shuffled
+      // This is a common behavior, but could be changed if needed.
       const prevIndex =
         (currentIndex - 1 + audioSources.length) % audioSources.length;
       const prevAudioId = audioSources[prevIndex].id;
 
-      // setSelectedAudioId stops playback and resets state. It returns if the track *was* playing.
       const wasPlaying = state.setSelectedAudioId(prevAudioId);
 
-      // If it was playing before skipping, automatically start playing the previous track from the beginning.
       if (wasPlaying) {
-        // Use a minimal delay to ensure state updates before broadcasting play
         state.broadcastPlay(0);
       }
     },
+
+    // Shuffle state
+    isShuffled: false,
+    toggleShuffle: () => set((state) => ({ isShuffled: !state.isShuffled })),
   };
 });

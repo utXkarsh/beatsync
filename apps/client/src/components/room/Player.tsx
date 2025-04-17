@@ -1,4 +1,4 @@
-import { formatTime } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 
 import { useGlobalStore } from "@/store/global";
 import {
@@ -33,6 +33,8 @@ export const Player = () => {
   const skipToPreviousTrack = useGlobalStore(
     (state) => state.skipToPreviousTrack
   );
+  const isShuffled = useGlobalStore((state) => state.isShuffled);
+  const toggleShuffle = useGlobalStore((state) => state.toggleShuffle);
 
   // Local state for slider
   const [sliderPosition, setSliderPosition] = useState(0);
@@ -98,6 +100,10 @@ export const Player = () => {
     skipToNextTrack();
   }, [skipToNextTrack]);
 
+  const handleShuffle = useCallback(() => {
+    toggleShuffle();
+  }, [toggleShuffle]);
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -126,10 +132,24 @@ export const Player = () => {
       <div className="w-full max-w-[37rem]">
         <div className="flex items-center justify-center gap-6 mb-2">
           <button
-            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
-            onClick={handlePlay}
+            className={cn(
+              "text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200",
+              isShuffled && "text-primary-400"
+            )}
+            onClick={handleShuffle}
+            disabled={audioSources.length <= 1}
           >
-            <Shuffle className="w-6 h-6 md:w-4 md:h-4" />
+            <div className="relative">
+              <Shuffle
+                className={cn(
+                  "w-6 h-6 md:w-4 md:h-4 relative",
+                  isShuffled ? "text-primary-400" : "text-current"
+                )}
+              />
+              {isShuffled && (
+                <div className="absolute w-1 h-1 bg-green-500 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
+              )}
+            </div>
           </button>
           <button
             className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
