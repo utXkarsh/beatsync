@@ -61,13 +61,13 @@ export const Join = () => {
     >
       <div className="w-full max-w-md px-1">
         <motion.div
-          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+          className="flex flex-col items-center justify-center p-5 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg max-w-sm mx-auto"
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <motion.h2
-            className="text-base font-medium tracking-tight mb-1 text-white"
+            className="text-sm font-medium tracking-tight mb-1 text-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
@@ -76,7 +76,7 @@ export const Join = () => {
           </motion.h2>
 
           <motion.p
-            className="text-neutral-400 mb-5 text-center text-sm"
+            className="text-neutral-400 mb-4 text-center text-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.15 }}
@@ -86,7 +86,7 @@ export const Join = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <motion.div
-              className="flex justify-center mb-2"
+              className="flex justify-center"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
@@ -111,32 +111,32 @@ export const Join = () => {
                         }
                       }
                     }}
-                    className="gap-3"
+                    className="gap-2"
                   >
-                    <InputOTPGroup className="gap-3">
+                    <InputOTPGroup className="gap-2">
                       <InputOTPSlot
                         index={0}
-                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
                       />
                       <InputOTPSlot
                         index={1}
-                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
                       />
                       <InputOTPSlot
                         index={2}
-                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
                       />
                       <InputOTPSlot
                         index={3}
-                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
                       />
                       <InputOTPSlot
                         index={4}
-                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
                       />
                       <InputOTPSlot
                         index={5}
-                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
                       />
                     </InputOTPGroup>
                   </InputOTP>
@@ -144,20 +144,20 @@ export const Join = () => {
               />
             </motion.div>
             {errors.roomId && (
-              <p className="text-xs text-red-500 text-center">
+              <p className="text-xs text-red-500 text-center mt-1">
                 {errors.roomId.message}
               </p>
             )}
 
             <motion.div
-              className="space-y-2 mt-4"
+              className="space-y-1 mt-4"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
               <label className="text-xs text-neutral-400">Username</label>
               <Input
-                className="bg-neutral-800 border-neutral-700 focus:border-neutral-600 mt-0.5"
+                className="bg-neutral-800 border-neutral-700 focus:border-neutral-600 mt-0.5 h-8 text-xs"
                 placeholder="Choose a username"
                 {...register("username", { required: "Username is required" })}
                 ref={(element) => {
@@ -174,13 +174,14 @@ export const Join = () => {
             </motion.div>
 
             <motion.div
+              className="mt-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
               <Button
                 type="submit"
-                className="w-full mt-4 px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer duration-500"
+                className="w-full px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer duration-500"
                 disabled={isJoining}
               >
                 Join Room
@@ -189,7 +190,7 @@ export const Join = () => {
           </form>
 
           <motion.p
-            className="text-neutral-500 mt-5 text-center text-xs"
+            className="text-neutral-500 mt-4 text-center text-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.35 }}
