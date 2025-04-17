@@ -33,7 +33,7 @@ export const TopBar = () => {
   if (!isLoadingAudio && isSynced) {
     return (
       <div className="h-8 bg-black/80 backdrop-blur-md z-50 flex items-center px-4 border-b border-zinc-800">
-        <div className="flex items-center space-x-3 text-xs text-neutral-400 py-2 md:py-0">
+        <div className="flex items-center space-x-4 text-xs text-neutral-400 py-2 md:py-0">
           <Link
             href="/"
             className="font-medium hover:text-white transition-colors"
@@ -45,13 +45,13 @@ export const TopBar = () => {
             <span>Synced</span>
           </div>
           <div className="flex items-center">
-            <Hash size={12} className="mr-1.5" />
+            <Hash size={12} className="mr-1" />
             <span className="flex items-center">{roomId}</span>
           </div>
           <div className="flex items-center">
-            <Users size={12} className="mr-1.5" />
+            <Users size={12} className="mr-1" />
             <span className="flex items-center">
-              <span className="mr-1">
+              <span className="mr-1.5">
                 {connectedClients.length}{" "}
                 {connectedClients.length === 1 ? "user" : "users"}
               </span>

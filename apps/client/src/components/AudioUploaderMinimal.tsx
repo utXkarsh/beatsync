@@ -72,7 +72,7 @@ export const AudioUploaderMinimal = () => {
   return (
     <div
       className={cn(
-        "border border-neutral-700/50 rounded-md transition-all overflow-hidden",
+        "border border-neutral-700/50 rounded-md mx-2 transition-all overflow-hidden",
         isHovered ? "bg-neutral-800/50" : "bg-neutral-800/30"
       )}
       onMouseEnter={() => setIsHovered(true)}

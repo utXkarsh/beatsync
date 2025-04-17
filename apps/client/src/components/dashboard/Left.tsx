@@ -75,7 +75,26 @@ export const Left = ({ className }: LeftProps) => {
         </div>
       </div>
 
-      <div className="mt-auto px-3 pb-4 pt-2">
+      {/* Tips Section */}
+      <div className="mt-auto pb-4 pt-2 text-neutral-400">
+        <div className="flex flex-col gap-2 p-4 border-t border-neutral-800/50">
+          <h5 className="text-xs font-medium underline">Tips</h5>
+          <ul className="list-disc list-outside pl-4 space-y-1.5">
+            <li className="text-xs leading-relaxed">
+              Best with multiple devices IRL in the same space.
+            </li>
+            <li className="text-xs leading-relaxed">
+              If audio gets de-synced, try pause + play again.
+            </li>
+            <li className="text-xs leading-relaxed">
+              On mobile, check silent mode is off.
+            </li>
+            <li className="text-xs leading-relaxed">
+              {"Play on speaker directly. Don't use Bluetooth."}
+            </li>
+          </ul>
+        </div>
+
         <AudioUploaderMinimal />
       </div>
     </div>
