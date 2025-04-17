@@ -1,9 +1,9 @@
 import { useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
 import { Queue } from "../Queue";
-import { Player } from "../room/Player";
 import { TopBar } from "../room/TopBar";
 import { UserGrid } from "../room/UserGrid";
+import { Bottom } from "./Bottom";
 import { Left } from "./Left";
 
 export const Dashboard = () => {
@@ -49,11 +49,7 @@ export const Dashboard = () => {
             </div>
           </div>
           {/* Player fixed at bottom */}
-          <div className="flex-shrink-0 border-t border-neutral-800/50 bg-neutral-900/80 backdrop-blur-md p-4">
-            <div className="max-w-3xl mx-auto">
-              <Player />
-            </div>
-          </div>
+          <Bottom />
         </motion.div>
       )}
     </div>

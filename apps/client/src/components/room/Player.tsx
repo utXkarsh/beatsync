@@ -1,4 +1,5 @@
 import { formatTime } from "@/lib/utils";
+
 import { useGlobalStore } from "@/store/global";
 import {
   Pause,
@@ -11,9 +12,17 @@ import {
   SkipForward,
   StopCircleIcon,
 } from "lucide-react";
+
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+
 export const Player = () => {
   const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
   const broadcastPause = useGlobalStore((state) => state.broadcastPause);
@@ -86,41 +95,67 @@ export const Player = () => {
     }
   };
 
+  const handlePlay = () => {
+    if (isPlaying) {
+      broadcastPause();
+    } else {
+      broadcastPlay(sliderPosition);
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="w-full">
         <div className="flex items-center justify-center gap-6 mb-2">
-          <button className="text-gray-400 hover:text-white transition-colors">
-            <Shuffle className="w-5 h-5" />
+          <button
+            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
+            onClick={handlePlay}
+          >
+            <Shuffle className="w-4 h-4" />
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors">
-            <SkipBack className="w-6 h-6" />
+          <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
+            <SkipBack className="w-5 h-5 fill-current" />
           </button>
-          <button className="bg-white text-black rounded-full p-2 hover:scale-105 transition-transform">
-            <Play className="w-6 h-6 fill-current" />
+          <button
+            className="bg-white text-black rounded-full p-2 hover:scale-105 transition-transform cursor-pointer duration-200"
+            onClick={handlePlay}
+          >
+            {isPlaying ? (
+              <Pause className="w-4.5 h-4.5 fill-current stroke-1" />
+            ) : (
+              <Play className="w-4.5 h-4.5 fill-current" />
+            )}
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors">
-            <SkipForward className="w-6 h-6" />
+          <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
+            <SkipForward className="w-5 h-5 fill-current" />
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors">
-            <Repeat className="w-5 h-5" />
+          <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
+            <Repeat className="w-4 h-4" />
           </button>
         </div>
-        <Slider
-          value={[sliderPosition]}
-          min={0}
-          max={trackDuration}
-          step={0.1}
-          onValueChange={handleSliderChange}
-          onValueCommit={handleSliderCommit}
-          className="my-3"
-          disabled={isPlaying}
-        />
-        {isPlaying && (
-          <div className="text-xs text-yellow-500 mt-1 text-center">
-            You must pause to seek
-          </div>
-        )}
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div className={isPlaying ? "" : ""}>
+                <Slider
+                  value={[sliderPosition]}
+                  min={0}
+                  max={trackDuration}
+                  step={0.1}
+                  onValueChange={handleSliderChange}
+                  onValueCommit={handleSliderCommit}
+                  className="mt-4 mb-3"
+                  disabled={isPlaying}
+                />
+              </div>
+            </TooltipTrigger>
+            {isPlaying && (
+              <TooltipContent side="bottom">
+                <p>Pause playback before changing position</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{formatTime(sliderPosition)}</span>
           <span>{formatTime(trackDuration)}</span>
