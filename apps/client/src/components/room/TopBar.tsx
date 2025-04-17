@@ -1,6 +1,7 @@
 "use client";
 import { useGlobalStore } from "@/store/global";
 import { AnimatePresence, motion } from "framer-motion";
+import { Users } from "lucide-react";
 import { SyncProgress } from "../ui/SyncProgress";
 
 export const TopBar = () => {
@@ -11,10 +12,14 @@ export const TopBar = () => {
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const resetNTPConfig = useGlobalStore((state) => state.resetNTPConfig);
   const pauseAudio = useGlobalStore((state) => state.pauseAudio);
+  const connectedClients = useGlobalStore((state) => state.connectedClients);
+  const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
+
   const resync = () => {
     pauseAudio({ when: 0 });
     resetNTPConfig();
     sendNTPRequest();
+    setIsLoadingAudio(true);
   };
 
   // Show minimal nav bar when synced and not loading
@@ -26,6 +31,11 @@ export const TopBar = () => {
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>
             <span>Synced</span>
           </div>
+          <div className="text-neutral-500">|</div>
+          <div className="flex items-center">
+            <Users size={12} className="mr-1.5" />
+            <span>{connectedClients.length} users</span>
+          </div>
 
           <div className="text-neutral-500">|</div>
 
@@ -33,12 +43,13 @@ export const TopBar = () => {
             <span>Offset: {offsetEstimate.toFixed(2)} ms</span>
             <span>RTT: {roundTripEstimate.toFixed(2)} ms</span>
           </div>
+          <div className="text-neutral-500">|</div>
 
           <button
             onClick={resync}
-            className="text-neutral-400 hover:text-white transition-colors ml-1 cursor-pointer"
+            className="text-neutral-400 hover:text-white transition-colors cursor-pointer"
           >
-            Resync
+            Full Sync
           </button>
         </div>
       </div>

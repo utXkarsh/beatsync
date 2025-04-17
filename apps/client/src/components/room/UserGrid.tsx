@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
-import { ClientType, GRID, WSResponseSchema } from "@beatsync/shared";
+import { ClientType, GRID } from "@beatsync/shared";
 import { Hand, HeadphonesIcon, Mic, Move, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -206,8 +206,8 @@ export const UserGrid = () => {
     (state) => state.updateListeningSource
   );
 
-  // Get clients directly from WebSocket events
-  const [clients, setClients] = useState<ClientType[]>([]);
+  // Use clients from global store
+  const clients = useGlobalStore((state) => state.connectedClients);
 
   // State to track dragging status
   const isDraggingListeningSource = useGlobalStore(
@@ -237,40 +237,10 @@ export const UserGrid = () => {
     [updateListeningSourceSocket]
   );
 
-  // Memoize WebSocket message handler
-  const handleMessage = useCallback((event: MessageEvent) => {
-    try {
-      const data = JSON.parse(event.data);
-      // Validate the data using Zod schema
-      const response = WSResponseSchema.safeParse(data);
-      if (!response.success) return;
-
-      const parsedResponse = response.data;
-      if (
-        parsedResponse.type === "ROOM_EVENT" &&
-        parsedResponse.event?.type === "CLIENT_CHANGE"
-      ) {
-        setClients(parsedResponse.event.clients);
-        // Update animation sync key when clients change
-        setAnimationSyncKey(Date.now());
-      }
-    } catch (error) {
-      console.error("Error parsing WebSocket message:", error);
-    }
-  }, []);
-
-  // Set up an effect to listen for client changes via WebSocket
+  // Update animation sync key when clients change
   useEffect(() => {
-    if (socket) {
-      // Add the message listener
-      socket.addEventListener("message", handleMessage);
-
-      // Clean up the listener when the component unmounts or socket changes
-      return () => {
-        socket.removeEventListener("message", handleMessage);
-      };
-    }
-  }, [socket, handleMessage]);
+    setAnimationSyncKey(Date.now());
+  }, [clients]);
 
   // Function to request client reordering
   const handleMoveToFront = useCallback(() => {

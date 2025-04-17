@@ -43,7 +43,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                 className={cn(
                   "flex items-center pl-2 pr-4 py-3 rounded-md group transition-colors select-none",
                   isSelected
-                    ? "text-white"
+                    ? "text-white hover:bg-neutral-700/20"
                     : "text-neutral-300 hover:bg-neutral-700/20"
                 )}
                 onClick={() => handleItemClick(source)}
@@ -60,7 +60,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                   </button>
 
                   {/* Playing indicator or track number (hidden on hover) */}
-                  <div className="w-full h-full flex items-center justify-center group-hover:opacity-0 transition-opacity select-none">
+                  <div className="w-full h-full flex items-center justify-center group-hover:opacity-0 select-none">
                     {isPlayingThis ? (
                       <div className="flex items-end justify-center h-4 w-4 gap-[2px]">
                         <div className="bg-primary-500 w-[2px] h-[40%] animate-[sound-wave-1_1.2s_ease-in-out_infinite]"></div>

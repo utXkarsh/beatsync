@@ -78,13 +78,36 @@ export const Player = () => {
     console.log(value);
   };
 
-  const handlePlay = () => {
+  const handlePlay = useCallback(() => {
     if (isPlaying) {
       broadcastPause();
     } else {
       broadcastPlay(sliderPosition);
     }
-  };
+  }, [isPlaying, broadcastPause, broadcastPlay, sliderPosition]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger if space is pressed and we're not in an input field
+      if (
+        e.code === "Space" &&
+        !(
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          (e.target as HTMLElement).isContentEditable
+        )
+      ) {
+        e.preventDefault();
+        handlePlay();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handlePlay]);
 
   return (
     <div className="w-full flex justify-center">
@@ -140,7 +163,6 @@ export const Player = () => {
             {isPlaying && (
               <TooltipContent side="top">
                 <p className="text-sm flex items-center gap-1.5">
-                  <Pause className="h-4 w-4" />
                   Pause playback before changing position
                 </p>
               </TooltipContent>

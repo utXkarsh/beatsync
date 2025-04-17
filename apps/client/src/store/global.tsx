@@ -9,6 +9,7 @@ import {
 import { sendWSRequest } from "@/utils/ws";
 import {
   ClientActionEnum,
+  ClientType,
   GRID,
   PositionType,
   SpatialConfigType,
@@ -76,6 +77,10 @@ interface GlobalState {
   setListeningSourcePosition: (position: PositionType) => void;
   isDraggingListeningSource: boolean;
   setIsDraggingListeningSource: (isDragging: boolean) => void;
+
+  // Connected clients
+  connectedClients: ClientType[];
+  setConnectedClients: (clients: ClientType[]) => void;
 
   // NTP
   sendNTPRequest: () => void;
@@ -642,5 +647,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     setIsDraggingListeningSource: (isDragging) => {
       set({ isDraggingListeningSource: isDragging });
     },
+
+    // Connected clients
+    connectedClients: [],
+    setConnectedClients: (clients) => set({ connectedClients: clients }),
   };
 });

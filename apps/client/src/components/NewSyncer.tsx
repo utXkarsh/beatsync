@@ -1,6 +1,5 @@
 "use client";
 import { useGlobalStore } from "@/store/global";
-import { ClientType } from "@beatsync/shared";
 import { useEffect, useState } from "react";
 import { Dashboard } from "./dashboard/Dashboard";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
@@ -22,16 +21,10 @@ export const NewSyncer = () => {
     }
   }, [isSynced, showingSyncScreen]);
 
-  // This is just a placeholder function that's passed to WebSocketManager
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleClientsChange = (newClients: ClientType[]) => {
-    // We don't need to do anything with the clients in this component
-  };
-
   return (
     <>
       {/* WebSocket connection manager (non-visual component) */}
-      <WebSocketManager onClientsChange={handleClientsChange} />
+      <WebSocketManager />
 
       {/* Spatial audio background effects */}
       <SpatialAudioBackground />

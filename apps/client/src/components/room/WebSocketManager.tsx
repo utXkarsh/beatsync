@@ -4,11 +4,7 @@ import { RawAudioSource } from "@/lib/localTypes";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
-import {
-  ClientType,
-  NTPResponseMessageType,
-  WSResponseSchema,
-} from "@beatsync/shared";
+import { NTPResponseMessageType, WSResponseSchema } from "@beatsync/shared";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -34,13 +30,8 @@ const handleNTPResponse = (response: NTPResponseMessageType) => {
   return measurement;
 };
 
-interface WebSocketManagerProps {
-  onClientsChange: (clients: ClientType[]) => void;
-}
-
-export const WebSocketManager = ({
-  onClientsChange,
-}: WebSocketManagerProps) => {
+// No longer need the props interface
+export const WebSocketManager = () => {
   // Room state
   const roomId = useRoomStore((state) => state.roomId);
   const username = useRoomStore((state) => state.username);
@@ -61,6 +52,9 @@ export const WebSocketManager = ({
   const addAudioSource = useGlobalStore((state) => state.addAudioSource);
   const hasDownloadedAudio = useGlobalStore(
     (state) => state.hasDownloadedAudio
+  );
+  const setConnectedClients = useGlobalStore(
+    (state) => state.setConnectedClients
   );
 
   // Once room has been loaded, connect to the websocket
@@ -105,7 +99,7 @@ export const WebSocketManager = ({
         console.log("Room event:", event);
 
         if (event.type === "CLIENT_CHANGE") {
-          onClientsChange(event.clients);
+          setConnectedClients(event.clients);
         } else if (event.type === "NEW_AUDIO_SOURCE") {
           console.log("Received new audio source:", response);
           const { title, id } = event;

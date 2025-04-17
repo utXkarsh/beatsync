@@ -1,10 +1,10 @@
 import { useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
 import { TopBar } from "../room/TopBar";
-import { UserGrid } from "../room/UserGrid";
 import { Bottom } from "./Bottom";
 import { Left } from "./Left";
 import { Main } from "./Main";
+import { Right } from "./Right";
 
 export const Dashboard = () => {
   const isSynced = useGlobalStore((state) => state.isSynced);
@@ -31,12 +31,7 @@ export const Dashboard = () => {
             {/* Main content */}
             <Main />
             {/* Right sidebar */}
-            <div className="w-[280px] flex-shrink-0 border-l border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md overflow-y-auto">
-              <div className="p-4">
-                <h2 className="text-sm font-medium mb-3">Connected Users</h2>
-                <UserGrid />
-              </div>
-            </div>
+            <Right />
           </div>
           {/* Player fixed at bottom */}
           <Bottom />
