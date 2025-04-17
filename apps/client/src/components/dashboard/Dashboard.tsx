@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGlobalStore } from "@/store/global";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Library, ListMusic, Rotate3D } from "lucide-react";
 import { TopBar } from "../room/TopBar";
 import { Bottom } from "./Bottom";
@@ -63,17 +63,53 @@ export const Dashboard = () => {
               </TabsList>
 
               {/* Tab Content Area - Scrolls independently */}
-              <TabsContent value="library" className="flex-1 overflow-y-auto">
-                {/* Remove fixed width/height from component instance if needed */}
-                <Left className="flex h-full w-full" />
-              </TabsContent>
-              <TabsContent value="queue" className="flex-1 overflow-y-auto">
-                <Main />
-              </TabsContent>
-              <TabsContent value="spatial" className="flex-1 overflow-y-auto">
-                {/* Remove fixed width/height from component instance if needed */}
-                <Right className="flex h-full w-full" />
-              </TabsContent>
+              <AnimatePresence mode="sync">
+                <TabsContent
+                  key="library"
+                  value="library"
+                  className="flex-1 overflow-y-auto mt-0"
+                >
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="h-full"
+                  >
+                    <Left className="flex h-full w-full" />
+                  </motion.div>
+                </TabsContent>
+                <TabsContent
+                  key="queue"
+                  value="queue"
+                  className="flex-1 overflow-y-auto mt-0"
+                >
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="h-full"
+                  >
+                    <Main />
+                  </motion.div>
+                </TabsContent>
+                <TabsContent
+                  key="spatial"
+                  value="spatial"
+                  className="flex-1 overflow-y-auto mt-0"
+                >
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="h-full"
+                  >
+                    <Right className="flex h-full w-full" />
+                  </motion.div>
+                </TabsContent>
+              </AnimatePresence>
             </Tabs>
           </div>
 

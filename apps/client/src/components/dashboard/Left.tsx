@@ -81,7 +81,7 @@ export const Left = ({ className }: LeftProps) => {
           <h5 className="text-xs font-medium underline">Tips</h5>
           <ul className="list-disc list-outside pl-4 space-y-1.5">
             <li className="text-xs leading-relaxed">
-              Best with multiple devices IRL in the same space.
+              Works best with multiple devices IRL in the same space.
             </li>
             <li className="text-xs leading-relaxed">
               If audio gets de-synced, try pause + play again.
