@@ -43,6 +43,11 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Sound wave animations */
+  --animate-sound-wave-1: sound-wave-1 1.2s ease-in-out infinite;
+  --animate-sound-wave-2: sound-wave-2 1.4s ease-in-out infinite;
+  --animate-sound-wave-3: sound-wave-3 1s ease-in-out infinite;
 }
 
 :root {
@@ -142,6 +147,40 @@
     }
     50% {
       opacity: 0;
+    }
+  }
+
+  /* Sound wave animations */
+  @keyframes sound-wave-1 {
+    0%,
+    100% {
+      height: 40%;
+    }
+    50% {
+      height: 70%;
+    }
+  }
+
+  @keyframes sound-wave-2 {
+    0%,
+    100% {
+      height: 80%;
+    }
+    50% {
+      height: 40%;
+    }
+  }
+
+  @keyframes sound-wave-3 {
+    0%,
+    100% {
+      height: 60%;
+    }
+    33% {
+      height: 80%;
+    }
+    66% {
+      height: 30%;
     }
   }
 }

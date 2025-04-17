@@ -162,7 +162,7 @@ export const SyncProgress = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="w-12 h-12 mb-3 relative">
+          <div className="w-14 h-14 mb-3 relative">
             <svg className="w-full h-full" viewBox="0 0 100 100">
               {/* Background circle */}
               <circle

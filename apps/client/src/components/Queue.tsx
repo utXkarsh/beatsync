@@ -62,9 +62,11 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                   {/* Playing indicator or track number (hidden on hover) */}
                   <div className="w-full h-full flex items-center justify-center group-hover:opacity-0 transition-opacity select-none">
                     {isPlayingThis ? (
-                      <span className="text-green-500 text-sm select-none">
-                        ♫
-                      </span>
+                      <div className="flex items-end justify-center h-4 w-4 gap-[2px]">
+                        <div className="bg-green-500 w-[2px] h-[40%] animate-[sound-wave-1_1.2s_ease-in-out_infinite]"></div>
+                        <div className="bg-green-500 w-[2px] h-[80%] animate-[sound-wave-2_1.4s_ease-in-out_infinite]"></div>
+                        <div className="bg-green-500 w-[2px] h-[60%] animate-[sound-wave-3_1s_ease-in-out_infinite]"></div>
+                      </div>
                     ) : (
                       <span className="text-neutral-400 text-sm group-hover:opacity-0 select-none">
                         {index + 1}
