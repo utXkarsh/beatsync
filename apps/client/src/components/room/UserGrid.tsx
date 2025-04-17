@@ -110,7 +110,7 @@ const ClientAvatar = memo<ClientAvatarProps>(
         </TooltipTrigger>
         <TooltipContent side="top">
           <div className="text-xs font-medium">{client.username}</div>
-          <div className="text-xs text-muted-foreground">
+          <div>
             {isFocused
               ? "Focused"
               : isActive
@@ -514,7 +514,7 @@ export const UserGrid = () => {
             </div>
 
             {/* List of connected users - Constrained height */}
-            <div className="space-y-2 max-h-24 md:max-h-32 overflow-y-auto pr-1 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+            <div className="space-y-2 max-h-24 md:max-h-32 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
               {clientsWithData.map(
                 ({ client, isActive, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem
