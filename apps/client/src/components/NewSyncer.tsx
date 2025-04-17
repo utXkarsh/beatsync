@@ -2,7 +2,7 @@
 import { useGlobalStore } from "@/store/global";
 import { ClientType } from "@beatsync/shared";
 import { useEffect, useState } from "react";
-import { Dashboard } from "./Dashboard";
+import { Dashboard } from "./dashboard/Dashboard";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
 import { SyncStatus } from "./room/SyncStatus";
 import { WebSocketManager } from "./room/WebSocketManager";
@@ -38,12 +38,11 @@ export const NewSyncer = () => {
       {/* Spatial audio background effects */}
       <SpatialAudioBackground />
 
-      <div className="">
-        {/* Sync Status overlay */}
-        <SyncStatus />
-        {/* Main dashboard only visible when synced and not loading */}
-        {isSynced && !isLoadingAudio && <Dashboard />}
-      </div>
+      {/* Sync Status overlay */}
+      <SyncStatus />
+
+      {/* Main dashboard only visible when synced and not loading */}
+      {isSynced && !isLoadingAudio && <Dashboard />}
     </>
   );
 };
