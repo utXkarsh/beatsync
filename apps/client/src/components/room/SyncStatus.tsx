@@ -20,7 +20,7 @@ export const SyncStatus = () => {
   // Show minimal nav bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
     return (
-      <div className="fixed top-0 left-0 right-0 h-8 bg-black/80 backdrop-blur-md z-50 flex items-center px-4 border-b border-zinc-800">
+      <div className="h-8 bg-black/80 backdrop-blur-md z-50 flex items-center px-4 border-b border-zinc-800">
         <div className="flex items-center space-x-3 text-xs text-zinc-400">
           <div className="flex items-center">
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>

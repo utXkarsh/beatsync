@@ -2,6 +2,7 @@
 import { useGlobalStore } from "@/store/global";
 import { ClientType } from "@beatsync/shared";
 import { useEffect, useState } from "react";
+import { Dashboard } from "./Dashboard";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
 import { SyncStatus } from "./room/SyncStatus";
 import { WebSocketManager } from "./room/WebSocketManager";
@@ -11,6 +12,7 @@ import { WebSocketManager } from "./room/WebSocketManager";
 export const NewSyncer = () => {
   // Get sync state from store
   const isSynced = useGlobalStore((state) => state.isSynced);
+  const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
 
   // Transition state for delayed showing of main UI
   const [showingSyncScreen, setShowingSyncScreen] = useState(true);
@@ -23,7 +25,6 @@ export const NewSyncer = () => {
   }, [isSynced, showingSyncScreen]);
 
   // This is just a placeholder function that's passed to WebSocketManager
-  // We don't need to do anything with the clients in the parent component anymore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClientsChange = (newClients: ClientType[]) => {
     // We don't need to do anything with the clients in this component
@@ -37,26 +38,12 @@ export const NewSyncer = () => {
       {/* Spatial audio background effects */}
       <SpatialAudioBackground />
 
-      <SyncStatus />
-
-      {/* <div className="container mx-auto p-4 space-y-6 relative">
-        <div className="flex flex-col md:flex-row gap-4 justify-between">
-          <RoomInfo />
-
-          <UserGrid />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <SocketStatus />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <MusicControls />
-
-          <MusicUpload />
-        </div>
+      <div className="">
+        {/* Sync Status overlay */}
         <SyncStatus />
-      </div> */}
+        {/* Main dashboard only visible when synced and not loading */}
+        {isSynced && !isLoadingAudio && <Dashboard />}
+      </div>
     </>
   );
 };
