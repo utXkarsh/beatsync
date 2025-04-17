@@ -74,7 +74,7 @@ const ClientAvatar = memo<ClientAvatarProps>(
             >
               <Avatar
                 className={cn(
-                  "h-10 w-10 border-2",
+                  "h-8 w-8 md:h-10 md:w-10 border-2",
                   isFocused
                     ? "border-primary"
                     : isActive
@@ -147,7 +147,7 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
         }}
         transition={{ duration: 0.3 }}
       >
-        <Avatar className="h-6 w-6">
+        <Avatar className="h-5 w-5 md:h-6 md:w-6">
           <AvatarImage />
           <AvatarFallback className={generateColor(client.username)}>
             {client.username.slice(0, 2).toUpperCase()}
@@ -309,10 +309,13 @@ export const UserGrid = () => {
     [isDraggingListeningSource, onMouseMoveSource]
   );
 
-  const handleSourceTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (!isDraggingListeningSource || !gridRef.current || !e.touches[0])
-        return;
+  // Effect to handle non-passive touchmove listener for dragging
+  useEffect(() => {
+    const gridElement = gridRef.current;
+
+    const touchMoveHandler = (e: TouchEvent) => {
+      // Replicate the logic from the original handleSourceTouchMove
+      if (!isDraggingListeningSource || !gridElement || !e.touches[0]) return;
 
       // Prevent scrolling while dragging
       e.preventDefault();
@@ -324,10 +327,10 @@ export const UserGrid = () => {
 
       // Use requestAnimationFrame for smoother updates
       animationFrameRef.current = requestAnimationFrame(() => {
-        if (!gridRef.current || !e.touches[0]) return;
+        if (!gridElement || !e.touches[0]) return;
 
         const touch = e.touches[0];
-        const rect = gridRef.current.getBoundingClientRect();
+        const rect = gridElement.getBoundingClientRect();
         const gridWidth = rect.width;
         const gridHeight = rect.height;
 
@@ -339,11 +342,29 @@ export const UserGrid = () => {
           ((touch.clientY - rect.top) / gridHeight) * GRID.SIZE
         );
 
+        // Call the existing position update function
         onMouseMoveSource(x, y);
       });
-    },
-    [isDraggingListeningSource, onMouseMoveSource]
-  );
+    };
+
+    if (isDraggingListeningSource && gridElement) {
+      // Add listener explicitly with passive: false
+      gridElement.addEventListener("touchmove", touchMoveHandler, {
+        passive: false,
+      });
+    }
+
+    // Cleanup function
+    return () => {
+      if (gridElement) {
+        gridElement.removeEventListener("touchmove", touchMoveHandler);
+      }
+      // Clean up any pending animation frames on drag end or unmount
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isDraggingListeningSource, onMouseMoveSource]); // Dependencies: run when dragging state changes or updater changes
 
   // Add event listeners for mouse/touch up even outside the grid
   useEffect(() => {
@@ -428,7 +449,6 @@ export const UserGrid = () => {
               ref={gridRef}
               className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none"
               onMouseMove={handleSourceMouseMove}
-              onTouchMove={handleSourceTouchMove}
             >
               <TooltipProvider>
                 {clientsWithData.map(
@@ -470,17 +490,16 @@ export const UserGrid = () => {
                       onMouseUp={handleSourceMouseUp}
                       onTouchStart={handleSourceTouchStart}
                       onTouchEnd={handleSourceTouchEnd}
-                      onTouchMove={handleSourceTouchMove}
                     >
-                      <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/20 p-1">
-                        <span className="relative flex h-3 w-3">
+                      <div className="relative flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-emerald-400/20 p-1">
+                        <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
                           <span
                             key={`source-ping-${animationSyncKey}`}
                             className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"
                           ></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-emerald-400"></span>
                         </span>
-                        <HeadphonesIcon className="absolute h-2 w-2 text-emerald-200 opacity-80" />
+                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-emerald-200 opacity-80" />
                       </div>
                     </motion.div>
                   </TooltipTrigger>
@@ -494,8 +513,8 @@ export const UserGrid = () => {
               </TooltipProvider>
             </div>
 
-            {/* List of connected users */}
-            <div className="space-y-2 max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+            {/* List of connected users - Adjusted max-h */}
+            <div className="space-y-2 max-h-24 md:max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
               {clientsWithData.map(
                 ({ client, isActive, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem

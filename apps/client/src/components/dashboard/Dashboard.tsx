@@ -25,14 +25,14 @@ export const Dashboard = () => {
           transition={{ duration: 0.3 }}
         >
           {/* Main content area with sidebars */}
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden flex-wrap md:flex-nowrap">
             {/* Left sidebar: Hidden on small screens, shown on medium and up */}
             <Left className="hidden md:flex" />
             {/* Main content: Takes full width on small screens */}
             <Main />
-            {/* Right sidebar: Hidden on small screens, shown on medium and up */}
+            {/* Right sidebar: Now always visible, stacks below Main on small screens */}
             {/* Consider if Right sidebar is needed or should be lg:flex */}
-            <Right className="hidden md:flex" />
+            <Right className="flex" />
           </div>
           {/* Player fixed at bottom */}
           <Bottom />
