@@ -1,17 +1,17 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { generateName as generateUsername } from "@/lib/randomNames";
 import { validateFullRoomId, validatePartialRoomId } from "@/lib/room";
 import { useRoomStore } from "@/store/room";
 import { motion } from "framer-motion";
 import { LogIn, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -23,15 +23,14 @@ interface JoinFormData {
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const usernameInputRef = useRef<HTMLInputElement>(null);
   const setRoomId = useRoomStore((state) => state.setRoomId);
   const setUsername = useRoomStore((state) => state.setUsername);
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     control,
+    setValue,
     watch,
   } = useForm<JoinFormData>({
     defaultValues: {
@@ -39,6 +38,11 @@ export const Join = () => {
       username: "",
     },
   });
+
+  useEffect(() => {
+    // Set a random username when component mounts
+    setValue("username", generateUsername());
+  }, [setValue]);
 
   const router = useRouter();
   const username = watch("username");
@@ -59,12 +63,6 @@ export const Join = () => {
   };
 
   const handleCreateRoom = () => {
-    if (!username) {
-      toast.error("Please enter a username first");
-      usernameInputRef.current?.focus();
-      return;
-    }
-
     setIsCreating(true);
 
     // Generate a random 6-digit room ID
@@ -84,7 +82,7 @@ export const Join = () => {
     >
       <div className="w-full px-1">
         <motion.div
-          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-lg border border-neutral-800 shadow-xl max-w-[26rem] mx-auto"
+          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-lg border border-neutral-800 shadow-xl max-w-[28rem] mx-auto"
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -104,7 +102,7 @@ export const Join = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            Enter a room code and choose a username
+            Enter a room code to join or create a new room
           </motion.p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
@@ -128,10 +126,6 @@ export const Join = () => {
                       // Only set the value if it contains only digits
                       if (validatePartialRoomId(value)) {
                         field.onChange(value);
-                        // Focus the username input after OTP is complete
-                        if (value.length === 6 && usernameInputRef.current) {
-                          usernameInputRef.current.focus();
-                        }
                       }
                     }}
                     className="gap-2"
@@ -161,32 +155,24 @@ export const Join = () => {
             )}
 
             <motion.div
-              className="space-y-1 mt-5"
+              className="flex items-center justify-center mt-5"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
             >
-              <label className="text-xs text-neutral-400">Username</label>
-              <Input
-                className="bg-neutral-800/80 border-neutral-700 focus:border-primary/70 focus:ring-1 focus:ring-primary/30 
-                mt-0.5 h-9 text-sm transition-all duration-200"
-                placeholder="Choose a username"
-                {...register("username", { required: "Username is required" })}
-                ref={(element) => {
-                  // Need to do both
-                  register("username").ref(element);
-                  usernameInputRef.current = element;
-                }}
-              />
-              {errors.username && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="text-xs text-red-500"
-                >
-                  {errors.username.message}
-                </motion.p>
-              )}
+              <div className="text-sm text-neutral-400">
+                You&apos;ll join as{" "}
+                <span className="text-primary font-medium">{username}</span>
+              </div>
+              <Button
+                type="button"
+                onClick={() => setValue("username", generateUsername())}
+                variant="ghost"
+                className="text-xs text-neutral-500 hover:text-neutral-300 ml-2 h-6 px-2"
+                disabled={isJoining || isCreating}
+              >
+                Regenerate
+              </Button>
             </motion.div>
 
             <div className="flex flex-col gap-3 mt-5">
