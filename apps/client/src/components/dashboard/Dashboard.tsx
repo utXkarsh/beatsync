@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
-import { Library, ListMusic, Users } from "lucide-react";
+import { Library, ListMusic, Rotate3D } from "lucide-react";
 import { TopBar } from "../room/TopBar";
 import { Bottom } from "./Bottom";
 import { Left } from "./Left";
@@ -55,10 +55,10 @@ export const Dashboard = () => {
                   <ListMusic size={16} /> Queue
                 </TabsTrigger>
                 <TabsTrigger
-                  value="users"
+                  value="spatial"
                   className="flex-1 data-[state=active]:bg-white/5 data-[state=active]:shadow-none rounded-none text-xs h-full gap-1 text-neutral-400 data-[state=active]:text-white"
                 >
-                  <Users size={16} /> Users
+                  <Rotate3D size={16} /> Spatial
                 </TabsTrigger>
               </TabsList>
 
@@ -70,7 +70,7 @@ export const Dashboard = () => {
               <TabsContent value="queue" className="flex-1 overflow-y-auto">
                 <Main />
               </TabsContent>
-              <TabsContent value="users" className="flex-1 overflow-y-auto">
+              <TabsContent value="spatial" className="flex-1 overflow-y-auto">
                 {/* Remove fixed width/height from component instance if needed */}
                 <Right className="flex h-full w-full" />
               </TabsContent>
