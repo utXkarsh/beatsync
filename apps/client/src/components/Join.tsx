@@ -80,29 +80,29 @@ export const Join = () => {
       className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-neutral-950 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.5 }}
     >
       <div className="w-full px-1">
         <motion.div
-          className="flex flex-col items-center justify-center p-5 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg max-w-[26rem] mx-auto"
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-lg border border-neutral-800 shadow-xl max-w-[26rem] mx-auto"
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
           <motion.h2
-            className="text-sm font-medium tracking-tight mb-1 text-white"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+            className="text-base font-medium tracking-tight mb-1 text-white"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
           >
             Join a Beatsync Room
           </motion.h2>
 
           <motion.p
-            className="text-neutral-400 mb-4 text-center text-xs"
+            className="text-neutral-400 mb-5 text-center text-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
           >
             Enter a room code and choose a username
           </motion.p>
@@ -112,7 +112,7 @@ export const Join = () => {
               className="flex justify-center"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
             >
               <Controller
                 control={control}
@@ -137,50 +137,39 @@ export const Join = () => {
                     className="gap-2"
                   >
                     <InputOTPGroup className="gap-2">
-                      <InputOTPSlot
-                        index={0}
-                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
-                      />
-                      <InputOTPSlot
-                        index={1}
-                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
-                      />
-                      <InputOTPSlot
-                        index={2}
-                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
-                      />
-                      <InputOTPSlot
-                        index={3}
-                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
-                      />
-                      <InputOTPSlot
-                        index={4}
-                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
-                      />
-                      <InputOTPSlot
-                        index={5}
-                        className="w-9 h-10 text-base bg-neutral-800 border-neutral-700"
-                      />
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="w-9 h-10 text-base bg-neutral-800/80 border-neutral-700 transition-all duration-200 
+                          focus-within:border-primary/70 focus-within:bg-neutral-800 focus-within:ring-1 focus-within:ring-primary/30"
+                        />
+                      ))}
                     </InputOTPGroup>
                   </InputOTP>
                 )}
               />
             </motion.div>
             {errors.roomId && (
-              <p className="text-xs text-red-500 text-center mt-1">
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="text-xs text-red-500 text-center mt-1"
+              >
                 {errors.roomId.message}
-              </p>
+              </motion.p>
             )}
 
             <motion.div
-              className="space-y-1 mt-4"
+              className="space-y-1 mt-5"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
+              transition={{ duration: 0.4, delay: 0.25 }}
             >
               <label className="text-xs text-neutral-400">Username</label>
               <Input
-                className="bg-neutral-800 border-neutral-700 focus:border-neutral-600 mt-0.5 h-8 text-xs"
+                className="bg-neutral-800/80 border-neutral-700 focus:border-primary/70 focus:ring-1 focus:ring-primary/30 
+                mt-0.5 h-9 text-sm transition-all duration-200"
                 placeholder="Choose a username"
                 {...register("username", { required: "Username is required" })}
                 ref={(element) => {
@@ -190,51 +179,85 @@ export const Join = () => {
                 }}
               />
               {errors.username && (
-                <p className="text-xs text-red-500">
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="text-xs text-red-500"
+                >
                   {errors.username.message}
-                </p>
+                </motion.p>
               )}
             </motion.div>
 
-            <div className="flex flex-col gap-2.5 mt-4">
+            <div className="flex flex-col gap-3 mt-5">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                whileHover={!isJoining && !isCreating ? { scale: 1.02 } : {}}
+                whileTap={!isJoining && !isCreating ? { scale: 0.98 } : {}}
               >
                 <Button
                   type="submit"
-                  className="w-full px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-medium text-xs cursor-pointer duration-500 flex items-center justify-center"
+                  className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-medium text-sm cursor-pointer transition-all duration-300 flex items-center justify-center"
                   disabled={isJoining || isCreating}
                 >
-                  <LogIn size={14} className="mr-1.5" />
-                  <span>Join room</span>
+                  {isJoining ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1,
+                        ease: "linear",
+                      }}
+                    >
+                      <LogIn size={16} className="mr-2" />
+                    </motion.div>
+                  ) : (
+                    <LogIn size={16} className="mr-2" />
+                  )}
+                  <span>{isJoining ? "Joining..." : "Join room"}</span>
                 </Button>
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.35 }}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+                whileHover={!isJoining && !isCreating ? { scale: 1.02 } : {}}
+                whileTap={!isJoining && !isCreating ? { scale: 0.98 } : {}}
               >
                 <Button
                   type="button"
                   onClick={handleCreateRoom}
-                  className="w-full px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full font-medium text-xs cursor-pointer duration-500 flex items-center justify-center"
+                  className="w-full px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full font-medium text-sm cursor-pointer transition-all duration-300 flex items-center justify-center"
                   disabled={isJoining || isCreating}
                 >
-                  <PlusCircle size={14} className="mr-1.5" />
-                  <span>Create room</span>
+                  {isCreating ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1,
+                        ease: "linear",
+                      }}
+                    >
+                      <PlusCircle size={16} className="mr-2" />
+                    </motion.div>
+                  ) : (
+                    <PlusCircle size={16} className="mr-2" />
+                  )}
+                  <span>{isCreating ? "Creating..." : "Create room"}</span>
                 </Button>
               </motion.div>
             </div>
           </form>
 
           <motion.p
-            className="text-neutral-500 mt-4 text-center text-xs"
+            className="text-neutral-500 mt-5 text-center text-xs leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
           >
             For best experience, use a laptop with Chrome browser. Only use the
             native device speakers, and make sure silent mode is off.

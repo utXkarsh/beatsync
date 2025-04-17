@@ -41,8 +41,6 @@ export const AudioUploader = () => {
 
           console.log("Upload result:", result);
 
-          toast.success(`Uploaded: ${file.name}`);
-
           // Reset the file input
           event.target.value = "";
         } catch (err) {

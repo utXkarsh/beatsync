@@ -1,11 +1,12 @@
+import { motion } from "framer-motion";
 import { Player } from "../room/Player";
 
 export const Bottom = () => {
   return (
-    <div className="flex-shrink-0 border-t border-neutral-800/50 bg-neutral-950 backdrop-blur-md p-4">
+    <motion.div className="flex-shrink-0 border-t border-neutral-800/50 bg-neutral-900/10 backdrop-blur-lg p-4 shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
       <div className="max-w-3xl mx-auto">
         <Player />
       </div>
-    </div>
+    </motion.div>
   );
 };
