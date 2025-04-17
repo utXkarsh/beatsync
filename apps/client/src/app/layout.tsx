@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -234,6 +235,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
