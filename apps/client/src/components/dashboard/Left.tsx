@@ -1,9 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { motion } from "framer-motion";
-import { Copy, Hash, Library, User } from "lucide-react";
+import { Copy, Hash, Library, RotateCcw, User } from "lucide-react";
 import { toast } from "sonner";
 import { AudioUploaderMinimal } from "../AudioUploaderMinimal";
 import { Button } from "../ui/button";
@@ -16,10 +17,22 @@ interface LeftProps {
 export const Left = ({ className }: LeftProps) => {
   const roomId = useRoomStore((state) => state.roomId);
   const username = useRoomStore((state) => state.username);
+  const startSpatialAudio = useGlobalStore((state) => state.startSpatialAudio);
+  const stopSpatialAudio = useGlobalStore((state) => state.stopSpatialAudio);
 
   const copyRoomId = () => {
     navigator.clipboard.writeText(roomId);
     toast.success("Room ID copied to clipboard");
+  };
+
+  const handleStartSpatialAudio = () => {
+    startSpatialAudio();
+    toast.success("Circular spatial audio started");
+  };
+
+  const handleStopSpatialAudio = () => {
+    stopSpatialAudio();
+    toast.info("Circular spatial audio stopped");
   };
 
   // const shareRoom = () => {
@@ -105,6 +118,28 @@ export const Left = ({ className }: LeftProps) => {
             </div>
             <div className="text-sm text-white font-medium truncate">
               {username}
+            </div>
+          </motion.div>
+
+          <motion.div className="bg-neutral-800/50 rounded-md p-2">
+            <div className="text-xs text-neutral-400 mb-1 flex items-center gap-1">
+              <RotateCcw className="h-3 w-3" /> Spatial Audio
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                className="w-full text-sm bg-primary-700 hover:bg-primary-800 text-white"
+                size="sm"
+                onClick={handleStartSpatialAudio}
+              >
+                Start Circular Motion
+              </Button>
+              <Button
+                className="w-full text-sm bg-neutral-700 hover:bg-neutral-600 text-white"
+                size="sm"
+                onClick={handleStopSpatialAudio}
+              >
+                Stop Circular Motion
+              </Button>
             </div>
           </motion.div>
         </div>

@@ -8,14 +8,7 @@ import { Server, ServerWebSocket } from "bun";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import * as path from "path";
-import {
-  AUDIO_DIR,
-  AUDIO_HIGH,
-  AUDIO_LOW,
-  SCHEDULE_TIME_MS,
-  VOLUME_DOWN_RAMP_TIME,
-  VOLUME_UP_RAMP_TIME,
-} from "./config";
+import { AUDIO_DIR, SCHEDULE_TIME_MS } from "./config";
 import { gainFromDistanceExp } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
@@ -167,34 +160,49 @@ class RoomManager {
     const updateSpatialAudio = () => {
       const clients = Array.from(room.clients.values()); // get most recent
       console.log(
-        `ROOM ${roomId} LOOP ${loopCount}: Current focus index: ${focusIndex}, Connected clients: ${clients.length}`
+        `ROOM ${roomId} LOOP ${loopCount}: Connected clients: ${clients.length}`
       );
       if (clients.length === 0) return;
 
-      // Move focus to next client, wrap around if needed
-      focusIndex = (focusIndex + 1) % clients.length;
+      // Calculate new position for listening source in a circle
+      // Use loopCount to determine the angle
+      const radius = 25; // Radius of the circle
+      const centerX = GRID.ORIGIN_X;
+      const centerY = GRID.ORIGIN_Y;
+      const angle = (loopCount * Math.PI) / 30; // Slow rotation, completes a circle every 60 iterations
 
-      // Set gain for each client - focused client gets AUDIO_HIGH, others get AUDIO_LOW
+      const newX = centerX + radius * Math.cos(angle);
+      const newY = centerY + radius * Math.sin(angle);
+
+      // Update the listening source position
+      room.listeningSource = { x: newX, y: newY };
+
+      // Calculate gains for each client based on distance from listening source
+      const gains = Object.fromEntries(
+        clients.map((client) => {
+          const gain = gainFromDistanceExp({
+            client: client.position,
+            source: room.listeningSource,
+          });
+
+          return [
+            client.clientId,
+            {
+              gain,
+              rampTime: 0.25, // Use a moderate ramp time for smooth transitions
+            },
+          ];
+        })
+      );
+
+      // Send the updated configuration to all clients
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS, // Dynamic delay based on max RTT + 250ms
+        serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           listeningSource: room.listeningSource,
-          gains: Object.fromEntries(
-            clients.map((client, index) => {
-              const isFocused = index === focusIndex;
-              return [
-                client.clientId,
-                {
-                  gain: isFocused ? AUDIO_HIGH : AUDIO_LOW,
-                  rampTime: isFocused
-                    ? VOLUME_UP_RAMP_TIME
-                    : VOLUME_DOWN_RAMP_TIME,
-                },
-              ];
-            })
-          ),
+          gains,
         },
       };
 
@@ -202,7 +210,7 @@ class RoomManager {
       loopCount++;
     };
 
-    room.intervalId = setInterval(updateSpatialAudio, 1000);
+    room.intervalId = setInterval(updateSpatialAudio, 100);
   }
 
   stopInterval(roomId: string) {
