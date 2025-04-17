@@ -80,7 +80,7 @@ export const AudioUploaderMinimal = () => {
     >
       <label htmlFor="audio-upload" className="cursor-pointer block w-full">
         <div className="p-3 flex items-center gap-3">
-          <div className="bg-neutral-700 text-white p-1.5 rounded-md flex-shrink-0">
+          <div className="bg-primary-700 text-white p-1.5 rounded-md flex-shrink-0">
             {isUploading ? (
               <CloudUpload className="h-4 w-4 animate-pulse" />
             ) : (
