@@ -495,11 +495,11 @@ export const UserGrid = () => {
                         <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
                           <span
                             key={`source-ping-${animationSyncKey}`}
-                            className="absolute inline-flex h-full w-full rounded-full bg-primary-300 opacity-75 animate-ping"
+                            className="absolute inline-flex h-full w-full rounded-full bg-primary-200 opacity-75 animate-ping"
                           ></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-primary-700"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-primary-400"></span>
                         </span>
-                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-primary-50 opacity-80" />
+                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-primary-800 opacity-80" />
                       </div>
                     </motion.div>
                   </TooltipTrigger>
