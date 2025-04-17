@@ -2,7 +2,7 @@
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { AnimatePresence, motion } from "framer-motion";
-import { Hash, User, Users } from "lucide-react";
+import { Hash, Users } from "lucide-react";
 import { SyncProgress } from "../ui/SyncProgress";
 
 export const TopBar = () => {
@@ -16,7 +16,6 @@ export const TopBar = () => {
   const connectedClients = useGlobalStore((state) => state.connectedClients);
   const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
   const roomId = useRoomStore((state) => state.roomId);
-  const username = useRoomStore((state) => state.username);
 
   const resync = () => {
     try {
@@ -38,12 +37,10 @@ export const TopBar = () => {
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>
             <span>Synced</span>
           </div>
-          <div>|</div>
           <div className="flex items-center">
             <Hash size={12} className="mr-1.5" />
             <span className="flex items-center">{roomId}</span>
           </div>
-          <div>|</div>
           <div className="flex items-center">
             <Users size={12} className="mr-1.5" />
             <span className="flex items-center">
@@ -55,13 +52,7 @@ export const TopBar = () => {
           </div>
 
           <div>|</div>
-          <div className="flex items-center">
-            <User size={12} className="mr-1.5" />
-            <span className="flex items-center">{username}</span>
-          </div>
-
-          <div>|</div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <span>
               Offset: <span>{offsetEstimate.toFixed(2)}</span>ms
             </span>
