@@ -1,7 +1,7 @@
 "use client";
 
 import { useRoomStore } from "@/store/room";
-import { Hash, Library, Music, User } from "lucide-react";
+import { Hash, Library, User } from "lucide-react";
 import { AudioUploaderMinimal } from "../AudioUploaderMinimal";
 import { Separator } from "../ui/separator";
 
@@ -12,14 +12,14 @@ export const Left = () => {
   return (
     <div className="w-60 flex-shrink-0 border-r border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full text-sm">
       {/* Header section */}
-      <div className="px-3 py-2 flex items-center gap-2">
+      {/* <div className="px-3 py-2 flex items-center gap-2">
         <div className="bg-neutral-800 rounded-md p-1.5">
           <Music className="h-4 w-4 text-white" />
         </div>
         <h1 className="font-semibold text-white">Beatsync</h1>
       </div>
 
-      <Separator className="bg-neutral-800/50" />
+      <Separator className="bg-neutral-800/50" /> */}
 
       {/* Navigation menu */}
       <div className="px-2 space-y-0.5 py-2">
@@ -29,7 +29,7 @@ export const Left = () => {
         </button> */}
         <button className="w-full flex items-center gap-3 px-3 py-2 text-white font-medium bg-white/10 rounded-md">
           <Library className="h-4 w-4" />
-          <span>Library</span>
+          <span>Default Library</span>
         </button>
       </div>
 

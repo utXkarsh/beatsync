@@ -40,15 +40,13 @@ export const Queue = ({
         {displayItems.map((item) => (
           <div
             key={item.id}
-            className="flex items-center p-2 rounded-lg hover:bg-neutral-700/30 transition-colors cursor-pointer"
+            className="flex items-center p-2 pr-3 rounded-lg hover:bg-neutral-700/30 transition-colors cursor-pointer"
             onClick={() => onItemClick?.(item)}
             onMouseEnter={() => setHoveredItem(item.id)}
             onMouseLeave={() => setHoveredItem(null)}
           >
             <div
-              className={`w-10 h-10 rounded-md flex-shrink-0 mr-3 overflow-hidden transition-all duration-300 ${
-                hoveredItem === item.id ? "scale-105" : ""
-              }`}
+              className={`w-10 h-10 rounded-md flex-shrink-0 mr-3 overflow-hidden transition-all duration-300`}
             >
               {item.image ? (
                 <img

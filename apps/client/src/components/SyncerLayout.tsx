@@ -1,6 +1,6 @@
 import { useGlobalStore } from "@/store/global";
 import { Dashboard } from "./dashboard/Dashboard";
-import { SyncStatus } from "./room/SyncStatus";
+import { TopBar } from "./room/TopBar";
 
 export const SyncerLayout = () => {
   const isSynced = useGlobalStore((state) => state.isSynced);
@@ -9,7 +9,7 @@ export const SyncerLayout = () => {
   return (
     <div>
       {/* Sync Status overlay */}
-      <SyncStatus />
+      <TopBar />
 
       {/* Main dashboard only visible when synced and not loading */}
       {isSynced && !isLoadingAudio && <Dashboard />}

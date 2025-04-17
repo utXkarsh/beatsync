@@ -2,7 +2,7 @@ import { useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
 import { Queue } from "../Queue";
 import { Player } from "../room/Player";
-import { SyncStatus } from "../room/SyncStatus";
+import { TopBar } from "../room/TopBar";
 import { UserGrid } from "../room/UserGrid";
 import { Left } from "./Left";
 
@@ -15,7 +15,7 @@ export const Dashboard = () => {
   return (
     <div className="w-full h-screen flex flex-col text-white bg-neutral-950">
       {/* Top sync status bar */}
-      <SyncStatus />
+      <TopBar />
 
       {isReady && (
         <motion.div

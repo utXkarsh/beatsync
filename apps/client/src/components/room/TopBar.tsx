@@ -3,7 +3,7 @@ import { useGlobalStore } from "@/store/global";
 import { AnimatePresence, motion } from "framer-motion";
 import { SyncProgress } from "../ui/SyncProgress";
 
-export const SyncStatus = () => {
+export const TopBar = () => {
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
   const isSynced = useGlobalStore((state) => state.isSynced);
   const offsetEstimate = useGlobalStore((state) => state.offsetEstimate);
