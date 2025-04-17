@@ -428,7 +428,7 @@ export const UserGrid = () => {
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 font-medium">
           <Users size={18} />
@@ -437,7 +437,7 @@ export const UserGrid = () => {
         <Badge variant="outline">{clients.length}</Badge>
       </div>
 
-      <div className="flex-1 px-4 flex flex-col">
+      <div className="md:flex-1 px-4 flex flex-col">
         {clients.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">
             No other users connected
