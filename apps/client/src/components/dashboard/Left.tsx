@@ -57,25 +57,14 @@ export const Left = ({ className }: LeftProps) => {
       </h2>
 
       {/* Navigation menu */}
-      <motion.div className="px-2 space-y-1.5 py-2">
-        {/* <button className="w-full flex items-center gap-3 px-3 py-2 text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors">
-          <Home className="h-4 w-4" />
-          <span>Home</span>
-        </button> */}
+      <motion.div className="px-3.5 space-y-1.5 py-2">
         <Button
-          className="w-full flex justify-start gap-3 px-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200"
+          className="w-full flex justify-start gap-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200"
           variant="ghost"
         >
           <Library className="h-4 w-4" />
           <span>Default Library</span>
         </Button>
-        {/* <Button
-          className="w-full flex justify-start gap-3 px-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200"
-          variant="ghost"
-        >
-          <Library className="h-4 w-4" />
-          <span>Default Library</span>
-        </Button> */}
       </motion.div>
 
       <Separator className="bg-neutral-800/50" />
