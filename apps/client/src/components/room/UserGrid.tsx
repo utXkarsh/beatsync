@@ -3,13 +3,11 @@ import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { ClientType, GRID } from "@beatsync/shared";
-import { Hand, HeadphonesIcon, Mic, Move, Users } from "lucide-react";
+import { HeadphonesIcon, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -192,7 +190,6 @@ ConnectedUserItem.displayName = "ConnectedUserItem";
 
 export const UserGrid = () => {
   const userId = useRoomStore((state) => state.userId);
-  const socket = useGlobalStore((state) => state.socket);
   const spatialConfig = useGlobalStore((state) => state.spatialConfig);
   const listeningSource = useGlobalStore(
     (state) => state.listeningSourcePosition
@@ -240,20 +237,6 @@ export const UserGrid = () => {
   useEffect(() => {
     setAnimationSyncKey(Date.now());
   }, [clients]);
-
-  // Function to request client reordering
-  const handleMoveToFront = useCallback(() => {
-    if (!socket || !userId) return;
-
-    socket.send(
-      JSON.stringify({
-        type: "REORDER_CLIENT",
-        clientId: userId,
-      })
-    );
-
-    toast.success("Moved to the front");
-  }, [socket, userId]);
 
   // Function to update listening source position
   const onMouseMoveSource = useCallback(
@@ -423,17 +406,6 @@ export const UserGrid = () => {
     [clients, spatialConfig?.gains, userId]
   );
 
-  // Memoize center position callback
-  const handleCenterSource = useCallback(() => {
-    onMouseMoveSource(GRID.SIZE / 2, GRID.SIZE / 2);
-    toast.info("Listening source centered");
-  }, [onMouseMoveSource]);
-
-  // Memoize show drag toast callback
-  const handleShowDragToast = useCallback(() => {
-    toast.info("Drag your avatar to reposition");
-  }, []);
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3">
@@ -539,51 +511,6 @@ export const UserGrid = () => {
             </div>
           </>
         )}
-        <div className="mt-4 flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 flex items-center justify-center gap-1"
-            onClick={handleMoveToFront}
-          >
-            <Hand size={14} />
-            <span>Move to Front</span>
-          </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center justify-center"
-                  onClick={handleCenterSource}
-                >
-                  <Mic size={14} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <span className="text-xs">Center listening source</span>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center justify-center"
-                  onClick={handleShowDragToast}
-                >
-                  <Move size={14} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <span className="text-xs">Drag your avatar to reposition</span>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
       </div>
     </div>
   );

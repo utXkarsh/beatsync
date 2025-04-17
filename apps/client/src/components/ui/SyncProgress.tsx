@@ -220,7 +220,7 @@ export const SyncProgress = ({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            Calibrating
+            Beatsync calibrating
           </motion.h2>
 
           <motion.p
