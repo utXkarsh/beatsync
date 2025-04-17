@@ -204,7 +204,6 @@ export const Join = () => {
                 >
                   {isJoining ? (
                     <motion.div
-                      animate={{ rotate: 360 }}
                       transition={{
                         repeat: Infinity,
                         duration: 1,
@@ -235,7 +234,6 @@ export const Join = () => {
                 >
                   {isCreating ? (
                     <motion.div
-                      animate={{ rotate: 360 }}
                       transition={{
                         repeat: Infinity,
                         duration: 1,

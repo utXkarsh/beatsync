@@ -21,9 +21,9 @@ export const Right = ({ className }: RightProps) => {
 
       <motion.div className="flex flex-col gap-3 px-4 py-3 bg-neutral-800/30 rounded-lg mx-3 mb-3 text-neutral-400">
         <div className="flex items-start gap-2">
-          <Info className="h-4 w-4 text-neutral-300 mt-0.5 flex-shrink-0" />
           <div>
-            <h5 className="text-xs font-medium text-neutral-300 mb-1">
+            <h5 className="text-xs font-medium text-neutral-300 mb-1 flex items-center gap-1.5">
+              <Info className="h-3.5 w-3.5 text-neutral-300 flex-shrink-0" />
               What is this?
             </h5>
             <p className="text-xs leading-relaxed">
@@ -31,14 +31,13 @@ export const Right = ({ className }: RightProps) => {
               icon (🎧) is a listening source. The circles represent other
               devices in the room.
             </p>
+            <p className="text-xs leading-relaxed mt-3">
+              {
+                "Drag the headphone icon around and hear how the volume changes on each device. Isn't it cool!"
+              }
+            </p>
           </div>
         </div>
-
-        <p className="text-xs leading-relaxed pl-6">
-          {
-            "Drag the headphone icon around and hear how the volume changes on each device. Isn't it cool!"
-          }
-        </p>
       </motion.div>
     </motion.div>
   );

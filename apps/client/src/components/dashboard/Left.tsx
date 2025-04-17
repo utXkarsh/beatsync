@@ -37,7 +37,7 @@ export const Left = ({ className }: LeftProps) => {
   return (
     <motion.div
       className={cn(
-        "w-full lg:w-80 flex-shrink-0 border-r border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full text-sm",
+        "w-full lg:w-72 flex-shrink-0 border-r border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full text-sm",
         className
       )}
     >
@@ -49,21 +49,33 @@ export const Left = ({ className }: LeftProps) => {
         <h1 className="font-semibold text-white">Beatsync</h1>
       </div>
 
+
       <Separator className="bg-neutral-800/50" /> */}
 
+      <h2 className="text-base font-bold select-none px-4 py-3 -mb-2">
+        Your Library
+      </h2>
+
       {/* Navigation menu */}
-      <motion.div className="px-2 space-y-0.5 py-2">
+      <motion.div className="px-2 space-y-1.5 py-2">
         {/* <button className="w-full flex items-center gap-3 px-3 py-2 text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors">
           <Home className="h-4 w-4" />
           <span>Home</span>
         </button> */}
         <Button
-          className="w-full flex items-center gap-3 px-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200"
+          className="w-full flex justify-start gap-3 px-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200"
           variant="ghost"
         >
           <Library className="h-4 w-4" />
           <span>Default Library</span>
         </Button>
+        {/* <Button
+          className="w-full flex justify-start gap-3 px-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200"
+          variant="ghost"
+        >
+          <Library className="h-4 w-4" />
+          <span>Default Library</span>
+        </Button> */}
       </motion.div>
 
       <Separator className="bg-neutral-800/50" />

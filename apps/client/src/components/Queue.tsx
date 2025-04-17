@@ -36,7 +36,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
 
   return (
     <div className={cn("", className)} {...rest}>
-      <h2 className="text-xl font-bold mb-2 select-none">Tracks</h2>
+      {/* <h2 className="text-xl font-bold mb-2 select-none">Beatsync</h2> */}
       <div className="space-y-1">
         {audioSources.length > 0 ? (
           audioSources.map((source, index) => {
@@ -110,7 +110,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                       asChild
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button className="p-1 rounded-full text-neutral-500 hover:text-white transition-colors hover:scale-110 duration-150 focus:outline-none focus:ring-1 focus:ring-neutral-500">
+                      <button className="p-1 rounded-full text-neutral-500 hover:text-white transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-white focus:scale-110">
                         <MoreHorizontal className="size-4" />
                       </button>
                     </DropdownMenuTrigger>

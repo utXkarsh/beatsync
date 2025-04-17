@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGlobalStore } from "@/store/global";
 import { AnimatePresence, motion } from "framer-motion";
-import { Library, ListMusic, Loader, Rotate3D } from "lucide-react";
+import { Library, ListMusic, Rotate3D } from "lucide-react";
 import { TopBar } from "../room/TopBar";
 import { Bottom } from "./Bottom";
 import { Left } from "./Left";
@@ -30,26 +30,6 @@ export const Dashboard = () => {
       {/* Top bar: Fixed height */}
       <TopBar />
 
-      {!isReady && (
-        <motion.div
-          className="flex-1 flex flex-col items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <motion.div
-            animate={{
-              rotate: 360,
-              transition: { repeat: Infinity, duration: 1.5, ease: "linear" },
-            }}
-            className="mb-3"
-          >
-            <Loader className="h-10 w-10 text-primary/60" />
-          </motion.div>
-          <p className="text-neutral-400 text-sm">Connecting to room...</p>
-        </motion.div>
-      )}
-
       {isReady && (
         <motion.div
           className="flex flex-1 flex-col overflow-hidden min-h-0"
@@ -71,7 +51,7 @@ export const Dashboard = () => {
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
               {/* Tab List at the top for mobile */}
-              <TabsList className="shrink-0 grid w-full grid-cols-3 h-12 rounded-none border-b border-neutral-800/50 p-0 bg-neutral-950">
+              <TabsList className="shrink-0 grid w-full grid-cols-3 h-12 rounded-none p-0 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950">
                 <TabsTrigger
                   value="library"
                   className="flex-1 data-[state=active]:bg-white/5 data-[state=active]:shadow-none rounded-none text-xs h-full gap-1 text-neutral-400 data-[state=active]:text-white transition-all duration-200"
