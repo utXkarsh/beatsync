@@ -2,7 +2,6 @@
 import { useGlobalStore } from "@/store/global";
 import { useEffect, useState } from "react";
 import { Dashboard } from "./dashboard/Dashboard";
-import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
 import { WebSocketManager } from "./room/WebSocketManager";
 
 // Main component has been refactored into smaller components
@@ -27,7 +26,7 @@ export const NewSyncer = () => {
       <WebSocketManager />
 
       {/* Spatial audio background effects */}
-      <SpatialAudioBackground />
+      {/* <SpatialAudioBackground /> */}
 
       <Dashboard />
     </>

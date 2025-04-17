@@ -33,7 +33,7 @@ export const TopBar = () => {
   if (!isLoadingAudio && isSynced) {
     return (
       <div className="h-8 bg-black/80 backdrop-blur-md z-50 flex items-center px-4 border-b border-zinc-800">
-        <div className="flex items-center space-x-3 text-xs text-neutral-400">
+        <div className="flex items-center space-x-3 text-xs text-neutral-400 py-2 md:py-0">
           <Link
             href="/"
             className="font-medium hover:text-white transition-colors"
