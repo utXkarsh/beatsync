@@ -2,13 +2,8 @@
 import { useGlobalStore } from "@/store/global";
 import { ClientType } from "@beatsync/shared";
 import { useEffect, useState } from "react";
-import { MusicControls } from "./room/MusicControls";
-import { MusicUpload } from "./room/MusicUpload";
-import { RoomInfo } from "./room/RoomInfo";
-import { SocketStatus } from "./room/SocketStatus";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
 import { SyncStatus } from "./room/SyncStatus";
-import { UserGrid } from "./room/UserGrid";
 import { WebSocketManager } from "./room/WebSocketManager";
 
 // Main component has been refactored into smaller components
@@ -42,12 +37,12 @@ export const NewSyncer = () => {
       {/* Spatial audio background effects */}
       <SpatialAudioBackground />
 
-      <div className="container mx-auto p-4 space-y-6 relative">
+      <SyncStatus />
+
+      {/* <div className="container mx-auto p-4 space-y-6 relative">
         <div className="flex flex-col md:flex-row gap-4 justify-between">
-          {/* Room information card */}
           <RoomInfo />
 
-          {/* Connected users card */}
           <UserGrid />
         </div>
 
@@ -56,16 +51,12 @@ export const NewSyncer = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Music controls section */}
           <MusicControls />
 
-          {/* Music upload section */}
           <MusicUpload />
         </div>
-
-        {/* Network synchronization section */}
         <SyncStatus />
-      </div>
+      </div> */}
     </>
   );
 };
