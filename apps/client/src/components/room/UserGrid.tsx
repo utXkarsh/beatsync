@@ -314,7 +314,19 @@ export const UserGrid = () => {
     [setIsDraggingListeningSource]
   );
 
+  const handleSourceTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      e.stopPropagation(); // Prevent grid touch handler from firing
+      setIsDraggingListeningSource(true);
+    },
+    [setIsDraggingListeningSource]
+  );
+
   const handleSourceMouseUp = useCallback(() => {
+    setIsDraggingListeningSource(false);
+  }, [setIsDraggingListeningSource]);
+
+  const handleSourceTouchEnd = useCallback(() => {
     setIsDraggingListeningSource(false);
   }, [setIsDraggingListeningSource]);
 
@@ -345,18 +357,60 @@ export const UserGrid = () => {
     [isDraggingListeningSource, onMouseMoveSource]
   );
 
-  // Add event listeners for mouse up even outside the grid
+  const handleSourceTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDraggingListeningSource || !gridRef.current || !e.touches[0])
+        return;
+
+      // Prevent scrolling while dragging
+      e.preventDefault();
+
+      // Cancel any existing animation frame to prevent queuing
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      // Use requestAnimationFrame for smoother updates
+      animationFrameRef.current = requestAnimationFrame(() => {
+        if (!gridRef.current || !e.touches[0]) return;
+
+        const touch = e.touches[0];
+        const rect = gridRef.current.getBoundingClientRect();
+        const gridWidth = rect.width;
+        const gridHeight = rect.height;
+
+        // Calculate position as percentage of grid size
+        const x = Math.round(
+          ((touch.clientX - rect.left) / gridWidth) * GRID.SIZE
+        );
+        const y = Math.round(
+          ((touch.clientY - rect.top) / gridHeight) * GRID.SIZE
+        );
+
+        onMouseMoveSource(x, y);
+      });
+    },
+    [isDraggingListeningSource, onMouseMoveSource]
+  );
+
+  // Add event listeners for mouse/touch up even outside the grid
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsDraggingListeningSource(false);
     };
 
+    const handleGlobalTouchEnd = () => {
+      setIsDraggingListeningSource(false);
+    };
+
     if (isDraggingListeningSource) {
       window.addEventListener("mouseup", handleGlobalMouseUp);
+      window.addEventListener("touchend", handleGlobalTouchEnd);
     }
 
     return () => {
       window.removeEventListener("mouseup", handleGlobalMouseUp);
+      window.removeEventListener("touchend", handleGlobalTouchEnd);
 
       // Clean up any pending animation frames
       if (animationFrameRef.current) {
@@ -432,8 +486,9 @@ export const UserGrid = () => {
             {/* 2D Grid Layout */}
             <div
               ref={gridRef}
-              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none"
+              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none"
               onMouseMove={handleSourceMouseMove}
+              onTouchMove={handleSourceTouchMove}
             >
               <TooltipProvider>
                 {clientsWithData.map(
@@ -473,6 +528,9 @@ export const UserGrid = () => {
                       })}
                       onMouseDown={handleSourceMouseDown}
                       onMouseUp={handleSourceMouseUp}
+                      onTouchStart={handleSourceTouchStart}
+                      onTouchEnd={handleSourceTouchEnd}
+                      onTouchMove={handleSourceTouchMove}
                     >
                       <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/20 p-1">
                         <span className="relative flex h-3 w-3">
@@ -557,6 +615,12 @@ export const UserGrid = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground md:hidden">
+          <p>
+            Tap and drag the green dot to reposition your listening source on
+            mobile.
+          </p>
         </div>
       </CardContent>
     </Card>
