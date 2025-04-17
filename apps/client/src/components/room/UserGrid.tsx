@@ -428,7 +428,7 @@ export const UserGrid = () => {
   );
 
   return (
-    <div className="flex flex-col md:h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 font-medium">
           <Rotate3D size={18} />
@@ -437,7 +437,7 @@ export const UserGrid = () => {
         <Badge variant="outline">{clients.length}</Badge>
       </div>
 
-      <div className="md:flex-1 px-4 flex flex-col">
+      <div className="flex-1 px-4 flex flex-col min-h-0 overflow-hidden">
         {clients.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">
             No other users connected
@@ -513,8 +513,8 @@ export const UserGrid = () => {
               </TooltipProvider>
             </div>
 
-            {/* List of connected users - Adjusted max-h */}
-            <div className="space-y-2 max-h-24 md:max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+            {/* List of connected users - Constrained height */}
+            <div className="space-y-2 max-h-24 md:max-h-32 overflow-y-auto pr-1 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
               {clientsWithData.map(
                 ({ client, isActive, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem

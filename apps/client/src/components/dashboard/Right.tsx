@@ -11,7 +11,7 @@ export const Right = ({ className }: RightProps) => {
   return (
     <motion.div
       className={cn(
-        "w-full md:w-80 md:flex-shrink-0 border-l border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col pb-4 md:pb-0 text-sm",
+        "w-full lg:w-80 lg:flex-shrink-0 border-l border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col pb-4 lg:pb-0 text-sm",
         className
       )}
     >

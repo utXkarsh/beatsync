@@ -52,23 +52,23 @@ export const Dashboard = () => {
 
       {isReady && (
         <motion.div
-          className="flex flex-1 flex-col overflow-hidden"
+          className="flex flex-1 flex-col overflow-hidden min-h-0"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* --- DESKTOP LAYOUT (md+) --- */}
-          <div className="hidden md:flex md:flex-1 md:overflow-hidden">
+          {/* --- DESKTOP LAYOUT (lg+) --- */}
+          <div className="hidden lg:flex lg:flex-1 lg:overflow-hidden min-h-0">
             <Left className="flex" />
             <Main />
-            <Right className="flex md:w-80 md:flex-shrink-0" />
+            <Right className="flex lg:w-80 lg:flex-shrink-0" />
           </div>
 
-          {/* --- MOBILE LAYOUT (< md) --- */}
-          <div className="flex flex-1 flex-col md:hidden">
+          {/* --- MOBILE LAYOUT (< lg) --- */}
+          <div className="flex flex-1 flex-col lg:hidden min-h-0">
             <Tabs
               defaultValue="queue"
-              className="flex-1 flex flex-col overflow-hidden"
+              className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
               {/* Tab List at the top for mobile */}
               <TabsList className="shrink-0 grid w-full grid-cols-3 h-12 rounded-none border-b border-neutral-800/50 p-0 bg-neutral-950">
@@ -97,7 +97,7 @@ export const Dashboard = () => {
                 <TabsContent
                   key="library"
                   value="library"
-                  className="flex-1 overflow-y-auto mt-0"
+                  className="flex-1 overflow-y-auto mt-0 min-h-0"
                 >
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -112,7 +112,7 @@ export const Dashboard = () => {
                 <TabsContent
                   key="queue"
                   value="queue"
-                  className="flex-1 overflow-y-auto mt-0"
+                  className="flex-1 overflow-y-auto mt-0 min-h-0"
                 >
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -127,7 +127,7 @@ export const Dashboard = () => {
                 <TabsContent
                   key="spatial"
                   value="spatial"
-                  className="flex-1 overflow-y-auto mt-0"
+                  className="flex-1 overflow-y-auto mt-0 min-h-0"
                 >
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
