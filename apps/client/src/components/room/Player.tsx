@@ -4,17 +4,13 @@ import { useGlobalStore } from "@/store/global";
 import {
   Pause,
   Play,
-  RefreshCw,
   Repeat,
-  RocketIcon,
   Shuffle,
   SkipBack,
   SkipForward,
-  StopCircleIcon,
 } from "lucide-react";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
 import {
   Tooltip,
@@ -26,8 +22,6 @@ import {
 export const Player = () => {
   const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
   const broadcastPause = useGlobalStore((state) => state.broadcastPause);
-  const startSpatialAudio = useGlobalStore((state) => state.startSpatialAudio);
-  const stopSpatialAudio = useGlobalStore((state) => state.stopSpatialAudio);
   const isPlaying = useGlobalStore((state) => state.isPlaying);
   const getCurrentTrackPosition = useGlobalStore(
     (state) => state.getCurrentTrackPosition
@@ -39,7 +33,6 @@ export const Player = () => {
   // Local state for slider
   const [sliderPosition, setSliderPosition] = useState(0);
   const [trackDuration, setTrackDuration] = useState(0);
-  const [spatialAudioActive, setSpatialAudioActive] = useState(false);
 
   // Find the selected audio source and its duration
   useEffect(() => {
@@ -85,16 +78,6 @@ export const Player = () => {
     console.log(value);
   };
 
-  const handleSpatialAudioToggle = () => {
-    if (spatialAudioActive) {
-      stopSpatialAudio();
-      setSpatialAudioActive(false);
-    } else {
-      startSpatialAudio();
-      setSpatialAudioActive(true);
-    }
-  };
-
   const handlePlay = () => {
     if (isPlaying) {
       broadcastPause();
@@ -104,8 +87,8 @@ export const Player = () => {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="w-full">
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-[37rem]">
         <div className="flex items-center justify-center gap-6 mb-2">
           <button
             className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
@@ -121,9 +104,9 @@ export const Player = () => {
             onClick={handlePlay}
           >
             {isPlaying ? (
-              <Pause className="w-4.5 h-4.5 fill-current stroke-1" />
+              <Pause className="w-4 h-4 fill-current stroke-1" />
             ) : (
-              <Play className="w-4.5 h-4.5 fill-current" />
+              <Play className="w-4 h-4 fill-current" />
             )}
           </button>
           <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
@@ -136,7 +119,10 @@ export const Player = () => {
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className={isPlaying ? "" : ""}>
+              <div className="flex items-center gap-0">
+                <span className="text-xs text-muted-foreground min-w-12 select-none">
+                  {formatTime(sliderPosition)}
+                </span>
                 <Slider
                   value={[sliderPosition]}
                   min={0}
@@ -144,72 +130,23 @@ export const Player = () => {
                   step={0.1}
                   onValueChange={handleSliderChange}
                   onValueCommit={handleSliderCommit}
-                  className="mt-4 mb-3"
                   disabled={isPlaying}
                 />
+                <span className="text-xs text-muted-foreground min-w-12 text-right select-none">
+                  {formatTime(trackDuration)}
+                </span>
               </div>
             </TooltipTrigger>
             {isPlaying && (
-              <TooltipContent side="bottom">
-                <p>Pause playback before changing position</p>
+              <TooltipContent side="top">
+                <p className="text-sm flex items-center gap-1.5">
+                  <Pause className="h-4 w-4" />
+                  Pause playback before changing position
+                </p>
               </TooltipContent>
             )}
           </Tooltip>
         </TooltipProvider>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{formatTime(sliderPosition)}</span>
-          <span>{formatTime(trackDuration)}</span>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          onClick={() => broadcastPlay(sliderPosition)}
-          variant={isPlaying ? "secondary" : "default"}
-          disabled={!selectedAudioId}
-          size="sm"
-          className="flex-1 min-w-[80px]"
-        >
-          {isPlaying ? (
-            <RefreshCw className="h-4 w-4 mr-1" />
-          ) : (
-            <Play className="h-4 w-4 mr-1" />
-          )}
-          {isPlaying ? "Resync" : "Play"}
-        </Button>
-        <Button
-          onClick={broadcastPause}
-          variant="outline"
-          disabled={!isPlaying || !selectedAudioId}
-          size="sm"
-          className="flex-1 min-w-[80px]"
-        >
-          <Pause className="h-4 w-4 mr-1" />
-          Pause
-        </Button>
-        <Button
-          onClick={handleSpatialAudioToggle}
-          variant="outline"
-          size="sm"
-          className="flex-1 min-w-[140px] mt-2 sm:mt-0"
-        >
-          {spatialAudioActive ? (
-            <>
-              <StopCircleIcon className="h-4 w-4 mr-1" />
-              Stop Spatial
-            </>
-          ) : (
-            <>
-              <RocketIcon className="h-4 w-4 mr-1" />
-              Start Spatial
-            </>
-          )}
-        </Button>
-      </div>
-      <div className="text-xs text-muted-foreground mt-2">
-        Especially on mobile devices, syncing is unstable. If you experience
-        issues, try pressing <span className="font-semibold">Resync</span> a few
-        times
       </div>
     </div>
   );

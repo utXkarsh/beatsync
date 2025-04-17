@@ -27,7 +27,7 @@ export const Left = () => {
           <Home className="h-4 w-4" />
           <span>Home</span>
         </button> */}
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-white font-medium bg-white/10 rounded-md">
+        <button className="w-full flex items-center gap-3 px-3 py-2 text-white font-medium bg-white/10 rounded-md text-sm">
           <Library className="h-4 w-4" />
           <span>Default Library</span>
         </button>

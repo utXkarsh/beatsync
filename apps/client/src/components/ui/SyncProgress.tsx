@@ -121,7 +121,7 @@ export const SyncProgress = ({
             </motion.p>
 
             <motion.button
-              className="px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer w-full hover:shadow-lg hover:shadow-zinc-50/50 transition-shadow duration-500"
+              className="mt-4 px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer w-full hover:shadow-lg hover:shadow-zinc-50/50 transition-shadow duration-500"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               whileHover={{
@@ -132,6 +132,16 @@ export const SyncProgress = ({
             >
               Start System
             </motion.button>
+
+            <motion.p
+              className="text-neutral-500 mt-4.5 text-center text-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              For best experience, use a laptop with Chrome browser. <br />
+              Only use the native device speakers, and turn ringer on.
+            </motion.p>
           </motion.div>
         </div>
       </motion.div>
