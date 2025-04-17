@@ -29,6 +29,10 @@ export const Player = () => {
   const selectedAudioId = useGlobalStore((state) => state.selectedAudioId);
   const audioSources = useGlobalStore((state) => state.audioSources);
   const currentTime = useGlobalStore((state) => state.currentTime);
+  const skipToNextTrack = useGlobalStore((state) => state.skipToNextTrack);
+  const skipToPreviousTrack = useGlobalStore(
+    (state) => state.skipToPreviousTrack
+  );
 
   // Local state for slider
   const [sliderPosition, setSliderPosition] = useState(0);
@@ -86,6 +90,14 @@ export const Player = () => {
     }
   }, [isPlaying, broadcastPause, broadcastPlay, sliderPosition]);
 
+  const handleSkipBack = useCallback(() => {
+    skipToPreviousTrack();
+  }, [skipToPreviousTrack]);
+
+  const handleSkipForward = useCallback(() => {
+    skipToNextTrack();
+  }, [skipToNextTrack]);
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -119,7 +131,11 @@ export const Player = () => {
           >
             <Shuffle className="w-6 h-6 md:w-4 md:h-4" />
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
+          <button
+            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
+            onClick={handleSkipBack}
+            disabled={audioSources.length <= 1}
+          >
             <SkipBack className="w-7 h-7 md:w-5 md:h-5 fill-current" />
           </button>
           <button
@@ -132,11 +148,18 @@ export const Player = () => {
               <Play className="w-5 h-5 md:w-4 md:h-4 fill-current" />
             )}
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
+          <button
+            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
+            onClick={handleSkipForward}
+            disabled={audioSources.length <= 1}
+          >
             <SkipForward className="w-7 h-7 md:w-5 md:h-5 fill-current" />
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
-            <Repeat className="w-6 h-6 md:w-4 md:h-4" />
+          <button className="text-gray-400 hover:text-white transition-colors cursor-default   hover:scale-105 duration-200">
+            <div className="relative">
+              <Repeat className="w-6 h-6 md:w-4 md:h-4 relative text-primary-400" />
+              <div className="absolute w-1 h-1 bg-green-500 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
+            </div>
           </button>
         </div>
         <TooltipProvider>

@@ -52,7 +52,7 @@ interface GlobalState {
   setAudioSources: (sources: LocalAudioSource[]) => void;
   addAudioSource: (source: RawAudioSource) => Promise<void>;
   setIsLoadingAudio: (isLoading: boolean) => void;
-  setSelectedAudioId: (audioId: string) => void;
+  setSelectedAudioId: (audioId: string) => boolean;
   findAudioIndexById: (audioId: string) => number | null;
   schedulePlay: (data: {
     trackTimeSeconds: number;
@@ -116,6 +116,10 @@ interface GlobalState {
 
   // Add function to get current position
   getCurrentTrackPosition: () => number;
+
+  // Add these functions for track skipping
+  skipToNextTrack: () => void;
+  skipToPreviousTrack: () => void;
 }
 
 // Audio sources
@@ -218,6 +222,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           gainNode,
         },
         downloadedAudioIds: new Set<string>(),
+        duration: sources[0].audioBuffer.duration,
       });
     };
 
@@ -317,35 +322,40 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     },
     setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
     setSelectedAudioId: (audioId) => {
-      // Stop any current playback
       const state = get();
-      // if (state.isPlaying) {
-      //   try {
-      //     const { sourceNode } = getAudioPlayer(state);
-      //     sourceNode.stop();
-      //   } catch (e) {
-      //     console.warn("Error stopping playback during track switch:", e);
-      //   }
-      // }
+      const wasPlaying = state.isPlaying; // Store if it was playing *before* stopping
+
+      // Stop any current playback immediately when switching tracks
+      if (state.isPlaying && state.audioPlayer) {
+        try {
+          state.audioPlayer.sourceNode.stop();
+        } catch (e) {
+          // Ignore errors if already stopped or not initialized
+        }
+      }
 
       // Find the new audio source for duration
       const audioIndex = state.findAudioIndexById(audioId);
       let newDuration = 0;
-
       if (audioIndex !== null) {
         const audioSource = state.audioSources[audioIndex];
-        newDuration = audioSource.audioBuffer.duration;
+        if (audioSource?.audioBuffer) {
+          newDuration = audioSource.audioBuffer.duration;
+        }
       }
 
-      // Reset timing state
+      // Reset timing state and update selected ID
       set({
         selectedAudioId: audioId,
-        isPlaying: false,
+        isPlaying: false, // Always stop playback on track change before potentially restarting
         currentTime: 0,
         playbackStartTime: 0,
         playbackOffset: 0,
         duration: newDuration,
       });
+
+      // Return the previous playing state for the skip functions to use
+      return wasPlaying;
     },
     findAudioIndexById: (audioId: string) => {
       const state = get();
@@ -651,5 +661,49 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Connected clients
     connectedClients: [],
     setConnectedClients: (clients) => set({ connectedClients: clients }),
+    skipToNextTrack: () => {
+      const state = get();
+      const { audioSources, selectedAudioId } = state;
+      if (audioSources.length === 0) return;
+
+      const currentIndex = state.findAudioIndexById(selectedAudioId);
+      if (currentIndex === null) return; // Should not happen ideally
+
+      const nextIndex = (currentIndex + 1) % audioSources.length;
+      const nextAudioId = audioSources[nextIndex].id;
+
+      // setSelectedAudioId stops playback and resets state. It returns if the track *was* playing.
+      const wasPlaying = state.setSelectedAudioId(nextAudioId);
+
+      // If it was playing before skipping, automatically start playing the next track from the beginning.
+      if (wasPlaying) {
+        // Use a minimal delay to ensure state updates before broadcasting play
+        setTimeout(() => {
+          state.broadcastPlay(0);
+        }, 0);
+      }
+    },
+
+    skipToPreviousTrack: () => {
+      const state = get();
+      const { audioSources, selectedAudioId } = state;
+      if (audioSources.length === 0) return;
+
+      const currentIndex = state.findAudioIndexById(selectedAudioId);
+      if (currentIndex === null) return; // Should not happen ideally
+
+      const prevIndex =
+        (currentIndex - 1 + audioSources.length) % audioSources.length;
+      const prevAudioId = audioSources[prevIndex].id;
+
+      // setSelectedAudioId stops playback and resets state. It returns if the track *was* playing.
+      const wasPlaying = state.setSelectedAudioId(prevAudioId);
+
+      // If it was playing before skipping, automatically start playing the previous track from the beginning.
+      if (wasPlaying) {
+        // Use a minimal delay to ensure state updates before broadcasting play
+        state.broadcastPlay(0);
+      }
+    },
   };
 });
