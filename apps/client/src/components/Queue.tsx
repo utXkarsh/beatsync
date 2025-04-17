@@ -28,13 +28,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
   };
 
   return (
-    <div
-      className={cn(
-        "p-4 bg-neutral-800/30 backdrop-blur-md rounded-xl border border-neutral-700/50",
-        className
-      )}
-      {...rest}
-    >
+    <div className={cn("p-4", className)} {...rest}>
       <h2 className="text-lg font-medium mb-4">Tracks</h2>
       <div className="space-y-1">
         {audioSources.length > 0 ? (
@@ -48,7 +42,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                 className={cn(
                   "flex items-center pl-2 pr-4 py-3 rounded-md group transition-colors cursor-pointer",
                   isSelected
-                    ? "text-white bg-neutral-700/40"
+                    ? "text-white"
                     : "text-neutral-300 hover:bg-neutral-700/20"
                 )}
                 onClick={() => handleItemClick(source)}
