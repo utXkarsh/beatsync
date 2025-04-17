@@ -1,75 +1,119 @@
-import { useState } from "react";
+import { LocalAudioSource } from "@/lib/localTypes";
+import { cn } from "@/lib/utils";
+import { useGlobalStore } from "@/store/global";
 
-interface QueueItemType {
-  id: string;
-  title: string;
-  artist: string;
-  duration: string;
-  image?: string;
-}
+export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
+  const audioSources = useGlobalStore((state) => state.audioSources);
+  const selectedAudioId = useGlobalStore((state) => state.selectedAudioId);
+  const setSelectedAudioId = useGlobalStore(
+    (state) => state.setSelectedAudioId
+  );
+  const isLoadingAudioSources = useGlobalStore((state) => state.isLoadingAudio);
+  const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
+  const isPlaying = useGlobalStore((state) => state.isPlaying);
 
-interface QueueProps {
-  items?: QueueItemType[];
-  onItemClick?: (item: QueueItemType) => void;
-  className?: string;
-}
-
-export const Queue = ({
-  items = [],
-  onItemClick,
-  className = "",
-}: QueueProps) => {
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
-  // Use placeholder items if no items provided
-  const displayItems =
-    items.length > 0
-      ? items
-      : [
-          { id: "1", title: "Track 1", artist: "Artist 1", duration: "3:42" },
-          { id: "2", title: "Track 2", artist: "Artist 2", duration: "4:15" },
-          { id: "3", title: "Track 3", artist: "Artist 3", duration: "2:58" },
-        ];
+  // Handle click on an item - select it and start playing
+  const handleItemClick = (source: LocalAudioSource) => {
+    // If it's already the selected track, just start playing
+    if (source.id === selectedAudioId) {
+      broadcastPlay(0); // Start from beginning
+    } else {
+      // Otherwise set the track and then play it
+      setSelectedAudioId(source.id);
+      // Small delay to ensure the track is loaded before playing
+      setTimeout(() => {
+        broadcastPlay(0);
+      }, 50);
+    }
+  };
 
   return (
     <div
-      className={`p-4 bg-neutral-800/30 backdrop-blur-md rounded-xl border border-neutral-700/50 ${className}`}
+      className={cn(
+        "p-4 bg-neutral-800/30 backdrop-blur-md rounded-xl border border-neutral-700/50",
+        className
+      )}
+      {...rest}
     >
-      <h2 className="text-lg font-medium mb-4">Queue</h2>
-      <div className="space-y-2">
-        {displayItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center p-2 pr-3 rounded-lg hover:bg-neutral-700/30 transition-colors cursor-pointer"
-            onClick={() => onItemClick?.(item)}
-            onMouseEnter={() => setHoveredItem(item.id)}
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <div
-              className={`w-10 h-10 rounded-md flex-shrink-0 mr-3 overflow-hidden transition-all duration-300`}
-            >
-              {item.image ? (
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-neutral-700 flex items-center justify-center">
-                  <span className="text-xs text-neutral-400">♪</span>
+      <h2 className="text-lg font-medium mb-4">Tracks</h2>
+      <div className="space-y-1">
+        {audioSources.length > 0 ? (
+          audioSources.map((source, index) => {
+            const isSelected = source.id === selectedAudioId;
+            const isPlayingThis = isSelected && isPlaying;
+
+            return (
+              <div
+                key={source.id}
+                className={cn(
+                  "flex items-center pl-2 pr-4 py-3 rounded-md group transition-colors cursor-pointer",
+                  isSelected
+                    ? "text-white bg-neutral-700/40"
+                    : "text-neutral-300 hover:bg-neutral-700/20"
+                )}
+                onClick={() => handleItemClick(source)}
+              >
+                {/* Track number / Play icon */}
+                <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center relative">
+                  {/* Play button (shown on hover) */}
+                  <button
+                    className="text-white text-sm hover:scale-110 transition-transform w-full h-full flex items-center justify-center absolute inset-0 opacity-0 group-hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleItemClick(source);
+                    }}
+                  >
+                    ▶
+                  </button>
+
+                  {/* Playing indicator or track number (hidden on hover) */}
+                  <div className="w-full h-full flex items-center justify-center group-hover:opacity-0 transition-opacity">
+                    {isPlayingThis ? (
+                      <span className="text-green-500 text-sm">♫</span>
+                    ) : (
+                      <span className="text-neutral-400 text-sm group-hover:opacity-0">
+                        {index + 1}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-            <div>
-              <div className="font-medium">{item.title}</div>
-              <div className="text-xs text-neutral-400">{item.artist}</div>
-            </div>
-            <div className="ml-auto text-xs text-neutral-500">
-              {item.duration}
-            </div>
+
+                {/* Track name */}
+                <div className="flex-grow min-w-0 ml-3">
+                  <div
+                    className={cn(
+                      "font-medium text-sm truncate",
+                      isSelected ? "text-green-400" : ""
+                    )}
+                  >
+                    {source.name}
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div className="ml-4 text-xs text-neutral-500">
+                  {formatTime(source.audioBuffer.duration)}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center py-3 text-neutral-400">
+            {isLoadingAudioSources
+              ? "Loading tracks..."
+              : "No tracks available"}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
+};
+
+// Helper function for formatting time
+const formatTime = (seconds: number): string => {
+  if (isNaN(seconds)) return "0:00";
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };

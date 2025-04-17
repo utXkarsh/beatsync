@@ -120,7 +120,7 @@ export const Player = () => {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-0">
-                <span className="text-xs text-muted-foreground min-w-12 select-none">
+                <span className="text-xs text-muted-foreground min-w-11 select-none">
                   {formatTime(sliderPosition)}
                 </span>
                 <Slider
@@ -132,7 +132,7 @@ export const Player = () => {
                   onValueCommit={handleSliderCommit}
                   disabled={isPlaying}
                 />
-                <span className="text-xs text-muted-foreground min-w-12 text-right select-none">
+                <span className="text-xs text-muted-foreground min-w-11 text-right select-none">
                   {formatTime(trackDuration)}
                 </span>
               </div>

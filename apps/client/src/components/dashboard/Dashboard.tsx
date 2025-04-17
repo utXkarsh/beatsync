@@ -1,10 +1,10 @@
 import { useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
-import { Queue } from "../Queue";
 import { TopBar } from "../room/TopBar";
 import { UserGrid } from "../room/UserGrid";
 import { Bottom } from "./Bottom";
 import { Left } from "./Left";
+import { Main } from "./Main";
 
 export const Dashboard = () => {
   const isSynced = useGlobalStore((state) => state.isSynced);
@@ -29,17 +29,7 @@ export const Dashboard = () => {
             {/* Left sidebar */}
             <Left />
             {/* Main content */}
-            <div className="flex-1 overflow-y-auto bg-gradient-to-b from-neutral-900/50 to-neutral-950 backdrop-blur-sm">
-              <div className="p-6 max-w-3xl mx-auto">
-                <h1 className="text-xl font-semibold mb-8">BeatSync</h1>
-                <Queue
-                  className="mb-8"
-                  onItemClick={(item) =>
-                    console.log("Queue item clicked:", item)
-                  }
-                />
-              </div>
-            </div>
+            <Main />
             {/* Right sidebar */}
             <div className="w-[280px] flex-shrink-0 border-l border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md overflow-y-auto">
               <div className="p-4">
