@@ -16,7 +16,11 @@ export const TopBar = () => {
   const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
 
   const resync = () => {
-    pauseAudio({ when: 0 });
+    try {
+      pauseAudio({ when: 0 });
+    } catch (error) {
+      console.error("Failed to pause audio:", error);
+    }
     resetNTPConfig();
     sendNTPRequest();
     setIsLoadingAudio(true);

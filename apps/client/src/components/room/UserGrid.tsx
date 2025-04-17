@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -436,17 +435,16 @@ export const UserGrid = () => {
   }, []);
 
   return (
-    <Card className="w-full md:w-1/3">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="flex items-center gap-2">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2 font-medium">
           <Users size={18} />
           <span>Connected Users</span>
-        </CardTitle>
-        <div className="flex items-center">
-          <Badge variant="outline">{clients.length}</Badge>
         </div>
-      </CardHeader>
-      <CardContent>
+        <Badge variant="outline">{clients.length}</Badge>
+      </div>
+
+      <div className="flex-1 px-4 flex flex-col">
         {clients.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">
             No other users connected
@@ -525,7 +523,7 @@ export const UserGrid = () => {
             </div>
 
             {/* List of connected users */}
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+            <div className="space-y-2 max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
               {clientsWithData.map(
                 ({ client, isActive, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem
@@ -586,13 +584,7 @@ export const UserGrid = () => {
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="mt-2 text-xs text-muted-foreground md:hidden">
-          <p>
-            Tap and drag the green dot to reposition your listening source on
-            mobile.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
