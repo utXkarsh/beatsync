@@ -140,7 +140,8 @@ export const SyncProgress = ({
               transition={{ duration: 0.3, delay: 0.3 }}
             >
               For best experience, use a laptop with Chrome browser. <br />
-              Only use the native device speakers, and turn ringer on.
+              Only use the native device speakers, and make sure silent mode is
+              off.
             </motion.p>
           </motion.div>
         </div>

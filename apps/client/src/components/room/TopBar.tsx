@@ -3,6 +3,7 @@ import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { AnimatePresence, motion } from "framer-motion";
 import { Hash, Users } from "lucide-react";
+import Link from "next/link";
 import { SyncProgress } from "../ui/SyncProgress";
 
 export const TopBar = () => {
@@ -33,9 +34,15 @@ export const TopBar = () => {
     return (
       <div className="h-8 bg-black/80 backdrop-blur-md z-50 flex items-center px-4 border-b border-zinc-800">
         <div className="flex items-center space-x-3 text-xs text-neutral-400">
+          <Link
+            href="/"
+            className="font-medium hover:text-neutral-200 transition-colors"
+          >
+            Beatsync
+          </Link>
           <div className="flex items-center">
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>
-            <span>Synced</span>
+            <span>Connected</span>
           </div>
           <div className="flex items-center">
             <Hash size={12} className="mr-1.5" />
@@ -50,7 +57,6 @@ export const TopBar = () => {
               </span>
             </span>
           </div>
-
           <div>|</div>
           <div className="flex items-center space-x-2">
             <span>
@@ -59,7 +65,6 @@ export const TopBar = () => {
             <span>RTT: {roundTripEstimate.toFixed(2)} ms</span>
           </div>
           <div>|</div>
-
           <button
             onClick={resync}
             className="text-neutral-400 hover:text-white transition-colors cursor-pointer"
