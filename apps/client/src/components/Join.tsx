@@ -84,14 +84,13 @@ export const Join = () => {
             Enter a room code and choose a username
           </motion.p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <motion.div
-              className="space-y-2"
+              className="flex justify-center mb-2"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <label className="text-xs text-neutral-400">Room Code</label>
               <Controller
                 control={control}
                 name="roomId"
@@ -112,32 +111,53 @@ export const Join = () => {
                         }
                       }
                     }}
+                    className="gap-3"
                   >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
+                    <InputOTPGroup className="gap-3">
+                      <InputOTPSlot
+                        index={0}
+                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                      />
+                      <InputOTPSlot
+                        index={1}
+                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                      />
+                      <InputOTPSlot
+                        index={2}
+                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                      />
+                      <InputOTPSlot
+                        index={3}
+                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                      />
+                      <InputOTPSlot
+                        index={4}
+                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                      />
+                      <InputOTPSlot
+                        index={5}
+                        className="w-12 h-14 text-xl bg-neutral-800 border-neutral-700"
+                      />
                     </InputOTPGroup>
                   </InputOTP>
                 )}
               />
-              {errors.roomId && (
-                <p className="text-xs text-red-500">{errors.roomId.message}</p>
-              )}
             </motion.div>
+            {errors.roomId && (
+              <p className="text-xs text-red-500 text-center">
+                {errors.roomId.message}
+              </p>
+            )}
 
             <motion.div
-              className="space-y-2"
+              className="space-y-2 mt-4"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
               <label className="text-xs text-neutral-400">Username</label>
               <Input
-                className="bg-neutral-800 border-neutral-700 focus:border-neutral-600"
+                className="bg-neutral-800 border-neutral-700 focus:border-neutral-600 mt-0.5"
                 placeholder="Choose a username"
                 {...register("username", { required: "Username is required" })}
                 ref={(element) => {
@@ -163,7 +183,7 @@ export const Join = () => {
                 className="w-full mt-4 px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer duration-500"
                 disabled={isJoining}
               >
-                {isJoining ? "Joining..." : "Join Room"}
+                Join Room
               </Button>
             </motion.div>
           </form>
