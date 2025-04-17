@@ -10,15 +10,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      position="top-right"
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg font-mono uppercase tracking-tight",
-          description: "group-[.toast]:text-muted-foreground",
+            "group toast group-[.toaster]:bg-neutral-800 group-[.toaster]:text-neutral-100 group-[.toaster]:border group-[.toaster]:border-neutral-700/50 group-[.toaster]:rounded-md group-[.toaster]:shadow-md group-[.toaster]:p-3 group-[.toaster]:text-sm",
+          description: "group-[.toast]:text-neutral-400 group-[.toast]:text-xs",
           actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground font-medium",
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:px-3 group-[.toast]:py-1 group-[.toast]:rounded-md group-[.toast]:text-xs group-[.toast]:font-medium hover:group-[.toast]:bg-primary/90",
           cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground font-medium",
+            "group-[.toast]:bg-neutral-700 group-[.toast]:text-neutral-300 group-[.toast]:px-3 group-[.toast]:py-1 group-[.toast]:rounded-md group-[.toast]:text-xs group-[.toast]:font-medium hover:group-[.toast]:bg-neutral-600",
         },
       }}
       {...props}
