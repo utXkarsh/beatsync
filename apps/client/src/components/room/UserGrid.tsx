@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { ClientType, GRID } from "@beatsync/shared";
-import { HeadphonesIcon, Users } from "lucide-react";
+import { HeadphonesIcon, Rotate3D } from "lucide-react";
 import { motion } from "motion/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -74,7 +74,7 @@ const ClientAvatar = memo<ClientAvatarProps>(
             >
               <Avatar
                 className={cn(
-                  "h-8 w-8 md:h-10 md:w-10 border-2",
+                  "size-12 border-2",
                   isFocused
                     ? "border-primary"
                     : isActive
@@ -431,8 +431,8 @@ export const UserGrid = () => {
     <div className="flex flex-col md:h-full">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 font-medium">
-          <Users size={18} />
-          <span>Connected Users</span>
+          <Rotate3D size={18} />
+          <span>Spatial Audio Map</span>
         </div>
         <Badge variant="outline">{clients.length}</Badge>
       </div>
@@ -495,11 +495,11 @@ export const UserGrid = () => {
                         <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
                           <span
                             key={`source-ping-${animationSyncKey}`}
-                            className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"
+                            className="absolute inline-flex h-full w-full rounded-full bg-primary-300 opacity-75 animate-ping"
                           ></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-emerald-400"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-primary-700"></span>
                         </span>
-                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-emerald-200 opacity-80" />
+                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-primary-50 opacity-80" />
                       </div>
                     </motion.div>
                   </TooltipTrigger>

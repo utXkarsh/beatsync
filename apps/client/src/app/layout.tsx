@@ -229,7 +229,7 @@ export default function RootLayout({
           sofiaPro.variable,
           proximaNova.variable,
           inter.variable,
-          "antialiased font-sans dark"
+          "antialiased font-sans dark selection:bg-primary-800 selection:text-white"
         )}
       >
         {children}
