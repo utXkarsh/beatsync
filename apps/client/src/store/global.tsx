@@ -122,7 +122,7 @@ interface GlobalState {
   toggleShuffle: () => void;
 
   // Add these functions for track skipping
-  skipToNextTrack: () => void;
+  skipToNextTrack: (isAutoplay?: boolean) => void;
   skipToPreviousTrack: () => void;
 }
 
@@ -534,14 +534,22 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Get current track position at any time
     getCurrentTrackPosition: () => {
       const state = get();
-      if (!state.isPlaying) {
-        return state.currentTime; // Return the saved position when paused
+      const {
+        audioPlayer,
+        isPlaying,
+        currentTime,
+        playbackStartTime,
+        playbackOffset,
+      } = state; // Destructure for easier access
+
+      if (!isPlaying || !audioPlayer) {
+        return currentTime; // Return the saved position when paused or not initialized
       }
 
-      const { audioContext } = getAudioPlayer(state);
-      const elapsedSinceStart =
-        audioContext.currentTime - state.playbackStartTime;
-      return state.playbackOffset + elapsedSinceStart;
+      const { audioContext } = audioPlayer;
+      const elapsedSinceStart = audioContext.currentTime - playbackStartTime;
+      // Ensure position doesn't exceed duration due to timing glitches
+      return Math.min(playbackOffset + elapsedSinceStart, state.duration);
     },
 
     // Play the current source
@@ -573,6 +581,50 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       const newSourceNode = audioContext.createBufferSource();
       newSourceNode.buffer = audioBuffer;
       newSourceNode.connect(gainNode);
+
+      // Autoplay: Handle track ending naturally
+      newSourceNode.onended = () => {
+        const currentState = get();
+        const { audioPlayer: currentPlayer, isPlaying: currentlyIsPlaying } =
+          currentState; // Get fresh state
+
+        // Only process if the player was 'isPlaying' right before this event fired
+        // and the sourceNode that ended is the *current* sourceNode.
+        // This prevents handlers from old nodes interfering after a quick skip.
+        if (currentlyIsPlaying && currentPlayer?.sourceNode === newSourceNode) {
+          const { audioContext } = currentPlayer;
+          // Check if the buffer naturally reached its end
+          // Calculate the expected end time in the AudioContext timeline
+          const expectedEndTime =
+            currentState.playbackStartTime +
+            (currentState.duration - currentState.playbackOffset);
+          // Use a tolerance for timing discrepancies (e.g., 0.5 seconds)
+          const endedNaturally =
+            Math.abs(audioContext.currentTime - expectedEndTime) < 0.5;
+
+          if (endedNaturally) {
+            console.log(
+              "Track ended naturally, skipping to next via autoplay."
+            );
+            // Set currentTime to duration, as playback fully completed
+            // We don't set isPlaying false here, let skipToNextTrack handle state transition
+            set({ currentTime: currentState.duration });
+            currentState.skipToNextTrack(true); // Trigger autoplay skip
+          } else {
+            console.log(
+              "onended fired but not deemed a natural end (likely manual stop/skip). State should be handled elsewhere."
+            );
+            // If stopped manually (pauseAudio) or skipped (setSelectedAudioId),
+            // those functions are responsible for setting isPlaying = false and currentTime.
+            // No action needed here for non-natural ends.
+          }
+        } else {
+          console.log(
+            "onended fired but player was already stopped/paused or source node changed."
+          );
+        }
+      };
+
       newSourceNode.start(startTime, data.offset);
       console.log(
         "Started playback at offset:",
@@ -665,7 +717,8 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Connected clients
     connectedClients: [],
     setConnectedClients: (clients) => set({ connectedClients: clients }),
-    skipToNextTrack: () => {
+    skipToNextTrack: (isAutoplay = false) => {
+      // Accept optional isAutoplay flag
       const state = get();
       const { audioSources, selectedAudioId, isShuffled } = state;
       if (audioSources.length <= 1) return; // Can't skip if only one track
@@ -685,10 +738,21 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }
 
       const nextAudioId = audioSources[nextIndex].id;
-      const wasPlaying = state.setSelectedAudioId(nextAudioId);
+      // setSelectedAudioId stops any current playback and sets isPlaying to false.
+      // It returns true if playback was active *before* this function was called.
+      const wasPlayingBeforeSkip = state.setSelectedAudioId(nextAudioId);
 
-      if (wasPlaying) {
-        state.broadcastPlay(0);
+      // If the track was playing before a manual skip OR if this is an autoplay event,
+      // start playing the next track from the beginning.
+      if (wasPlayingBeforeSkip || isAutoplay) {
+        console.log(
+          `Skip to next: ${nextAudioId}. Was playing: ${wasPlayingBeforeSkip}, Is autoplay: ${isAutoplay}. Broadcasting play.`
+        );
+        state.broadcastPlay(0); // Play next track from start
+      } else {
+        console.log(
+          `Skip to next: ${nextAudioId}. Was playing: ${wasPlayingBeforeSkip}, Is autoplay: ${isAutoplay}. Not broadcasting play.`
+        );
       }
     },
 
@@ -706,10 +770,20 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         (currentIndex - 1 + audioSources.length) % audioSources.length;
       const prevAudioId = audioSources[prevIndex].id;
 
-      const wasPlaying = state.setSelectedAudioId(prevAudioId);
+      // setSelectedAudioId stops any current playback and sets isPlaying to false.
+      // It returns true if playback was active *before* this function was called.
+      const wasPlayingBeforeSkip = state.setSelectedAudioId(prevAudioId);
 
-      if (wasPlaying) {
-        state.broadcastPlay(0);
+      // If the track was playing before the manual skip, start playing the previous track.
+      if (wasPlayingBeforeSkip) {
+        console.log(
+          `Skip to previous: ${prevAudioId}. Was playing: ${wasPlayingBeforeSkip}. Broadcasting play.`
+        );
+        state.broadcastPlay(0); // Play previous track from start
+      } else {
+        console.log(
+          `Skip to previous: ${prevAudioId}. Was playing: ${wasPlayingBeforeSkip}. Not broadcasting play.`
+        );
       }
     },
 
