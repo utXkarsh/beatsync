@@ -1,16 +1,26 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useRoomStore } from "@/store/room";
 import { Hash, Library, User } from "lucide-react";
 import { AudioUploaderMinimal } from "../AudioUploaderMinimal";
 import { Separator } from "../ui/separator";
 
-export const Left = () => {
+interface LeftProps {
+  className?: string;
+}
+
+export const Left = ({ className }: LeftProps) => {
   const roomId = useRoomStore((state) => state.roomId);
   const username = useRoomStore((state) => state.username);
 
   return (
-    <div className="w-60 flex-shrink-0 border-r border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full text-sm">
+    <div
+      className={cn(
+        "w-60 flex-shrink-0 border-r border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full text-sm",
+        className
+      )}
+    >
       {/* Header section */}
       {/* <div className="px-3 py-2 flex items-center gap-2">
         <div className="bg-neutral-800 rounded-md p-1.5">

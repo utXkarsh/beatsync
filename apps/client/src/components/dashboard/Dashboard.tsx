@@ -13,25 +13,26 @@ export const Dashboard = () => {
   const isReady = isSynced && !isLoadingAudio;
 
   return (
-    <div className="w-full h-screen flex flex-col text-white bg-neutral-950">
+    <div className="w-full h-screen flex flex-col text-white bg-neutral-950 overflow-hidden">
       {/* Top sync status bar */}
       <TopBar />
 
       {isReady && (
         <motion.div
-          className="w-full h-full flex flex-col bg-neutral-950 text-white"
+          className="w-full flex flex-1 flex-col bg-neutral-950 text-white overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
           {/* Main content area with sidebars */}
           <div className="flex flex-1 overflow-hidden">
-            {/* Left sidebar */}
-            <Left />
-            {/* Main content */}
+            {/* Left sidebar: Hidden on small screens, shown on medium and up */}
+            <Left className="hidden md:flex" />
+            {/* Main content: Takes full width on small screens */}
             <Main />
-            {/* Right sidebar */}
-            <Right />
+            {/* Right sidebar: Hidden on small screens, shown on medium and up */}
+            {/* Consider if Right sidebar is needed or should be lg:flex */}
+            <Right className="hidden md:flex" />
           </div>
           {/* Player fixed at bottom */}
           <Bottom />

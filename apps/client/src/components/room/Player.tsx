@@ -117,26 +117,26 @@ export const Player = () => {
             className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
             onClick={handlePlay}
           >
-            <Shuffle className="w-4 h-4" />
+            <Shuffle className="w-6 h-6 md:w-4 md:h-4" />
           </button>
           <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
-            <SkipBack className="w-5 h-5 fill-current" />
+            <SkipBack className="w-7 h-7 md:w-5 md:h-5 fill-current" />
           </button>
           <button
-            className="bg-white text-black rounded-full p-2 hover:scale-105 transition-transform cursor-pointer duration-200 focus:outline-none"
+            className="bg-white text-black rounded-full p-3 md:p-2 hover:scale-105 transition-transform cursor-pointer duration-200 focus:outline-none"
             onClick={handlePlay}
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4 fill-current stroke-1" />
+              <Pause className="w-5 h-5 md:w-4 md:h-4 fill-current stroke-1" />
             ) : (
-              <Play className="w-4 h-4 fill-current" />
+              <Play className="w-5 h-5 md:w-4 md:h-4 fill-current" />
             )}
           </button>
           <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
-            <SkipForward className="w-5 h-5 fill-current" />
+            <SkipForward className="w-7 h-7 md:w-5 md:h-5 fill-current" />
           </button>
           <button className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200">
-            <Repeat className="w-4 h-4" />
+            <Repeat className="w-6 h-6 md:w-4 md:h-4" />
           </button>
         </div>
         <TooltipProvider>
