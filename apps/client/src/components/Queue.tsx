@@ -1,7 +1,13 @@
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LocalAudioSource } from "@/lib/localTypes";
 import { cn, formatTime } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
-import { Pause, Play } from "lucide-react";
+import { MoreHorizontal, Pause, Play, UploadCloud } from "lucide-react";
 
 export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
   const audioSources = useGlobalStore((state) => state.audioSources);
@@ -13,8 +19,8 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
   const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
   const broadcastPause = useGlobalStore((state) => state.broadcastPause);
   const isPlaying = useGlobalStore((state) => state.isPlaying);
+  const reuploadAudio = useGlobalStore((state) => state.reuploadAudio);
 
-  // Handle click on an item - select it and start playing
   const handleItemClick = (source: LocalAudioSource) => {
     if (source.id === selectedAudioId) {
       if (isPlaying) {
@@ -92,9 +98,36 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                   </div>
                 </div>
 
-                {/* Duration */}
-                <div className="ml-4 text-xs text-neutral-500 select-none">
-                  {formatTime(source.audioBuffer.duration)}
+                {/* Duration & Optional Re-upload Menu */}
+                <div className="ml-4 flex items-center gap-2">
+                  <div className="text-xs text-neutral-500 select-none">
+                    {formatTime(source.audioBuffer.duration)}
+                  </div>
+
+                  {/* Dropdown for re-uploading - Always shown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button className="p-1 rounded-full text-neutral-500 hover:text-white transition-colors hover:scale-110 duration-150 focus:outline-none focus:ring-1 focus:ring-neutral-500">
+                        <MoreHorizontal className="size-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      side="top"
+                      align="center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenuItem
+                        onSelect={() => reuploadAudio(source.id, source.name)}
+                        className="flex items-center gap-2 cursor-pointer text-sm"
+                      >
+                        <UploadCloud className="size-3.5 text-neutral-400" />
+                        <span>Reupload to room</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             );
