@@ -1,9 +1,8 @@
 import { GetAudioSchema } from "@beatsync/shared";
 import { Server } from "bun";
 import * as path from "path";
+import { AUDIO_DIR } from "../config";
 import { errorResponse } from "../utils/responses";
-
-const AUDIO_DIR = path.join(process.cwd(), "uploads", "audio");
 
 export const handleGetAudio = async (req: Request, server: Server) => {
   try {
@@ -30,14 +29,18 @@ export const handleGetAudio = async (req: Request, server: Server) => {
     }
 
     const { id } = parseResult.data;
-    const audioPath = path.join(AUDIO_DIR, id);
 
-    // Check if file exists
+    // Create a BunFile reference to the audio file
+    // The id already contains the room-specific path
+    const audioPath = path.join(AUDIO_DIR, id);
     const file = Bun.file(audioPath);
+
+    // Check if file exists using Bun.file's exists() method
     if (!(await file.exists())) {
       return errorResponse("Audio file not found", 404);
     }
 
+    // Return the file directly as the response body
     return new Response(file, {
       headers: {
         "Content-Type": "audio/mpeg",

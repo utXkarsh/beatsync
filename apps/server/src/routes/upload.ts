@@ -1,10 +1,10 @@
 import { Server } from "bun";
 
 import { UploadAudioSchema } from "@beatsync/shared";
+import { mkdir } from "node:fs/promises";
 import * as path from "path";
+import { AUDIO_DIR } from "../config";
 import { errorResponse, jsonResponse, sendBroadcast } from "../utils/responses";
-
-const AUDIO_DIR = path.join(process.cwd(), "uploads", "audio");
 
 export const handleUpload = async (req: Request, server: Server) => {
   try {
@@ -32,13 +32,21 @@ export const handleUpload = async (req: Request, server: Server) => {
 
     const { name, audioData, roomId } = parseResult.data;
 
-    // Generate unique filename with UUID and prepend room ID
+    // Create room-specific directory if it doesn't exist
+    const roomDir = path.join(AUDIO_DIR, `room-${roomId}`);
+    await mkdir(roomDir, { recursive: true });
+
+    // Generate unique filename with timestamp
     const timestamp = Date.now();
     const ext = path.extname(name) || ".mp3"; // Preserve original extension or default to mp3
-    const serverFilename = `room-${roomId}_${timestamp}${ext}`;
-    const filePath = path.join(AUDIO_DIR, serverFilename);
+    const filename = `${timestamp}${ext}`;
 
-    // Decode base64 audio data and write to file
+    // The ID that will be used for retrieving the file (includes room path)
+    const fileId = path.join(`room-${roomId}`, filename);
+    // Full path to the file
+    const filePath = path.join(AUDIO_DIR, fileId);
+
+    // Decode base64 audio data and write to file using Bun.write
     const audioBuffer = Buffer.from(audioData, "base64");
     await Bun.write(filePath, audioBuffer);
 
@@ -49,7 +57,7 @@ export const handleUpload = async (req: Request, server: Server) => {
         type: "ROOM_EVENT",
         event: {
           type: "NEW_AUDIO_SOURCE",
-          id: serverFilename,
+          id: fileId,
           title: name, // Keep original name for display
           duration: 1, // TODO: lol calculate this later properly
           addedAt: Date.now(),

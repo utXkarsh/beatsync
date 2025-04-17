@@ -5,12 +5,21 @@ import {
   WSBroadcastType,
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
+import { existsSync } from "node:fs";
+import { readdir } from "node:fs/promises";
+import * as path from "path";
+import {
+  AUDIO_DIR,
+  AUDIO_HIGH,
+  AUDIO_LOW,
+  SCHEDULE_TIME_MS,
+  VOLUME_DOWN_RAMP_TIME,
+  VOLUME_UP_RAMP_TIME,
+} from "./config";
 import { gainFromDistanceExp } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
 import { WSData } from "./utils/websocket";
-
-export const SCHEDULE_TIME_MS = 750;
 
 interface RoomData {
   clients: Map<string, ClientType>;
@@ -18,11 +27,6 @@ interface RoomData {
   intervalId?: NodeJS.Timeout; // https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
   listeningSource: PositionType;
 }
-
-const AUDIO_LOW = 0.15;
-const AUDIO_HIGH = 1.0;
-const volumeUpRampTime = 0.5;
-const volumeDownRampTime = 0.5;
 
 class RoomManager {
   rooms = new Map<string, RoomData>();
@@ -60,10 +64,48 @@ class RoomManager {
     room.clients.delete(clientId);
     if (room.clients.size === 0) {
       this.stopInterval(roomId);
+      this.cleanupRoomFiles(roomId);
       this.rooms.delete(roomId);
     }
 
     positionClientsInCircle(room.clients);
+  }
+
+  // Clean up room files when all clients have left
+  async cleanupRoomFiles(roomId: string) {
+    try {
+      const roomDirPath = path.join(AUDIO_DIR, `room-${roomId}`);
+
+      // Check if the directory exists before attempting to delete files
+      // Using Node.js fs.existsSync instead of Bun.file().exists() for directories
+      if (existsSync(roomDirPath)) {
+        // List all files in the directory
+        const files = await readdir(roomDirPath);
+
+        console.log(
+          `Found room directory for ${roomId}, cleaning up ${files.length} files...`
+        );
+
+        if (files.length > 0) {
+          // Delete each file in the directory
+          for (const file of files) {
+            const filePath = path.join(roomDirPath, file);
+            await Bun.file(filePath).delete();
+          }
+
+          // Remove the directory using rm -rf
+          await Bun.spawn(["rmdir", roomDirPath]).exited;
+
+          console.log(`Cleaned up audio files for room ${roomId}`);
+        } else {
+          console.log(`No audio files found in room directory ${roomId}`);
+        }
+      } else {
+        console.log(`No audio directory found for room ${roomId}`);
+      }
+    } catch (error) {
+      console.error(`Error cleaning up room files for ${roomId}:`, error);
+    }
   }
 
   getRoomState(roomId: string): RoomData | undefined {
@@ -146,7 +188,9 @@ class RoomManager {
                 client.clientId,
                 {
                   gain: isFocused ? AUDIO_HIGH : AUDIO_LOW,
-                  rampTime: isFocused ? volumeUpRampTime : volumeDownRampTime,
+                  rampTime: isFocused
+                    ? VOLUME_UP_RAMP_TIME
+                    : VOLUME_DOWN_RAMP_TIME,
                 },
               ];
             })

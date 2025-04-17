@@ -4,7 +4,8 @@ import {
   WSRequestSchema,
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
-import { roomManager, SCHEDULE_TIME_MS } from "../roomManager";
+import { SCHEDULE_TIME_MS } from "../config";
+import { roomManager } from "../roomManager";
 import { sendBroadcast, sendUnicast } from "../utils/responses";
 import { WSData } from "../utils/websocket";
 
