@@ -93,8 +93,10 @@ export const Player = () => {
   }, [isPlaying, broadcastPause, broadcastPlay, sliderPosition]);
 
   const handleSkipBack = useCallback(() => {
-    skipToPreviousTrack();
-  }, [skipToPreviousTrack]);
+    if (!isShuffled) {
+      skipToPreviousTrack();
+    }
+  }, [skipToPreviousTrack, isShuffled]);
 
   const handleSkipForward = useCallback(() => {
     skipToNextTrack();
@@ -152,9 +154,9 @@ export const Player = () => {
             </div>
           </button>
           <button
-            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
+            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSkipBack}
-            disabled={audioSources.length <= 1}
+            disabled={isShuffled || audioSources.length <= 1}
           >
             <SkipBack className="w-7 h-7 md:w-5 md:h-5 fill-current" />
           </button>
@@ -169,7 +171,7 @@ export const Player = () => {
             )}
           </button>
           <button
-            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200"
+            className="text-gray-400 hover:text-white transition-colors cursor-pointer hover:scale-105 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSkipForward}
             disabled={audioSources.length <= 1}
           >
