@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -61,115 +60,179 @@ export const SyncProgress = ({
   // Normalize progress to ensure it's between 0 and 1
   const normalizedProgress = Math.min(Math.max(animatedProgress, 0), 1);
 
-  // Calculate the stroke-dashoffset based on progress
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
   if (isSyncComplete) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-black">
-        <motion.div
-          className="flex flex-col items-center justify-center p-8 bg-yellow-300 border-2 border-black rounded-none max-w-md w-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h2 className="text-2xl font-mono uppercase tracking-tight mb-4 text-black">
-            BEATSYNC READY
-          </h2>
-          <div className="w-full h-px bg-black mb-4"></div>
-          <p className="font-mono text-black mb-8 text-center uppercase text-sm">
-            SYNC COMPLETE — SYSTEM OPERATIONAL
-          </p>
-          <motion.button
-            className="px-8 py-3 bg-black text-yellow-300 rounded-none font-mono uppercase text-sm tracking-wider border-2 border-black cursor-pointer"
-            whileHover={{ backgroundColor: "#333", color: "#FFE600" }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setIsLoadingAudio(false)}
-          >
-            START SYSTEM
-          </motion.button>
-          <div className="grid grid-cols-4 gap-2 mt-6 w-full">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-2 bg-black"></div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-black">
       <motion.div
-        className="flex flex-col items-center justify-center p-8 bg-yellow-300 border-2 border-black rounded-none max-w-md w-full"
+        className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-neutral-950 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="text-2xl font-mono uppercase tracking-tight mb-4 text-black">
-          BEATSYNC CALIBRATING
-        </h2>
-        <div className="w-full h-px bg-black mb-4"></div>
+        <div className="w-full max-w-md px-1">
+          <motion.div
+            className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <motion.div
+              className="w-12 h-12 flex items-center justify-center mb-3"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-primary"
+              >
+                <motion.path
+                  d="M20 6L9 17L4 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                />
+              </svg>
+            </motion.div>
 
-        {/* Progress circle */}
-        <div className="relative w-32 h-32 mb-4">
-          <svg className="w-full h-full" viewBox="0 0 100 100">
-            {/* Background circle */}
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke="#000"
-              strokeWidth="4"
-            />
+            <motion.h2
+              className="text-base font-medium tracking-tight mb-1 text-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              Synchronization Complete
+            </motion.h2>
 
-            {/* Progress circle */}
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke="#000"
-              strokeWidth="8"
-              strokeLinecap="butt"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - normalizedProgress)}
-              style={{
-                transformOrigin: "center",
-                transform: "rotate(-90deg)",
+            <motion.p
+              className="text-neutral-400 mb-5 text-center text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.25 }}
+            >
+              Your device is now synchronized with this room.
+            </motion.p>
+
+            <motion.button
+              className="px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer w-full hover:shadow-lg hover:shadow-zinc-50/50 transition-shadow duration-500"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              whileHover={{
+                scale: 1.015,
               }}
-            />
-          </svg>
-
-          {/* Progress text */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="font-mono text-xl font-bold text-black">
-              {`${Math.round(normalizedProgress * 100)}%`}
-            </div>
-          </div>
-        </div>
-
-        <p className="font-mono text-black mb-4 text-center uppercase text-sm">
-          {message}
-        </p>
-
-        {/* <p className="font-mono text-black mb-6 text-center text-xs">
-          {subMessage}
-        </p> */}
-
-        <div className="grid grid-cols-4 gap-2 mt-2 w-full">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className={cn(
-                "h-2",
-                i <= normalizedProgress * 4 ? "bg-black" : "bg-zinc-700"
-              )}
-            ></div>
-          ))}
+              transition={{ duration: 0.3 }}
+              onClick={() => setIsLoadingAudio(false)}
+            >
+              Start System
+            </motion.button>
+          </motion.div>
         </div>
       </motion.div>
-    </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-neutral-950 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="w-full max-w-md px-1">
+        <motion.div
+          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <div className="w-12 h-12 mb-3 relative">
+            <svg className="w-full h-full" viewBox="0 0 100 100">
+              {/* Background circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="6"
+                className="text-neutral-800"
+              />
+
+              {/* Progress circle */}
+              <motion.circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="6"
+                strokeLinecap="round"
+                className="text-white"
+                strokeDasharray={2 * Math.PI * 42}
+                initial={{
+                  pathLength: 0,
+                  strokeDashoffset: 2 * Math.PI * 42,
+                }}
+                animate={{
+                  pathLength: normalizedProgress,
+                  strokeDashoffset: 2 * Math.PI * 42 * (1 - normalizedProgress),
+                }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                style={{
+                  transformOrigin: "center",
+                  transform: "rotate(-90deg)",
+                }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <motion.div
+                className="text-xs font-medium text-white"
+                key={Math.round(normalizedProgress * 100)}
+                initial={{ opacity: 0.8 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {`${Math.round(normalizedProgress * 100)}%`}
+              </motion.div>
+            </div>
+          </div>
+
+          <motion.h2
+            className="text-base font-medium tracking-tight mb-1 text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            Calibrating
+          </motion.h2>
+
+          <motion.p
+            className="text-neutral-400 mb-5 text-center text-xs"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+          >
+            {message}
+          </motion.p>
+
+          {/* Progress bar */}
+          <div className="w-full h-[4px] bg-neutral-800 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-neutral-300"
+              initial={{ width: "0%" }}
+              animate={{ width: `${normalizedProgress * 100}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
   );
 };

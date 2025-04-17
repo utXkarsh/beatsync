@@ -147,7 +147,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-proxima-nova);
+  --font-sans: var(--font-inter);
   --font-suisse: var(--font-suisse-intl);
   --font-circular: var(--font-circular-std);
   --font-sofia: var(--font-sofia-pro);
