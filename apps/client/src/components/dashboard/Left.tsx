@@ -38,7 +38,7 @@ export const Left = () => {
       {/* Room info section */}
       <div className="px-4 space-y-3 py-3">
         <h2 className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-          Room Information
+          Session Info
         </h2>
 
         <div className="space-y-2">

@@ -4,7 +4,6 @@ import { ClientType } from "@beatsync/shared";
 import { useEffect, useState } from "react";
 import { Dashboard } from "./dashboard/Dashboard";
 import { SpatialAudioBackground } from "./room/SpatialAudioBackground";
-import { SyncStatus } from "./room/SyncStatus";
 import { WebSocketManager } from "./room/WebSocketManager";
 
 // Main component has been refactored into smaller components
@@ -12,7 +11,6 @@ import { WebSocketManager } from "./room/WebSocketManager";
 export const NewSyncer = () => {
   // Get sync state from store
   const isSynced = useGlobalStore((state) => state.isSynced);
-  const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
 
   // Transition state for delayed showing of main UI
   const [showingSyncScreen, setShowingSyncScreen] = useState(true);
@@ -38,11 +36,7 @@ export const NewSyncer = () => {
       {/* Spatial audio background effects */}
       <SpatialAudioBackground />
 
-      {/* Sync Status overlay */}
-      <SyncStatus />
-
-      {/* Main dashboard only visible when synced and not loading */}
-      {isSynced && !isLoadingAudio && <Dashboard />}
+      <Dashboard />
     </>
   );
 };
