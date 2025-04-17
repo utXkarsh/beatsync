@@ -62,6 +62,8 @@ class RoomManager {
       this.stopInterval(roomId);
       this.rooms.delete(roomId);
     }
+
+    positionClientsInCircle(room.clients);
   }
 
   getRoomState(roomId: string): RoomData | undefined {

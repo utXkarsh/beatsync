@@ -11,7 +11,12 @@ export function positionClientsInCircle(
 
   // Early return for single client case
   if (clientCount === 1) {
-    // By default, clients are added centered
+    // Center the single client explicitly
+    const client = clients.values().next().value!;
+    client.position = {
+      x: GRID.ORIGIN_X,
+      y: GRID.ORIGIN_Y,
+    };
     return;
   }
 
