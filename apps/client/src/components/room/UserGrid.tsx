@@ -76,7 +76,7 @@ const ClientAvatar = memo<ClientAvatarProps>(
                 <AvatarImage />
                 <AvatarFallback
                   className={
-                    isCurrentUser ? "bg-primary-500" : "bg-neutral-600"
+                    isCurrentUser ? "bg-primary-600" : "bg-neutral-600"
                   }
                 >
                   {client.username.slice(0, 2).toUpperCase()}
@@ -149,7 +149,7 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
         <Avatar className="h-8 w-8">
           <AvatarImage />
           <AvatarFallback
-            className={isCurrentUser ? "bg-primary-500" : "bg-neutral-600"}
+            className={isCurrentUser ? "bg-primary-600" : "bg-neutral-600"}
           >
             {client.username.slice(0, 2).toUpperCase()}
           </AvatarFallback>
@@ -402,10 +402,9 @@ export const UserGrid = () => {
     () =>
       clients.map((client) => {
         const user = spatialConfig?.gains[client.clientId];
-        const isActive = user?.gain === 1;
         const isFocused = user?.gain === 0; // The focused/active device in spatial audio
         const isCurrentUser = client.clientId === userId;
-        return { client, isActive, isFocused, isCurrentUser };
+        return { client, isFocused, isCurrentUser };
       }),
     [clients, spatialConfig?.gains, userId]
   );
@@ -434,18 +433,16 @@ export const UserGrid = () => {
               onMouseMove={handleSourceMouseMove}
             >
               <TooltipProvider>
-                {clientsWithData.map(
-                  ({ client, isActive, isFocused, isCurrentUser }) => (
-                    <ClientAvatar
-                      key={client.clientId}
-                      client={client}
-                      isActive={isActive}
-                      isFocused={isFocused}
-                      isCurrentUser={isCurrentUser}
-                      animationSyncKey={animationSyncKey}
-                    />
-                  )
-                )}
+                {clientsWithData.map(({ client, isFocused, isCurrentUser }) => (
+                  <ClientAvatar
+                    isActive={false}
+                    key={client.clientId}
+                    client={client}
+                    isFocused={isFocused}
+                    isCurrentUser={isCurrentUser}
+                    animationSyncKey={animationSyncKey}
+                  />
+                ))}
 
                 {/* Listening Source Indicator with drag capability */}
                 <Tooltip>
@@ -497,17 +494,15 @@ export const UserGrid = () => {
 
             {/* List of connected users - Constrained height */}
             <div className="space-y-1 max-h-24 md:max-h-32 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
-              {clientsWithData.map(
-                ({ client, isActive, isFocused, isCurrentUser }) => (
-                  <ConnectedUserItem
-                    key={client.clientId}
-                    client={client}
-                    isActive={isActive}
-                    isFocused={isFocused}
-                    isCurrentUser={isCurrentUser}
-                  />
-                )
-              )}
+              {clientsWithData.map(({ client, isFocused, isCurrentUser }) => (
+                <ConnectedUserItem
+                  key={client.clientId}
+                  client={client}
+                  isActive={false}
+                  isFocused={isFocused}
+                  isCurrentUser={isCurrentUser}
+                />
+              ))}
             </div>
           </>
         )}
