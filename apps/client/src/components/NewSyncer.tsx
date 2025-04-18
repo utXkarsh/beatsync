@@ -1,7 +1,7 @@
 "use client";
 import { generateName } from "@/lib/randomNames";
 import { useRoomStore } from "@/store/room";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useEffect } from "react";
 import { Dashboard } from "./dashboard/Dashboard";
 import { WebSocketManager } from "./room/WebSocketManager";

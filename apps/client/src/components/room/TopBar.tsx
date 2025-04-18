@@ -1,7 +1,7 @@
 "use client";
 import { useGlobalStore } from "@/store/global";
-import { AnimatePresence, motion } from "framer-motion";
 import { Hash, Users } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { SyncProgress } from "../ui/SyncProgress";
 

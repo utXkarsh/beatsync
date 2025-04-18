@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGlobalStore } from "@/store/global";
-import { AnimatePresence, motion } from "framer-motion";
 import { Library, ListMusic, Rotate3D } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { TopBar } from "../room/TopBar";
 import { Bottom } from "./Bottom";
 import { Left } from "./Left";

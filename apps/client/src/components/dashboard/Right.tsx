@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { Info } from "lucide-react";
+import { motion } from "motion/react";
 import { UserGrid } from "../room/UserGrid";
 
 interface RightProps {

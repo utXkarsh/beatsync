@@ -1,7 +1,7 @@
 "use client";
 
 import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 interface SyncProgressProps {
