@@ -139,9 +139,8 @@ export const SyncProgress = ({
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              For best experience, use a laptop with Chrome browser. <br />
-              Only use the native device speakers, and make sure silent mode is
-              off.
+              For best experience, use a laptop with Chrome browser. Only use
+              the native device speakers, and make sure silent mode is off.
             </motion.p>
           </motion.div>
         </div>
