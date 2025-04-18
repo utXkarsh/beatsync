@@ -412,7 +412,7 @@ export const UserGrid = () => {
   }, [isDraggingListeningSource, setIsDraggingListeningSource]);
 
   // New state for grid enabled/disabled toggle
-  const [isGridEnabled, setIsGridEnabled] = useState(true);
+  const [isGridEnabled, setIsGridEnabled] = useState(false);
 
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(() => {
