@@ -144,7 +144,7 @@ export const Player = () => {
             <div className="relative">
               <Shuffle
                 className={cn(
-                  "w-6 h-6 md:w-4 md:h-4 relative",
+                  "size-4 relative",
                   isShuffled ? "text-primary-400" : "text-current"
                 )}
               />
