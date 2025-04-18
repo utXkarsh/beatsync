@@ -69,7 +69,7 @@ interface GlobalState {
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
   startSpatialAudio: () => void;
-  stopSpatialAudio: () => void;
+  sendStopSpatialAudio: () => void;
   spatialConfig?: SpatialConfigType;
   setSpatialConfig: (config: SpatialConfigType) => void;
   updateListeningSource: (position: PositionType) => void;
@@ -77,7 +77,9 @@ interface GlobalState {
   setListeningSourcePosition: (position: PositionType) => void;
   isDraggingListeningSource: boolean;
   setIsDraggingListeningSource: (isDragging: boolean) => void;
-
+  isSpatialAudioEnabled: boolean;
+  setIsSpatialAudioEnabled: (isEnabled: boolean) => void;
+  processStopSpatialAudio: () => void;
   // Connected clients
   connectedClients: ClientType[];
   setConnectedClients: (clients: ClientType[]) => void;
@@ -471,7 +473,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
-    stopSpatialAudio: () => {
+    sendStopSpatialAudio: () => {
       const state = get();
       const { socket } = getSocket(state);
 
@@ -481,11 +483,16 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           type: ClientActionEnum.enum.STOP_SPATIAL_AUDIO,
         },
       });
+    },
 
-      // Reset gain node to 0.8
+    processStopSpatialAudio: () => {
+      const state = get();
+
+      // Reset gain node to 1
       const { gainNode } = getAudioPlayer(state);
       gainNode.gain.value = 1;
 
+      set({ isSpatialAudioEnabled: false });
       set({ spatialConfig: undefined });
     },
 
@@ -801,5 +808,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     // Shuffle state
     isShuffled: false,
     toggleShuffle: () => set((state) => ({ isShuffled: !state.isShuffled })),
+
+    isSpatialAudioEnabled: false,
+    setIsSpatialAudioEnabled: (isEnabled) =>
+      set({ isSpatialAudioEnabled: isEnabled }),
   };
 });

@@ -62,6 +62,15 @@ export const WebSocketManager = ({
   const setConnectedClients = useGlobalStore(
     (state) => state.setConnectedClients
   );
+  const isSpatialAudioEnabled = useGlobalStore(
+    (state) => state.isSpatialAudioEnabled
+  );
+  const setIsSpatialAudioEnabled = useGlobalStore(
+    (state) => state.setIsSpatialAudioEnabled
+  );
+  const processStopSpatialAudio = useGlobalStore(
+    (state) => state.processStopSpatialAudio
+  );
 
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
@@ -165,6 +174,11 @@ export const WebSocketManager = ({
           });
         } else if (scheduledAction.type === "SPATIAL_CONFIG") {
           processSpatialConfig(scheduledAction);
+          if (!isSpatialAudioEnabled) {
+            setIsSpatialAudioEnabled(true);
+          }
+        } else if (scheduledAction.type === "STOP_SPATIAL_AUDIO") {
+          processStopSpatialAudio();
         }
       } else if (response.type === "SET_CLIENT_ID") {
         setUserId(response.clientId);

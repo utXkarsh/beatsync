@@ -218,7 +218,9 @@ export const UserGrid = () => {
   const updateListeningSourceSocket = useGlobalStore(
     (state) => state.updateListeningSource
   );
-  const stopSpatialAudio = useGlobalStore((state) => state.stopSpatialAudio);
+  const stopSpatialAudio = useGlobalStore(
+    (state) => state.sendStopSpatialAudio
+  );
 
   // Use clients from global store
   const clients = useGlobalStore((state) => state.connectedClients);
@@ -302,7 +304,11 @@ export const UserGrid = () => {
 
   const handleSourceMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isDraggingListeningSource || !gridRef.current || !isGridEnabled)
+      if (
+        !isDraggingListeningSource ||
+        !gridRef.current ||
+        !isSpatialAudioEnabled
+      )
         return;
 
       // Cancel any existing animation frame to prevent queuing
@@ -412,7 +418,12 @@ export const UserGrid = () => {
   }, [isDraggingListeningSource, setIsDraggingListeningSource]);
 
   // New state for grid enabled/disabled toggle
-  const [isGridEnabled, setIsGridEnabled] = useState(false);
+  const isSpatialAudioEnabled = useGlobalStore(
+    (state) => state.isSpatialAudioEnabled
+  );
+  const setIsSpatialAudioEnabled = useGlobalStore(
+    (state) => state.setIsSpatialAudioEnabled
+  );
 
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(() => {
@@ -441,9 +452,9 @@ export const UserGrid = () => {
         <div className="flex items-center gap-2">
           <Badge variant="outline">{clients.length}</Badge>
           <Switch
-            checked={isGridEnabled}
+            checked={isSpatialAudioEnabled}
             onCheckedChange={(checked) => {
-              setIsGridEnabled(checked);
+              setIsSpatialAudioEnabled(checked);
               if (checked) {
                 // When turning on, send current listening source position
                 updateListeningSourceSocket(listeningSource);
@@ -467,7 +478,7 @@ export const UserGrid = () => {
               ref={gridRef}
               className={cn(
                 "relative w-full aspect-square rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none",
-                isGridEnabled ? "bg-muted/30" : "bg-muted/10 opacity-75"
+                isSpatialAudioEnabled ? "bg-muted/30" : "bg-muted/10 opacity-75"
               )}
               onMouseMove={handleSourceMouseMove}
             >
@@ -480,7 +491,7 @@ export const UserGrid = () => {
                     isFocused={isFocused}
                     isCurrentUser={isCurrentUser}
                     animationSyncKey={animationSyncKey}
-                    isGridEnabled={isGridEnabled}
+                    isGridEnabled={isSpatialAudioEnabled}
                   />
                 ))}
 
@@ -493,13 +504,13 @@ export const UserGrid = () => {
                         left: `${listeningSource.x}%`,
                         top: `${listeningSource.y}%`,
                         transform: "translate(-50%, -50%)",
-                        opacity: isGridEnabled ? 1 : 0.7,
+                        opacity: isSpatialAudioEnabled ? 1 : 0.7,
                       }}
                       {...(!isDraggingListeningSource && {
                         animate: {
                           left: `${listeningSource.x}%`,
                           top: `${listeningSource.y}%`,
-                          opacity: isGridEnabled ? 1 : 0.7,
+                          opacity: isSpatialAudioEnabled ? 1 : 0.7,
                         },
                         transition: {
                           type: "tween",
@@ -514,7 +525,7 @@ export const UserGrid = () => {
                     >
                       <div className="relative flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-primary-400/20 p-1">
                         <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-                          {isGridEnabled && (
+                          {isSpatialAudioEnabled && (
                             <span
                               key={`source-ping-${animationSyncKey}`}
                               className="absolute inline-flex h-full w-full rounded-full bg-primary-200 opacity-75 animate-ping"

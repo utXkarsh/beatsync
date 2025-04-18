@@ -99,6 +99,18 @@ export const handleMessage = async (
     } else if (
       parsedMessage.type === ClientActionEnum.enum.STOP_SPATIAL_AUDIO
     ) {
+      // This important for
+      const message: WSBroadcastType = {
+        type: "SCHEDULED_ACTION",
+        scheduledAction: {
+          type: "STOP_SPATIAL_AUDIO",
+        },
+        serverTimeToExecute: Date.now() + 0,
+      };
+
+      // Reset all gains:
+      sendBroadcast({ server, roomId, message });
+
       // Stop the spatial audio interval if it exists
       const room = roomManager.getRoomState(roomId);
       if (!room || !room.intervalId) return; // do nothing if no room or no interval exists

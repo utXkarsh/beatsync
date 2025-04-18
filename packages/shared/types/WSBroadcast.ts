@@ -50,6 +50,11 @@ const SpatialConfigSchema = z.object({
 
 export type SpatialConfigType = z.infer<typeof SpatialConfigSchema>;
 
+const StopSpatialAudioSchema = z.object({
+  type: z.literal("STOP_SPATIAL_AUDIO"),
+});
+export type StopSpatialAudioType = z.infer<typeof StopSpatialAudioSchema>;
+
 const ScheduledActionSchema = z.object({
   type: z.literal("SCHEDULED_ACTION"),
   serverTimeToExecute: z.number(),
@@ -57,6 +62,7 @@ const ScheduledActionSchema = z.object({
     PlayActionSchema,
     PauseActionSchema,
     SpatialConfigSchema,
+    StopSpatialAudioSchema,
   ]),
 });
 

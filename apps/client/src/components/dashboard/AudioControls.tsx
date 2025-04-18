@@ -8,7 +8,9 @@ import { Button } from "../ui/button";
 
 export const AudioControls = () => {
   const startSpatialAudio = useGlobalStore((state) => state.startSpatialAudio);
-  const stopSpatialAudio = useGlobalStore((state) => state.stopSpatialAudio);
+  const stopSpatialAudio = useGlobalStore(
+    (state) => state.sendStopSpatialAudio
+  );
 
   const handleStartSpatialAudio = () => {
     startSpatialAudio();
