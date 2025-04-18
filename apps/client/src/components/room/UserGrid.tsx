@@ -3,11 +3,12 @@ import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { ClientType, GRID } from "@beatsync/shared";
+import { motion } from "framer-motion";
 import { HeadphonesIcon, Rotate3D } from "lucide-react";
-import { motion } from "motion/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
+import { Switch } from "../ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -25,6 +26,7 @@ interface ClientAvatarProps {
   isFocused: boolean;
   isCurrentUser: boolean;
   animationSyncKey: number;
+  isGridEnabled: boolean;
 }
 
 interface ConnectedUserItemProps {
@@ -36,7 +38,14 @@ interface ConnectedUserItemProps {
 
 // Separate Client Avatar component for better performance
 const ClientAvatar = memo<ClientAvatarProps>(
-  ({ client, isActive, isFocused, isCurrentUser, animationSyncKey }) => {
+  ({
+    client,
+    isActive,
+    isFocused,
+    isCurrentUser,
+    animationSyncKey,
+    isGridEnabled,
+  }) => {
     return (
       <Tooltip key={client.clientId}>
         <TooltipTrigger asChild>
@@ -48,10 +57,11 @@ const ClientAvatar = memo<ClientAvatarProps>(
             style={{
               left: `${client.position.x}%`,
               top: `${client.position.y}%`,
+              opacity: isGridEnabled ? 1 : 0.5,
             }}
             initial={{ opacity: 0.8 }}
             animate={{
-              opacity: 1,
+              opacity: isGridEnabled ? 1 : 0.5,
               scale: isFocused ? 1.2 : isActive ? 1.1 : 1,
             }}
             transition={{ duration: 0.3 }}
@@ -88,20 +98,22 @@ const ClientAvatar = memo<ClientAvatarProps>(
               {isActive && !isFocused && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-secondary" />
               )}
-              {/* Add ping effect to all clients */}
-              <span
-                key={`ping-${animationSyncKey}`}
-                className={cn(
-                  "absolute inset-0 rounded-full opacity-75 animate-ping",
-                  isFocused
-                    ? "bg-emerald-400/40"
-                    : isActive
-                    ? "bg-indigo-500/40"
-                    : isCurrentUser
-                    ? "bg-primary-400/40"
-                    : "bg-neutral-600"
-                )}
-              ></span>
+              {/* Add ping effect to all clients but only when the grid is enabled */}
+              {isGridEnabled && (
+                <span
+                  key={`ping-${animationSyncKey}`}
+                  className={cn(
+                    "absolute inset-0 rounded-full opacity-75 animate-ping",
+                    isFocused
+                      ? "bg-emerald-400/40"
+                      : isActive
+                      ? "bg-indigo-500/40"
+                      : isCurrentUser
+                      ? "bg-primary-400/40"
+                      : "bg-neutral-600"
+                  )}
+                ></span>
+              )}
             </div>
           </motion.div>
         </TooltipTrigger>
@@ -289,7 +301,8 @@ export const UserGrid = () => {
 
   const handleSourceMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isDraggingListeningSource || !gridRef.current) return;
+      if (!isDraggingListeningSource || !gridRef.current || !isGridEnabled)
+        return;
 
       // Cancel any existing animation frame to prevent queuing
       if (animationFrameRef.current) {
@@ -397,6 +410,9 @@ export const UserGrid = () => {
     };
   }, [isDraggingListeningSource, setIsDraggingListeningSource]);
 
+  // New state for grid enabled/disabled toggle
+  const [isGridEnabled, setIsGridEnabled] = useState(true);
+
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(() => {
     // First sort clients so current user is always first
@@ -419,9 +435,12 @@ export const UserGrid = () => {
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 font-medium">
           <Rotate3D size={18} />
-          <span>Spatial Audio Map</span>
+          <span>Spatial Audio</span>
         </div>
-        <Badge variant="outline">{clients.length}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">{clients.length}</Badge>
+          <Switch checked={isGridEnabled} onCheckedChange={setIsGridEnabled} />
+        </div>
       </div>
 
       <div className="flex-1 px-4 flex flex-col min-h-0 overflow-hidden">
@@ -434,7 +453,10 @@ export const UserGrid = () => {
             {/* 2D Grid Layout */}
             <div
               ref={gridRef}
-              className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none"
+              className={cn(
+                "relative w-full aspect-square rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none",
+                isGridEnabled ? "bg-muted/30" : "bg-muted/10 opacity-75"
+              )}
               onMouseMove={handleSourceMouseMove}
             >
               <TooltipProvider>
@@ -446,6 +468,7 @@ export const UserGrid = () => {
                     isFocused={isFocused}
                     isCurrentUser={isCurrentUser}
                     animationSyncKey={animationSyncKey}
+                    isGridEnabled={isGridEnabled}
                   />
                 ))}
 
@@ -458,11 +481,13 @@ export const UserGrid = () => {
                         left: `${listeningSource.x}%`,
                         top: `${listeningSource.y}%`,
                         transform: "translate(-50%, -50%)",
+                        opacity: isGridEnabled ? 1 : 0.7,
                       }}
                       {...(!isDraggingListeningSource && {
                         animate: {
                           left: `${listeningSource.x}%`,
                           top: `${listeningSource.y}%`,
+                          opacity: isGridEnabled ? 1 : 0.7,
                         },
                         transition: {
                           type: "tween",
@@ -477,10 +502,12 @@ export const UserGrid = () => {
                     >
                       <div className="relative flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-primary-400/20 p-1">
                         <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-                          <span
-                            key={`source-ping-${animationSyncKey}`}
-                            className="absolute inline-flex h-full w-full rounded-full bg-primary-200 opacity-75 animate-ping"
-                          ></span>
+                          {isGridEnabled && (
+                            <span
+                              key={`source-ping-${animationSyncKey}`}
+                              className="absolute inline-flex h-full w-full rounded-full bg-primary-200 opacity-75 animate-ping"
+                            ></span>
+                          )}
                           <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-primary-500"></span>
                         </span>
                         <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-primary-100 opacity-80" />
