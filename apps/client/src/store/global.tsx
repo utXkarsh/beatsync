@@ -375,6 +375,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       audioId: string;
     }) => {
       const state = get();
+      if (state.isLoadingAudio) {
+        console.log("Not playing audio, still loading");
+        // Non-interactive state, can't play audio
+        return;
+      }
+
       const waitTimeSeconds = getWaitTimeSeconds(state, data.targetServerTime);
       console.log(
         `Playing track ${data.audioId} at ${data.trackTimeSeconds} seconds in ${waitTimeSeconds}`
