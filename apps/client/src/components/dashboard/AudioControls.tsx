@@ -31,7 +31,7 @@ export const AudioControls = () => {
           <div className="flex justify-between items-center">
             <div className="text-xs text-neutral-300 flex items-center gap-1.5">
               <RotateCcw className="h-3 w-3 text-primary-500" />
-              <span>Spatial Audio</span>
+              <span>Rotation</span>
             </div>
             <div className="flex gap-2">
               <Button
@@ -46,7 +46,7 @@ export const AudioControls = () => {
                 size="sm"
                 onClick={handleStopSpatialAudio}
               >
-                Stop
+                Reset
               </Button>
             </div>
           </div>

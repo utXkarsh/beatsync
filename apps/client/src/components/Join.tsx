@@ -5,7 +5,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { generateName as generateUsername } from "@/lib/randomNames";
+import { generateName } from "@/lib/randomNames";
 import { validateFullRoomId, validatePartialRoomId } from "@/lib/room";
 import { useRoomStore } from "@/store/room";
 import { motion } from "framer-motion";
@@ -17,34 +17,31 @@ import { toast } from "sonner";
 
 interface JoinFormData {
   roomId: string;
-  username: string;
 }
 
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const setUsername = useRoomStore((state) => state.setUsername);
+  const username = useRoomStore((state) => state.username);
 
   const {
     handleSubmit,
     formState: { errors },
     control,
     setValue,
-    watch,
   } = useForm<JoinFormData>({
     defaultValues: {
       roomId: "",
-      username: "",
     },
   });
 
   useEffect(() => {
     // Set a random username when component mounts
-    setValue("username", generateUsername());
-  }, [setValue]);
+    setUsername(generateName());
+  }, [setValue, setUsername]);
 
   const router = useRouter();
-  const username = watch("username");
 
   const onSubmit = (data: JoinFormData) => {
     setIsJoining(true);
@@ -55,8 +52,10 @@ export const Join = () => {
       return;
     }
 
-    console.log("Joining room with data:", data);
-    setUsername(data.username);
+    console.log("Joining room with data:", {
+      roomId: data.roomId,
+      username,
+    });
     router.push(`/room/${data.roomId}`);
   };
 
@@ -66,7 +65,6 @@ export const Join = () => {
     // Generate a random 6-digit room ID
     const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
 
-    setUsername(username);
     router.push(`/room/${newRoomId}`);
   };
 
@@ -163,7 +161,9 @@ export const Join = () => {
               </div>
               <Button
                 type="button"
-                onClick={() => setValue("username", generateUsername())}
+                onClick={() => {
+                  setUsername(generateName());
+                }}
                 variant="ghost"
                 className="text-xs text-neutral-500 hover:text-neutral-300 ml-2 h-6 px-2"
                 disabled={isJoining || isCreating}
