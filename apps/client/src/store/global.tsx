@@ -131,32 +131,32 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
   {
     name: "Black Coast - TRNDSTTR (Lucian Remix)",
     url: "/trndsttr.mp3",
-    id: "static-0",
+    id: `static-${0}`,
   },
   {
-    name: "Porter Robinson ft. Amy Millan - Divinity (Official Audio)",
-    url: "/Porter Robinson ft. Amy Millan - Divinity (Official Audio).mp3",
-    id: "static-1",
+    name: "STVCKS - Don't Be Scared",
+    url: "/STVCKS - Don't Be Scared.mp3",
+    id: `static-${1}`,
+  },
+  {
+    name: "Porter Robinson ft. Amy Millan - Divinity",
+    url: "/Porter Robinson ft. Amy Millan - Divinity.mp3",
+    id: `static-${2}`,
   },
   {
     name: "INZO x ILLUSIO - Just A Mirage",
     url: "/INZO x ILLUSIO - Just A Mirage.mp3",
-    id: "static-2",
+    id: `static-${3}`,
   },
   {
     name: "DROELOE x San Holo - Lines of the Broken (ft. CUT)",
     url: "/DROELOE x San Holo - Lines of the Broken (ft. CUT).mp3",
-    id: "static-3",
-  },
-  {
-    name: "Snavs - Lust",
-    url: "/Snavs - Lust.mp3",
-    id: "static-4",
+    id: `static-${4}`,
   },
   {
     name: "joyful - chess (slowed)",
     url: "/joyful - chess (slowed).mp3",
-    id: "static-5",
+    id: `static-${5}`,
   },
 ];
 
