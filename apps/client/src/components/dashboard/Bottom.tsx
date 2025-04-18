@@ -24,7 +24,8 @@ export const Bottom = () => {
   }, [getCurrentGainValue]);
 
   // Calculate bar width as percentage (max gain is typically 1)
-  const barWidthPercent = Math.min(100, Math.max(0, gainValue * 100));
+  // Limit to 94% to maintain visible border radius at max gain
+  const barWidthPercent = Math.min(94, Math.max(0, gainValue * 94));
 
   // Determine color based on gain value
   const getBarColor = () => {
@@ -39,7 +40,7 @@ export const Bottom = () => {
       <div className="max-w-3xl mx-auto">
         <Player />
       </div>
-      <div className="absolute bottom-3 right-4 hidden lg:flex items-center gap-2">
+      <div className="absolute bottom-4 right-4 hidden lg:flex items-center gap-2">
         <div className="text-xs font-mono text-neutral-400">
           {gainValue.toFixed(2)}
         </div>
@@ -47,7 +48,7 @@ export const Bottom = () => {
         {/* Visual gain meter */}
         <div className="relative h-4 w-24 bg-neutral-800/60 rounded-full overflow-hidden flex items-center">
           <motion.div
-            className={cn("absolute h-2 rounded-full ml-1 mr-4", getBarColor())}
+            className={cn("absolute h-2 rounded-full ml-1", getBarColor())}
             initial={{ width: 0 }}
             animate={{
               width: `${barWidthPercent}%`,
