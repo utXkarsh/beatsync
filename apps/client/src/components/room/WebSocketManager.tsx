@@ -1,6 +1,7 @@
 "use client";
 import { fetchAudio } from "@/lib/api";
 import { RawAudioSource } from "@/lib/localTypes";
+import { trimFileName } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
@@ -125,7 +126,7 @@ export const WebSocketManager = ({
                   console.log("ArrayBuffer created successfully");
 
                   const audioSource: RawAudioSource = {
-                    name: title,
+                    name: trimFileName(title),
                     audioBuffer: arrayBuffer,
                     id: id, // Include ID in the RawAudioSource
                   };
