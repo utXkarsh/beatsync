@@ -3,7 +3,6 @@
 import { useGlobalStore } from "@/store/global";
 import { RotateCcw } from "lucide-react";
 import { motion } from "motion/react";
-import { toast } from "sonner";
 import { Button } from "../ui/button";
 
 export const AudioControls = () => {
@@ -14,12 +13,10 @@ export const AudioControls = () => {
 
   const handleStartSpatialAudio = () => {
     startSpatialAudio();
-    toast.success("Circular spatial audio started");
   };
 
   const handleStopSpatialAudio = () => {
     stopSpatialAudio();
-    toast.info("Circular spatial audio stopped");
   };
 
   return (

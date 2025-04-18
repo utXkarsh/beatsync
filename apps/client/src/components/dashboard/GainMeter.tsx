@@ -27,12 +27,13 @@ export const GainMeter = () => {
   // Format gain value as percentage
   const gainPercentage = Math.round(gainValue * 100);
 
-  // Get color based on gain value using smooth interpolation
+  // Get color based on gain value using smooth interpolation - neutral gray to green
   const getColor = () => {
-    if (gainValue >= 0.8) return "#10b981"; // emerald-500
-    if (gainValue >= 0.5) return "#3b82f6"; // blue-500
-    if (gainValue >= 0.2) return "#f59e0b"; // amber-500
-    return "#ef4444"; // red-500
+    if (gainValue >= 0.9) return "#22c55e"; // green-500
+    if (gainValue >= 0.7) return "#4ade80"; // green-400
+    if (gainValue >= 0.5) return "#86efac"; // green-300
+    if (gainValue >= 0.3) return "#a3a3a3"; // neutral-400
+    return "#737373"; // neutral-500
   };
 
   return (
