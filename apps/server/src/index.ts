@@ -1,5 +1,6 @@
 import { handleGetAudio } from "./routes/audio";
 import { handleRoot } from "./routes/root";
+import { handleStats } from "./routes/stats";
 import { handleUpload } from "./routes/upload";
 import { handleWebSocketUpgrade } from "./routes/websocket";
 import {
@@ -35,6 +36,9 @@ const server = Bun.serve<WSData, undefined>({
 
         case "/audio":
           return handleGetAudio(req, server);
+
+        case "/stats":
+          return handleStats(req);
 
         default:
           return errorResponse("Not found", 404);

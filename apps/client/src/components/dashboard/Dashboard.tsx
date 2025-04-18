@@ -73,7 +73,7 @@ export const Dashboard = () => {
               </TabsList>
 
               {/* Tab Content Area - Scrolls independently */}
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="sync">
                 <TabsContent
                   key="library"
                   value="library"

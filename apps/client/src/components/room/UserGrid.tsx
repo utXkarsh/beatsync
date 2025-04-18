@@ -74,7 +74,7 @@ const ClientAvatar = memo<ClientAvatarProps>(
             >
               <Avatar
                 className={cn(
-                  "size-12 border-2",
+                  "size-10 border-2",
                   isFocused
                     ? "border-primary"
                     : isActive
@@ -147,7 +147,7 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
         }}
         transition={{ duration: 0.3 }}
       >
-        <Avatar className="h-5 w-5 md:h-6 md:w-6">
+        <Avatar className="h-7 w-7">
           <AvatarImage />
           <AvatarFallback className={generateColor(client.username)}>
             {client.username.slice(0, 2).toUpperCase()}
