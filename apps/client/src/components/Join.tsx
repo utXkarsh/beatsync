@@ -8,8 +8,8 @@ import {
 import { generateName } from "@/lib/randomNames";
 import { validateFullRoomId, validatePartialRoomId } from "@/lib/room";
 import { useRoomStore } from "@/store/room";
+import { AnimatePresence, motion } from "framer-motion";
 import { LogIn, PlusCircle } from "lucide-react";
-import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -157,7 +157,29 @@ export const Join = () => {
             >
               <div className="text-sm text-neutral-400">
                 You&apos;ll join as{" "}
-                <span className="text-primary font-medium">{username}</span>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={username}
+                    className="text-primary font-medium inline-block"
+                    initial={{
+                      opacity: 0,
+                      filter: "blur(8px)",
+                    }}
+                    animate={{
+                      opacity: 1,
+                      filter: "blur(0px)",
+                    }}
+                    exit={{
+                      opacity: 0,
+                      filter: "blur(8px)",
+                    }}
+                    transition={{
+                      duration: 0.2,
+                    }}
+                  >
+                    {username}
+                  </motion.span>
+                </AnimatePresence>
               </div>
               <Button
                 type="button"
