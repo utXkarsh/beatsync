@@ -126,6 +126,9 @@ interface GlobalState {
   // Add these functions for track skipping
   skipToNextTrack: (isAutoplay?: boolean) => void;
   skipToPreviousTrack: () => void;
+
+  // Add gain value getter
+  getCurrentGainValue: () => number;
 }
 
 // Audio sources
@@ -488,8 +491,8 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     processStopSpatialAudio: () => {
       const state = get();
 
-      // Reset gain node to 1
       const { gainNode } = getAudioPlayer(state);
+      gainNode.gain.cancelScheduledValues(0);
       gainNode.gain.value = 1;
 
       set({ isSpatialAudioEnabled: false });
@@ -812,5 +815,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     isSpatialAudioEnabled: false,
     setIsSpatialAudioEnabled: (isEnabled) =>
       set({ isSpatialAudioEnabled: isEnabled }),
+
+    // Get current gain value
+    getCurrentGainValue: () => {
+      const state = get();
+      if (!state.audioPlayer) return 1; // Default value if no player
+      return state.audioPlayer.gainNode.gain.value;
+    },
   };
 });

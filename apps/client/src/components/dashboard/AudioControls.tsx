@@ -48,7 +48,7 @@ export const AudioControls = () => {
                 size="sm"
                 onClick={handleStopSpatialAudio}
               >
-                Reset
+                Stop
               </Button>
             </div>
           </div>
