@@ -262,7 +262,7 @@ export const Join = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.4 }}
           >
-            For best experience, use a laptop with Chrome browser. Only use the
+            Optimized for Chrome on macOS. Unstable for other platforms. Use
             native device speakers, and make sure silent mode is off.
           </motion.p>
         </motion.div>
