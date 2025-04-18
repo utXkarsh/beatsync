@@ -25,7 +25,6 @@ interface ClientAvatarProps {
   isFocused: boolean;
   isCurrentUser: boolean;
   animationSyncKey: number;
-  generateColor: (username: string) => string;
 }
 
 interface ConnectedUserItemProps {
@@ -33,19 +32,11 @@ interface ConnectedUserItemProps {
   isActive: boolean;
   isFocused: boolean;
   isCurrentUser: boolean;
-  generateColor: (username: string) => string;
 }
 
 // Separate Client Avatar component for better performance
 const ClientAvatar = memo<ClientAvatarProps>(
-  ({
-    client,
-    isActive,
-    isFocused,
-    isCurrentUser,
-    animationSyncKey,
-    generateColor,
-  }) => {
+  ({ client, isActive, isFocused, isCurrentUser, animationSyncKey }) => {
     return (
       <Tooltip key={client.clientId}>
         <TooltipTrigger asChild>
@@ -83,7 +74,11 @@ const ClientAvatar = memo<ClientAvatarProps>(
                 )}
               >
                 <AvatarImage />
-                <AvatarFallback className={generateColor(client.username)}>
+                <AvatarFallback
+                  className={
+                    isCurrentUser ? "bg-primary-500" : "bg-neutral-600"
+                  }
+                >
                   {client.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -102,7 +97,9 @@ const ClientAvatar = memo<ClientAvatarProps>(
                     ? "bg-emerald-400/40"
                     : isActive
                     ? "bg-indigo-500/40"
-                    : "bg-gray-400/30"
+                    : isCurrentUser
+                    ? "bg-primary-400/40"
+                    : "bg-neutral-600"
                 )}
               ></span>
             </div>
@@ -129,7 +126,7 @@ ClientAvatar.displayName = "ClientAvatar";
 
 // Separate connected user list item component
 const ConnectedUserItem = memo<ConnectedUserItemProps>(
-  ({ client, isActive, isFocused, isCurrentUser, generateColor }) => {
+  ({ client, isActive, isFocused, isCurrentUser }) => {
     return (
       <motion.div
         className={cn(
@@ -138,6 +135,8 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
             ? "bg-primary/20 shadow-sm shadow-primary/20"
             : isActive
             ? "bg-primary/5"
+            : isCurrentUser
+            ? "bg-primary-400/10"
             : "bg-transparent"
         )}
         initial={{ opacity: 0.8 }}
@@ -147,9 +146,11 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
         }}
         transition={{ duration: 0.3 }}
       >
-        <Avatar className="h-7 w-7">
+        <Avatar className="h-8 w-8">
           <AvatarImage />
-          <AvatarFallback className={generateColor(client.username)}>
+          <AvatarFallback
+            className={isCurrentUser ? "bg-primary-500" : "bg-neutral-600"}
+          >
             {client.username.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -165,12 +166,16 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
               : isActive
               ? "secondary"
               : isCurrentUser
-              ? "secondary"
+              ? "default"
               : "outline"
           }
           className={cn(
             "ml-auto text-xs shrink-0 min-w-[60px] text-center py-0 h-5",
-            isFocused ? "bg-primary animate-pulse" : ""
+            isFocused
+              ? "bg-primary animate-pulse"
+              : isCurrentUser
+              ? "bg-primary-400"
+              : ""
           )}
         >
           {isFocused
@@ -392,28 +397,6 @@ export const UserGrid = () => {
     };
   }, [isDraggingListeningSource, setIsDraggingListeningSource]);
 
-  // Generate a color based on username for avatar fallback
-  const generateColor = useCallback((username: string) => {
-    const colors = [
-      "bg-red-500",
-      "bg-blue-500",
-      "bg-green-500",
-      "bg-yellow-500",
-      "bg-purple-500",
-      "bg-pink-500",
-      "bg-indigo-500",
-      "bg-teal-500",
-    ];
-
-    // Simple hash function to get a consistent color for the same username
-    let hash = 0;
-    for (let i = 0; i < username.length; i++) {
-      hash = username.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
-    return colors[Math.abs(hash) % colors.length];
-  }, []);
-
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(
     () =>
@@ -460,7 +443,6 @@ export const UserGrid = () => {
                       isFocused={isFocused}
                       isCurrentUser={isCurrentUser}
                       animationSyncKey={animationSyncKey}
-                      generateColor={generateColor}
                     />
                   )
                 )}
@@ -491,15 +473,15 @@ export const UserGrid = () => {
                       onTouchStart={handleSourceTouchStart}
                       onTouchEnd={handleSourceTouchEnd}
                     >
-                      <div className="relative flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-emerald-400/20 p-1">
+                      <div className="relative flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-blue-400/20 p-1">
                         <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
                           <span
                             key={`source-ping-${animationSyncKey}`}
-                            className="absolute inline-flex h-full w-full rounded-full bg-primary-200 opacity-75 animate-ping"
+                            className="absolute inline-flex h-full w-full rounded-full bg-blue-200 opacity-75 animate-ping"
                           ></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-primary-400"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-blue-400"></span>
                         </span>
-                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-primary-800 opacity-80" />
+                        <HeadphonesIcon className="absolute h-1.5 w-1.5 md:h-2 md:w-2 text-blue-100 opacity-80" />
                       </div>
                     </motion.div>
                   </TooltipTrigger>
@@ -514,7 +496,7 @@ export const UserGrid = () => {
             </div>
 
             {/* List of connected users - Constrained height */}
-            <div className="space-y-2 max-h-24 md:max-h-32 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+            <div className="space-y-1 max-h-24 md:max-h-32 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
               {clientsWithData.map(
                 ({ client, isActive, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem
@@ -523,7 +505,6 @@ export const UserGrid = () => {
                     isActive={isActive}
                     isFocused={isFocused}
                     isCurrentUser={isCurrentUser}
-                    generateColor={generateColor}
                   />
                 )
               )}
