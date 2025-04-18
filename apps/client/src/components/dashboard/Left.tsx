@@ -74,7 +74,8 @@ export const Left = ({ className }: LeftProps) => {
               Works best with multiple devices IRL in the same space.
             </li>
             <li className="text-xs leading-relaxed">
-              If audio gets de-synced, pause + play and try again or refresh.
+              If audio gets de-synced, pause, play / full sync and try again or
+              refresh.
             </li>
             <li className="text-xs leading-relaxed">
               On mobile, check silent mode is off.
