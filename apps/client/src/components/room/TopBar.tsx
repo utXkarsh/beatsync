@@ -1,12 +1,15 @@
 "use client";
 import { useGlobalStore } from "@/store/global";
-import { useRoomStore } from "@/store/room";
 import { AnimatePresence, motion } from "framer-motion";
 import { Hash, Users } from "lucide-react";
 import Link from "next/link";
 import { SyncProgress } from "../ui/SyncProgress";
 
-export const TopBar = () => {
+interface TopBarProps {
+  roomId: string;
+}
+
+export const TopBar = ({ roomId }: TopBarProps) => {
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
   const isSynced = useGlobalStore((state) => state.isSynced);
   const offsetEstimate = useGlobalStore((state) => state.offsetEstimate);
@@ -16,7 +19,6 @@ export const TopBar = () => {
   const pauseAudio = useGlobalStore((state) => state.pauseAudio);
   const connectedClients = useGlobalStore((state) => state.connectedClients);
   const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
-  const roomId = useRoomStore((state) => state.roomId);
 
   const resync = () => {
     try {

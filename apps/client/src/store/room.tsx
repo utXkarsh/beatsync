@@ -1,6 +1,5 @@
 "use client";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 interface RoomState {
   roomId: string;
@@ -11,32 +10,15 @@ interface RoomState {
   setUsername: (username: string) => void;
   setUserId: (userId: string) => void;
   setIsLoading: (isLoading: boolean) => void;
-  afterHydrate: () => void;
 }
 
-export const useRoomStore = create<RoomState>()(
-  persist(
-    (set) => ({
-      roomId: "",
-      username: "",
-      userId: "",
-      isLoadingRoom: true,
-      setRoomId: (roomId) => set({ roomId }),
-      setUsername: (username) => set({ username }),
-      setUserId: (userId) => set({ userId }),
-      setIsLoading: (isLoading) => set({ isLoadingRoom: isLoading }),
-      afterHydrate: () => {
-        set({ isLoadingRoom: false });
-      },
-    }),
-    // Defaults to createJSONStorage(() => localStorage).
-    {
-      name: "room-storage",
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.afterHydrate();
-        }
-      },
-    }
-  )
-);
+export const useRoomStore = create<RoomState>()((set) => ({
+  roomId: "",
+  username: "",
+  userId: "",
+  isLoadingRoom: false,
+  setRoomId: (roomId) => set({ roomId }),
+  setUsername: (username) => set({ username }),
+  setUserId: (userId) => set({ userId }),
+  setIsLoading: (isLoading) => set({ isLoadingRoom: isLoading }),
+}));

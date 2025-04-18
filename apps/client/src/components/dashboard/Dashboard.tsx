@@ -8,7 +8,11 @@ import { Left } from "./Left";
 import { Main } from "./Main";
 import { Right } from "./Right";
 
-export const Dashboard = () => {
+interface DashboardProps {
+  roomId: string;
+}
+
+export const Dashboard = ({ roomId }: DashboardProps) => {
   const isSynced = useGlobalStore((state) => state.isSynced);
   const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
 
@@ -28,7 +32,7 @@ export const Dashboard = () => {
   return (
     <div className="w-full h-screen flex flex-col text-white bg-neutral-950">
       {/* Top bar: Fixed height */}
-      <TopBar />
+      <TopBar roomId={roomId} />
 
       {isReady && (
         <motion.div

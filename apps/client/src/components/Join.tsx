@@ -23,7 +23,6 @@ interface JoinFormData {
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const setRoomId = useRoomStore((state) => state.setRoomId);
   const setUsername = useRoomStore((state) => state.setUsername);
 
   const {
@@ -57,7 +56,6 @@ export const Join = () => {
     }
 
     console.log("Joining room with data:", data);
-    setRoomId(data.roomId);
     setUsername(data.username);
     router.push(`/room/${data.roomId}`);
   };
@@ -68,7 +66,6 @@ export const Join = () => {
     // Generate a random 6-digit room ID
     const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
 
-    setRoomId(newRoomId);
     setUsername(username);
     router.push(`/room/${newRoomId}`);
   };

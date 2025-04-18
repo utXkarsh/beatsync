@@ -7,7 +7,6 @@ export default async function Page({
   params: Promise<{ roomId: string }>;
 }) {
   const { roomId } = await params;
-
   if (!validateFullRoomId(roomId)) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-2">
@@ -21,5 +20,5 @@ export default async function Page({
     );
   }
 
-  return <NewSyncer />;
+  return <NewSyncer roomId={roomId} />;
 }

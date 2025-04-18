@@ -1,7 +1,7 @@
 "use client";
 
 import { uploadAudioFile } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn, trimFileName } from "@/lib/utils";
 import { useRoomStore } from "@/store/room";
 import { CloudUpload, Plus } from "lucide-react";
 import { useState } from "react";
@@ -39,8 +39,6 @@ export const AudioUploaderMinimal = () => {
             audioData: base64Data,
             roomId,
           });
-
-          toast.success(`Uploaded ${file.name}`);
 
           // Reset the input and file name after successful upload
           event.target.value = "";
@@ -88,11 +86,11 @@ export const AudioUploaderMinimal = () => {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-white">
+            <div className="text-xs font-medium text-white truncate">
               {isUploading
                 ? "Uploading..."
                 : fileName
-                ? fileName
+                ? trimFileName(fileName)
                 : "Upload audio"}
             </div>
             {!isUploading && !fileName && (

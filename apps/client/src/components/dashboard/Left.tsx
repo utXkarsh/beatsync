@@ -2,9 +2,8 @@
 
 import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
-import { useRoomStore } from "@/store/room";
 import { motion } from "framer-motion";
-import { Copy, Hash, Library, RotateCcw, User } from "lucide-react";
+import { Library, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { AudioUploaderMinimal } from "../AudioUploaderMinimal";
 import { Button } from "../ui/button";
@@ -15,15 +14,8 @@ interface LeftProps {
 }
 
 export const Left = ({ className }: LeftProps) => {
-  const roomId = useRoomStore((state) => state.roomId);
-  const username = useRoomStore((state) => state.username);
   const startSpatialAudio = useGlobalStore((state) => state.startSpatialAudio);
   const stopSpatialAudio = useGlobalStore((state) => state.stopSpatialAudio);
-
-  const copyRoomId = () => {
-    navigator.clipboard.writeText(roomId);
-    toast.success("Room ID copied to clipboard");
-  };
 
   const handleStartSpatialAudio = () => {
     startSpatialAudio();
@@ -85,61 +77,32 @@ export const Left = ({ className }: LeftProps) => {
       {/* Room info section */}
       <motion.div className="px-4 space-y-3 py-3">
         <h2 className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-          Session Info
+          Audio Controls
         </h2>
 
         <div className="space-y-3">
-          <motion.div className="bg-neutral-800/50 rounded-md p-2 overflow-hidden">
-            <div className="text-xs text-neutral-400 mb-1 flex items-center gap-1">
-              <Hash className="h-3 w-3" /> Room
-            </div>
-            <div className="flex items-center justify-between">
-              <div
-                className="text-sm text-white font-medium truncate"
-                title={roomId}
-              >
-                {roomId}
+          <motion.div className="bg-neutral-800/20 rounded-md p-3 hover:bg-neutral-800/30 transition-colors">
+            <div className="flex justify-between items-center">
+              <div className="text-xs text-neutral-300 flex items-center gap-1.5">
+                <RotateCcw className="h-3 w-3 text-primary-500" />
+                <span>Spatial Audio</span>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 rounded-full hover:bg-white/10"
-                onClick={copyRoomId}
-                title="Copy room ID"
-              >
-                <Copy className="h-3 w-3 text-neutral-400" />
-              </Button>
-            </div>
-          </motion.div>
-
-          <motion.div className="bg-neutral-800/50 rounded-md p-2">
-            <div className="text-xs text-neutral-400 mb-1 flex items-center gap-1">
-              <User className="h-3 w-3" /> Username
-            </div>
-            <div className="text-sm text-white font-medium truncate">
-              {username}
-            </div>
-          </motion.div>
-
-          <motion.div className="bg-neutral-800/50 rounded-md p-2">
-            <div className="text-xs text-neutral-400 mb-1 flex items-center gap-1">
-              <RotateCcw className="h-3 w-3" /> Spatial Audio
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button
-                className="w-full text-sm bg-primary-700 hover:bg-primary-800 text-white"
-                size="sm"
-                onClick={handleStartSpatialAudio}
-              >
-                Start Circular Motion
-              </Button>
-              <Button
-                className="w-full text-sm bg-neutral-700 hover:bg-neutral-600 text-white"
-                size="sm"
-                onClick={handleStopSpatialAudio}
-              >
-                Stop Circular Motion
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  className="text-xs px-3 py-1 h-auto bg-primary-600/80 hover:bg-primary-600 text-white"
+                  size="sm"
+                  onClick={handleStartSpatialAudio}
+                >
+                  Start
+                </Button>
+                <Button
+                  className="text-xs px-3 py-1 h-auto bg-neutral-700/60 hover:bg-neutral-700 text-white"
+                  size="sm"
+                  onClick={handleStopSpatialAudio}
+                >
+                  Stop
+                </Button>
+              </div>
             </div>
           </motion.div>
         </div>

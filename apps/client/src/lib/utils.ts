@@ -18,3 +18,8 @@ export function formatTime(seconds: number): string {
     .toString()
     .padStart(2, "0")}`;
 }
+
+export const trimFileName = (fileName: string) => {
+  // Remove file extensions like .mp3, .wav, etc.
+  return fileName.replace(/\.[^/.]+$/, "");
+};

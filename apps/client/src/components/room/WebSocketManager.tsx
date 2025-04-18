@@ -30,12 +30,17 @@ const handleNTPResponse = (response: NTPResponseMessageType) => {
   return measurement;
 };
 
+interface WebSocketManagerProps {
+  roomId: string;
+  username: string;
+}
+
 // No longer need the props interface
-export const WebSocketManager = () => {
+export const WebSocketManager = ({
+  roomId,
+  username,
+}: WebSocketManagerProps) => {
   // Room state
-  const roomId = useRoomStore((state) => state.roomId);
-  const username = useRoomStore((state) => state.username);
-  const userId = useRoomStore((state) => state.userId);
   const isLoadingRoom = useRoomStore((state) => state.isLoadingRoom);
   const setUserId = useRoomStore((state) => state.setUserId);
 
@@ -60,14 +65,15 @@ export const WebSocketManager = () => {
   // Once room has been loaded, connect to the websocket
   useEffect(() => {
     // Only run this effect once after room is loaded
-    if (isLoadingRoom) return;
+    if (isLoadingRoom || !roomId || !username) return;
+    console.log("Connecting to websocket");
 
     // Don't create a new connection if we already have one
     if (socket) {
       return;
     }
 
-    const SOCKET_URL = `${process.env.NEXT_PUBLIC_WS_URL}?roomId=${roomId}&userId=${userId}&username=${username}`;
+    const SOCKET_URL = `${process.env.NEXT_PUBLIC_WS_URL}?roomId=${roomId}&username=${username}`;
     console.log("Creating new socket to", SOCKET_URL);
     const ws = new WebSocket(SOCKET_URL);
     setSocket(ws);
@@ -172,7 +178,7 @@ export const WebSocketManager = () => {
       ws.close();
     };
     // Not including socket in the dependency array because it will trigger the close when it's set
-  }, [isLoadingRoom]);
+  }, [isLoadingRoom, roomId, username]);
 
   return null; // This is a non-visual component
 };
