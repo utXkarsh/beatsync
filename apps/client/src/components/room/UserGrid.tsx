@@ -174,7 +174,7 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
             isFocused
               ? "bg-primary animate-pulse"
               : isCurrentUser
-              ? "bg-primary-400"
+              ? "bg-primary-600 text-primary-50"
               : ""
           )}
         >
