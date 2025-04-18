@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -27,12 +26,12 @@ export const Bottom = () => {
   // Limit to 94% to maintain visible border radius at max gain
   const barWidthPercent = Math.min(94, Math.max(0, gainValue * 94));
 
-  // Determine color based on gain value
-  const getBarColor = () => {
-    if (gainValue >= 0.8) return "bg-emerald-500";
-    if (gainValue >= 0.5) return "bg-blue-500";
-    if (gainValue >= 0.2) return "bg-amber-500";
-    return "bg-red-500";
+  // Get color based on gain value using smooth interpolation
+  const getColor = () => {
+    if (gainValue >= 0.8) return "#10b981"; // emerald-500
+    if (gainValue >= 0.5) return "#3b82f6"; // blue-500
+    if (gainValue >= 0.2) return "#f59e0b"; // amber-500
+    return "#ef4444"; // red-500
   };
 
   return (
@@ -48,13 +47,18 @@ export const Bottom = () => {
         {/* Visual gain meter */}
         <div className="relative h-4 w-24 bg-neutral-800/60 rounded-full overflow-hidden flex items-center">
           <motion.div
-            className={cn("absolute h-2 rounded-full ml-1", getBarColor())}
+            className="absolute h-2 rounded-full ml-1"
             initial={{ width: 0 }}
             animate={{
               width: `${barWidthPercent}%`,
               opacity: isSpatialAudioEnabled ? 1 : 0.5,
+              backgroundColor: getColor(),
             }}
-            transition={{ duration: 0.05, type: "tween" }}
+            transition={{
+              duration: 0.05,
+              type: "tween",
+              backgroundColor: { duration: 0.2 },
+            }}
           />
         </div>
       </div>
