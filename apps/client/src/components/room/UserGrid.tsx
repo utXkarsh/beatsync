@@ -6,6 +6,7 @@ import { ClientType, GRID } from "@beatsync/shared";
 import { motion } from "framer-motion";
 import { HeadphonesIcon, Rotate3D } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GainMeter } from "../dashboard/GainMeter";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Switch } from "../ui/switch";
@@ -477,7 +478,7 @@ export const UserGrid = () => {
             <div
               ref={gridRef}
               className={cn(
-                "relative w-full aspect-square rounded-lg border border-border mb-4 overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none",
+                "relative w-full aspect-square rounded-lg border border-border overflow-hidden bg-[size:10%_10%] bg-[position:0_0] bg-[image:linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] select-none touch-none",
                 isSpatialAudioEnabled ? "bg-muted/30" : "bg-muted/10 opacity-75"
               )}
               onMouseMove={handleSourceMouseMove}
@@ -547,9 +548,14 @@ export const UserGrid = () => {
               </TooltipProvider>
             </div>
 
+            {/* Gain Meter */}
+            <div className="mb-3 mt-2.5">
+              <GainMeter />
+            </div>
+
             {/* List of connected users - Constrained height */}
             <div className="relative">
-              <div className="space-y-1 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+              <div className="space-y-1 overflow-y-auto flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
                 {clientsWithData.map(({ client, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem
                     key={client.clientId}
@@ -560,7 +566,7 @@ export const UserGrid = () => {
                   />
                 ))}
               </div>
-              <div className="absolute -top-0.5 left-0 right-0 h-2 bg-gradient-to-b from-neutral-900 to-transparent pointer-events-none"></div>
+              {/* <div className="absolute -top-0.5 left-0 right-0 h-2 bg-gradient-to-b from-neutral-900 to-transparent pointer-events-none"></div> */}
             </div>
           </>
         )}
