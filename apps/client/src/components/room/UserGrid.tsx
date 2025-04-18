@@ -218,6 +218,7 @@ export const UserGrid = () => {
   const updateListeningSourceSocket = useGlobalStore(
     (state) => state.updateListeningSource
   );
+  const stopSpatialAudio = useGlobalStore((state) => state.stopSpatialAudio);
 
   // Use clients from global store
   const clients = useGlobalStore((state) => state.connectedClients);
@@ -439,7 +440,18 @@ export const UserGrid = () => {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline">{clients.length}</Badge>
-          <Switch checked={isGridEnabled} onCheckedChange={setIsGridEnabled} />
+          <Switch
+            checked={isGridEnabled}
+            onCheckedChange={(checked) => {
+              setIsGridEnabled(checked);
+              if (checked) {
+                // When turning on, send current listening source position
+                updateListeningSourceSocket(listeningSource);
+              } else if (!checked) {
+                stopSpatialAudio();
+              }
+            }}
+          />
         </div>
       </div>
 
