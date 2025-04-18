@@ -398,16 +398,21 @@ export const UserGrid = () => {
   }, [isDraggingListeningSource, setIsDraggingListeningSource]);
 
   // Memoize client data to avoid unnecessary recalculations
-  const clientsWithData = useMemo(
-    () =>
-      clients.map((client) => {
-        const user = spatialConfig?.gains[client.clientId];
-        const isFocused = user?.gain === 0; // The focused/active device in spatial audio
-        const isCurrentUser = client.clientId === userId;
-        return { client, isFocused, isCurrentUser };
-      }),
-    [clients, spatialConfig?.gains, userId]
-  );
+  const clientsWithData = useMemo(() => {
+    // First sort clients so current user is always first
+    const sortedClients = [...clients].sort((a, b) => {
+      if (a.clientId === userId) return -1;
+      if (b.clientId === userId) return 1;
+      return 0;
+    });
+
+    return sortedClients.map((client) => {
+      const user = spatialConfig?.gains[client.clientId];
+      const isFocused = user?.gain === 0; // The focused/active device in spatial audio
+      const isCurrentUser = client.clientId === userId;
+      return { client, isFocused, isCurrentUser };
+    });
+  }, [clients, spatialConfig?.gains, userId]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
