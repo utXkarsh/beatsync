@@ -134,8 +134,8 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
     id: "static-0",
   },
   {
-    name: "Illenium - Fractures (feat. Nevve)",
-    url: "/Illenium - Fractures (feat. Nevve).mp3",
+    name: "Porter Robinson ft. Amy Millan - Divinity (Official Audio)",
+    url: "/Porter Robinson ft. Amy Millan - Divinity (Official Audio).mp3",
     id: "static-1",
   },
   {
@@ -149,9 +149,14 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
     id: "static-3",
   },
   {
+    name: "Snavs - Lust",
+    url: "/Snavs - Lust.mp3",
+    id: "static-4",
+  },
+  {
     name: "joyful - chess (slowed)",
     url: "/joyful - chess (slowed).mp3",
-    id: "static-4",
+    id: "static-5",
   },
 ];
 
