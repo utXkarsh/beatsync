@@ -494,7 +494,7 @@ export const UserGrid = () => {
 
             {/* List of connected users - Constrained height */}
             <div className="relative">
-              <div className="space-y-1 max-h-24 md:max-h-32 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
+              <div className="space-y-1 overflow-y-auto pr-2 flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
                 {clientsWithData.map(({ client, isFocused, isCurrentUser }) => (
                   <ConnectedUserItem
                     key={client.clientId}
@@ -505,7 +505,6 @@ export const UserGrid = () => {
                   />
                 ))}
               </div>
-              <div className="absolute -bottom-0.5 left-0 right-0 h-2 bg-gradient-to-t from-neutral-900 to-transparent pointer-events-none"></div>
               <div className="absolute -top-0.5 left-0 right-0 h-2 bg-gradient-to-b from-neutral-900 to-transparent pointer-events-none"></div>
             </div>
           </>
