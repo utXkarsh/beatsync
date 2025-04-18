@@ -29,6 +29,8 @@ export const Left = ({ className }: LeftProps) => {
     <motion.div
       className={cn(
         "w-full lg:w-72 flex-shrink-0 border-r border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full text-sm",
+        "scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20",
+        "overflow-y-auto",
         className
       )}
     >
