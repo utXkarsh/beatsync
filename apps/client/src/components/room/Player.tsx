@@ -179,7 +179,7 @@ export const Player = () => {
           </button>
           <button className="text-gray-400 hover:text-white transition-colors cursor-default   hover:scale-105 duration-200">
             <div className="relative">
-              <Repeat className="w-6 h-6 md:w-4 md:h-4 relative text-primary-400" />
+              <Repeat className="w-4 h-4 relative text-primary-400" />
               <div className="absolute w-1 h-1 bg-green-500 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
             </div>
           </button>
