@@ -15,7 +15,7 @@ export const _sendNTPRequest = (ws: WebSocket) => {
     throw new Error("Cannot send NTP request: WebSocket is not open");
   }
 
-  const t0 = Date.now();
+  const t0 = performance.now();
   sendWSRequest({
     ws,
     request: {
@@ -60,6 +60,6 @@ export const calculateWaitTimeMilliseconds = (
   targetServerTime: number,
   clockOffset: number | null
 ): number => {
-  const estimatedCurrentServerTime = Date.now() + (clockOffset || 0);
+  const estimatedCurrentServerTime = performance.now() + (clockOffset || 0);
   return Math.max(0, targetServerTime - estimatedCurrentServerTime);
 };

@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 // Helper function for NTP response handling
 const handleNTPResponse = (response: NTPResponseMessageType) => {
-  const t3 = Date.now();
+  const t3 = performance.now();
   const { t0, t1, t2 } = response;
 
   // Calculate round-trip delay and clock offset

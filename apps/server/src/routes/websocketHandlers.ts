@@ -46,7 +46,7 @@ export const handleMessage = async (
   message: string | Buffer,
   server: Server
 ) => {
-  const t1 = Date.now();
+  const t1 = performance.now();
   const { roomId, username } = ws.data;
 
   try {
@@ -67,7 +67,7 @@ export const handleMessage = async (
           type: "NTP_RESPONSE",
           t0: parsedMessage.t0, // Echo back the client's t0
           t1, // Server receive time
-          t2: Date.now(), // Server send time
+          t2: performance.now(), // Server send time
         },
       });
 
@@ -82,7 +82,7 @@ export const handleMessage = async (
         message: {
           type: "SCHEDULED_ACTION",
           scheduledAction: parsedMessage,
-          serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS, // 500 ms from now
+          serverTimeToExecute: performance.now() + SCHEDULE_TIME_MS, // 500 ms from now
           // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs > 500
         },
       });
@@ -105,7 +105,7 @@ export const handleMessage = async (
         scheduledAction: {
           type: "STOP_SPATIAL_AUDIO",
         },
-        serverTimeToExecute: Date.now() + 0,
+        serverTimeToExecute: performance.now() + 0,
       };
 
       // Reset all gains:

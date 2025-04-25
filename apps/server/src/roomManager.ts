@@ -198,7 +198,7 @@ class RoomManager {
       // Send the updated configuration to all clients
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: Date.now() + SCHEDULE_TIME_MS,
+        serverTimeToExecute: performance.now() + SCHEDULE_TIME_MS,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           listeningSource: room.listeningSource,
@@ -266,7 +266,7 @@ class RoomManager {
       roomId,
       message: {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: Date.now() + 0,
+        serverTimeToExecute: performance.now() + 0,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           listeningSource: room.listeningSource,
