@@ -1,4 +1,4 @@
-import { PositionType } from "@beatsync/shared";
+import { PositionType } from "@beatsync/shared/types/basic";
 
 function calculateEuclideanDistance(
   p1: PositionType,

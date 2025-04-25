@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import { PositionSchema } from "./basic";
 export const ClientSchema = z.object({
   username: z.string(),
   clientId: z.string(),
@@ -15,6 +15,7 @@ export const ClientActionEnum = z.enum([
   "REUPLOAD_AUDIO",
   "REORDER_CLIENT",
   "SET_LISTENING_SOURCE",
+  "MOVE_CLIENT",
 ]);
 
 export const NTPRequestPacketSchema = z.object({
@@ -57,6 +58,13 @@ const SetListeningSourceSchema = z.object({
   y: z.number(),
 });
 
+const MoveClientSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.MOVE_CLIENT),
+  clientId: z.string(),
+  position: PositionSchema,
+});
+export type MoveClientType = z.infer<typeof MoveClientSchema>;
+
 export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
@@ -66,6 +74,7 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
   ReuploadAudioSchema,
   ReorderClientSchema,
   SetListeningSourceSchema,
+  MoveClientSchema,
 ]);
 export type WSRequestType = z.infer<typeof WSRequestSchema>;
 export type PlayActionType = z.infer<typeof PlayActionSchema>;

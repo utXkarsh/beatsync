@@ -162,6 +162,9 @@ export const handleMessage = async (
         position: parsedMessage,
         server,
       });
+    } else if (parsedMessage.type === ClientActionEnum.enum.MOVE_CLIENT) {
+      // Handle client move
+      roomManager.moveClient({ parsedMessage, roomId, server });
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }

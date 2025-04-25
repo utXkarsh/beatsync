@@ -1,9 +1,5 @@
-import {
-  ClientType,
-  GRID,
-  PositionType,
-  WSBroadcastType,
-} from "@beatsync/shared";
+import { ClientType, MoveClientType, WSBroadcastType } from "@beatsync/shared";
+import { GRID, PositionType } from "@beatsync/shared/types/basic";
 import { Server, ServerWebSocket } from "bun";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
@@ -221,20 +217,13 @@ class RoomManager {
     room.intervalId = undefined;
   }
 
-  updateListeningSource({
-    roomId,
-    position,
+  _calculateGainsAndBroadcast({
+    room,
     server,
   }: {
-    roomId: string;
-    position: PositionType;
+    room: RoomData;
     server: Server;
   }) {
-    const room = this.rooms.get(roomId);
-    if (!room) return;
-
-    room.listeningSource = position;
-
     // Calculate gains for each client based on distance from listening source
     const clients = Array.from(room.clients.values());
 
@@ -242,7 +231,7 @@ class RoomManager {
       clients.map((client) => {
         const gain = calculateGainFromDistanceToSource({
           client: client.position,
-          source: position,
+          source: room.listeningSource,
         });
 
         console.log(
@@ -263,7 +252,7 @@ class RoomManager {
     // Send the updated gains to all clients
     sendBroadcast({
       server,
-      roomId,
+      roomId: room.roomId,
       message: {
         type: "SCHEDULED_ACTION",
         serverTimeToExecute: performance.now() + 0,
@@ -275,6 +264,46 @@ class RoomManager {
       },
     });
   }
-}
 
+  updateListeningSource({
+    roomId,
+    position,
+    server,
+  }: {
+    roomId: string;
+    position: PositionType;
+    server: Server;
+  }) {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    room.listeningSource = position;
+
+    this._calculateGainsAndBroadcast({ room, server });
+  }
+
+  // TODO: Refactor: Make another interface that wraps all of this | so roomId, server, etc. are not passed in every time
+  moveClient({
+    parsedMessage,
+    roomId,
+    server,
+  }: {
+    parsedMessage: MoveClientType;
+    roomId: string;
+    server: Server;
+  }) {
+    const { clientId, position } = parsedMessage;
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    const client = room.clients.get(clientId);
+    if (!client) return;
+
+    client.position = position;
+    room.clients.set(clientId, client);
+
+    // Update spatial audio config
+    this._calculateGainsAndBroadcast({ room, server });
+  }
+}
 export const roomManager = new RoomManager();
