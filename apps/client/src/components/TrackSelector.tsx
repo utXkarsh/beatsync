@@ -14,7 +14,9 @@ export const TrackSelector = () => {
   const setSelectedAudioId = useGlobalStore(
     (state) => state.setSelectedAudioId
   );
-  const isLoadingAudioSources = useGlobalStore((state) => state.isLoadingAudio);
+  const isLoadingAudioSources = useGlobalStore(
+    (state) => state.isInitingSystem
+  );
 
   return (
     <div className="mt-4 mb-4">

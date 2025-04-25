@@ -10,7 +10,7 @@ interface TopBarProps {
 }
 
 export const TopBar = ({ roomId }: TopBarProps) => {
-  const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
+  const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
   const isSynced = useGlobalStore((state) => state.isSynced);
   const offsetEstimate = useGlobalStore((state) => state.offsetEstimate);
   const roundTripEstimate = useGlobalStore((state) => state.roundTripEstimate);
@@ -18,7 +18,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   const resetNTPConfig = useGlobalStore((state) => state.resetNTPConfig);
   const pauseAudio = useGlobalStore((state) => state.pauseAudio);
   const connectedClients = useGlobalStore((state) => state.connectedClients);
-  const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
+  const setIsLoadingAudio = useGlobalStore((state) => state.setIsInitingSystem);
 
   const resync = () => {
     try {

@@ -22,7 +22,7 @@ export const SyncProgress = ({
     (state) => state.ntpMeasurements.length / MAX_NTP_MEASUREMENTS
   );
   const isSyncComplete = useGlobalStore((state) => state.isSynced);
-  const setIsLoadingAudio = useGlobalStore((state) => state.setIsLoadingAudio);
+  const setIsLoadingAudio = useGlobalStore((state) => state.setIsInitingSystem);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   // Message state based on current progress phase

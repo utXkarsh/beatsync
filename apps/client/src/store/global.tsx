@@ -41,7 +41,8 @@ enum AudioPlayerError {
 interface GlobalState {
   // Audio Sources
   audioSources: LocalAudioSource[];
-  isLoadingAudio: boolean;
+  isInitingSystem: boolean;
+  setIsInitingSystem: (isIniting: boolean) => void;
   selectedAudioId: string;
   uploadHistory: { name: string; timestamp: number; id: string }[];
   downloadedAudioIds: Set<string>;
@@ -51,7 +52,6 @@ interface GlobalState {
   markAudioAsDownloaded: (id: string) => void;
   setAudioSources: (sources: LocalAudioSource[]) => void;
   addAudioSource: (source: RawAudioSource) => Promise<void>;
-  setIsLoadingAudio: (isLoading: boolean) => void;
   setSelectedAudioId: (audioId: string) => boolean;
   findAudioIndexById: (audioId: string) => number | null;
   schedulePlay: (data: {
@@ -186,22 +186,21 @@ const getWaitTimeSeconds = (state: GlobalState, targetServerTime: number) => {
   return calculateWaitTimeMilliseconds(targetServerTime, offsetEstimate) / 1000;
 };
 
-export const initializeAudioSources = async (
-  audioContext: AudioContext
-): Promise<Array<LocalAudioSource>> => {
-  // Get the ArrayBuffers for each source
-  return Promise.all(
-    STATIC_AUDIO_SOURCES.map(async (source) => {
-      const response = await fetch(source.url);
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      return {
-        name: source.name,
-        audioBuffer,
-        id: source.id,
-      };
-    })
-  );
+const loadAudioSource = async ({
+  source,
+  audioContext,
+}: {
+  source: StaticAudioSource;
+  audioContext: AudioContext;
+}) => {
+  const response = await fetch(source.url);
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  return {
+    name: source.name,
+    audioBuffer,
+    id: source.id,
+  };
 };
 
 // Web audio API
@@ -215,29 +214,43 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
   if (typeof window !== "undefined") {
     const initializeAudio = async () => {
       const audioContext = initializeAudioContext();
-      const sources = await initializeAudioSources(audioContext);
-      console.log(`Loaded initial audio sources ${sources.length}`);
 
       // Create master gain node for volume control
       const gainNode = audioContext.createGain();
       gainNode.gain.value = 1; // Default volume
       const sourceNode = audioContext.createBufferSource();
 
+      // Load first source
+      const firstSource = await loadAudioSource({
+        source: STATIC_AUDIO_SOURCES[0],
+        audioContext,
+      });
+
       // Decode initial first audio source
-      sourceNode.buffer = sources[0].audioBuffer;
+      sourceNode.buffer = firstSource.audioBuffer;
       sourceNode.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
       set({
-        audioSources: sources,
+        audioSources: [firstSource],
         audioPlayer: {
           audioContext,
           sourceNode,
           gainNode,
         },
         downloadedAudioIds: new Set<string>(),
-        duration: sources[0].audioBuffer.duration,
+        duration: firstSource.audioBuffer.duration,
       });
+
+      // Load rest asynchronously, keep updating state
+      for (const source of STATIC_AUDIO_SOURCES.slice(1)) {
+        const state = get();
+        const loadedSource = await loadAudioSource({
+          source,
+          audioContext,
+        });
+        set({ audioSources: [...state.audioSources, loadedSource] });
+      }
     };
 
     initializeAudio();
@@ -246,7 +259,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
   return {
     // Audio Sources
     audioSources: [],
-    isLoadingAudio: true,
+    isInitingSystem: true,
     selectedAudioId: STATIC_AUDIO_SOURCES[0].id,
     uploadHistory: [],
     downloadedAudioIds: new Set<string>(),
@@ -334,7 +347,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         request: { type: ClientActionEnum.enum.SET_LISTENING_SOURCE, x, y },
       });
     },
-    setIsLoadingAudio: (isLoading) => set({ isLoadingAudio: isLoading }),
+    setIsInitingSystem: (isIniting) => set({ isInitingSystem: isIniting }),
     setSelectedAudioId: (audioId) => {
       const state = get();
       const wasPlaying = state.isPlaying; // Store if it was playing *before* stopping
@@ -385,7 +398,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       audioId: string;
     }) => {
       const state = get();
-      if (state.isLoadingAudio) {
+      if (state.isInitingSystem) {
         console.log("Not playing audio, still loading");
         // Non-interactive state, can't play audio
         return;

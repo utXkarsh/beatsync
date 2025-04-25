@@ -14,7 +14,7 @@ interface DashboardProps {
 
 export const Dashboard = ({ roomId }: DashboardProps) => {
   const isSynced = useGlobalStore((state) => state.isSynced);
-  const isLoadingAudio = useGlobalStore((state) => state.isLoadingAudio);
+  const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
 
   const isReady = isSynced && !isLoadingAudio;
 

@@ -10,6 +10,7 @@ export const AudioControls = () => {
   const stopSpatialAudio = useGlobalStore(
     (state) => state.sendStopSpatialAudio
   );
+  const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
 
   const handleStartSpatialAudio = () => {
     startSpatialAudio();
@@ -21,8 +22,15 @@ export const AudioControls = () => {
 
   return (
     <motion.div className="px-4 space-y-3 py-3">
-      <h2 className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-        Movement Patterns
+      <h2
+        className={`text-xs font-medium uppercase tracking-wide ${
+          isLoadingAudio ? "text-neutral-500" : "text-neutral-400"
+        }`}
+      >
+        Audio Effects{" "}
+        {isLoadingAudio && (
+          <span className="text-xs opacity-70">(loading...)</span>
+        )}
       </h2>
 
       <div className="space-y-3">
@@ -37,6 +45,7 @@ export const AudioControls = () => {
                 className="text-xs px-3 py-1 h-auto bg-primary-600/80 hover:bg-primary-600 text-white"
                 size="sm"
                 onClick={handleStartSpatialAudio}
+                disabled={isLoadingAudio}
               >
                 Start
               </Button>
@@ -44,6 +53,7 @@ export const AudioControls = () => {
                 className="text-xs px-3 py-1 h-auto bg-neutral-700/60 hover:bg-neutral-700 text-white"
                 size="sm"
                 onClick={handleStopSpatialAudio}
+                disabled={isLoadingAudio}
               >
                 Stop
               </Button>
