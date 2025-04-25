@@ -244,49 +244,55 @@ const initializeAudioContext = () => {
 };
 
 export const useGlobalStore = create<GlobalState>((set, get) => {
-  // Load audio sources if we're in the browser
-  if (typeof window !== "undefined") {
-    const initializeAudio = async () => {
-      const audioContext = initializeAudioContext();
+  // Function to initialize or reinitialize audio system
+  const initializeAudio = async () => {
+    console.log("initializeAudio()");
+    // Create fresh audio context
+    const audioContext = initializeAudioContext();
 
-      // Create master gain node for volume control
-      const gainNode = audioContext.createGain();
-      gainNode.gain.value = 1; // Default volume
-      const sourceNode = audioContext.createBufferSource();
+    // Create master gain node for volume control
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 1; // Default volume
+    const sourceNode = audioContext.createBufferSource();
 
-      // Load first source
-      const firstSource = await loadAudioSource({
-        source: STATIC_AUDIO_SOURCES[0],
+    // Load first source
+    const firstSource = await loadAudioSource({
+      source: STATIC_AUDIO_SOURCES[0],
+      audioContext,
+    });
+
+    // Decode initial first audio source
+    sourceNode.buffer = firstSource.audioBuffer;
+    sourceNode.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    set({
+      audioSources: [firstSource],
+      audioPlayer: {
+        audioContext,
+        sourceNode,
+        gainNode,
+      },
+      downloadedAudioIds: new Set<string>(),
+      duration: firstSource.audioBuffer.duration,
+    });
+    console.log(`${0} Decoded source ${firstSource.name}`);
+
+    // Load rest asynchronously, keep updating state
+    for (let i = 1; i < STATIC_AUDIO_SOURCES.length; i++) {
+      const source = STATIC_AUDIO_SOURCES[i];
+      const state = get();
+      const loadedSource = await loadAudioSource({
+        source,
         audioContext,
       });
+      set({ audioSources: [...state.audioSources, loadedSource] });
+      console.log(`${i} Decoded source ${loadedSource.name}`);
+    }
+  };
 
-      // Decode initial first audio source
-      sourceNode.buffer = firstSource.audioBuffer;
-      sourceNode.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      set({
-        audioSources: [firstSource],
-        audioPlayer: {
-          audioContext,
-          sourceNode,
-          gainNode,
-        },
-        downloadedAudioIds: new Set<string>(),
-        duration: firstSource.audioBuffer.duration,
-      });
-
-      // Load rest asynchronously, keep updating state
-      for (const source of STATIC_AUDIO_SOURCES.slice(1)) {
-        const state = get();
-        const loadedSource = await loadAudioSource({
-          source,
-          audioContext,
-        });
-        set({ audioSources: [...state.audioSources, loadedSource] });
-      }
-    };
-
+  if (typeof window !== "undefined") {
+    console.log("Detected that no audio sources were loaded, initializing");
     initializeAudio();
   }
 
@@ -867,13 +873,16 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         state.socket.close();
       }
 
-      // Reset state to initial values (keeping audio context and sources)
-      set({
-        ...initialState,
-        audioSources: state.audioSources.slice(0, 7),
-        audioPlayer: state.audioPlayer,
-        duration: state.duration,
-      });
+      // Close the old audio context if it exists
+      if (state.audioPlayer?.audioContext) {
+        state.audioPlayer.audioContext.close().catch(() => {});
+      }
+
+      // Reset state to initial values
+      set(initialState);
+
+      // Reinitialize audio from scratch
+      initializeAudio();
     },
   };
 });

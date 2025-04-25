@@ -36,5 +36,9 @@ export const useRoomStore = create<RoomState>()((set) => ({
   setIsLoading: (isLoading) => set({ isLoadingRoom: isLoading }),
 
   // Reset to initial state
-  reset: () => set(initialState),
+  reset: () =>
+    set((state) => ({
+      ...initialState,
+      username: state.username, // Preserve the current username
+    })),
 }));

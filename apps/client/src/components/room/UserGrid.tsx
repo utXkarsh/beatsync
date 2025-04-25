@@ -222,6 +222,13 @@ export const UserGrid = () => {
   const stopSpatialAudio = useGlobalStore(
     (state) => state.sendStopSpatialAudio
   );
+  // New state for grid enabled/disabled toggle
+  const isSpatialAudioEnabled = useGlobalStore(
+    (state) => state.isSpatialAudioEnabled
+  );
+  const setIsSpatialAudioEnabled = useGlobalStore(
+    (state) => state.setIsSpatialAudioEnabled
+  );
 
   // Use clients from global store
   const clients = useGlobalStore((state) => state.connectedClients);
@@ -332,7 +339,7 @@ export const UserGrid = () => {
         onMouseMoveSource(x, y);
       });
     },
-    [isDraggingListeningSource, onMouseMoveSource]
+    [isDraggingListeningSource, onMouseMoveSource, isSpatialAudioEnabled]
   );
 
   // Effect to handle non-passive touchmove listener for dragging
@@ -417,14 +424,6 @@ export const UserGrid = () => {
       }
     };
   }, [isDraggingListeningSource, setIsDraggingListeningSource]);
-
-  // New state for grid enabled/disabled toggle
-  const isSpatialAudioEnabled = useGlobalStore(
-    (state) => state.isSpatialAudioEnabled
-  );
-  const setIsSpatialAudioEnabled = useGlobalStore(
-    (state) => state.setIsSpatialAudioEnabled
-  );
 
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(() => {
