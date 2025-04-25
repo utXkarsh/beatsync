@@ -576,7 +576,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           isSynced: true,
         });
 
-        if (averageRoundTrip < 750) {
+        if (averageRoundTrip > 750) {
           toast.error("Latency is very high (>750ms). Sync may be unstable.");
         }
 
