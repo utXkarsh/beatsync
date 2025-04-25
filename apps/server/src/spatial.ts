@@ -9,20 +9,52 @@ function calculateEuclideanDistance(
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+interface GainParams {
+  client: PositionType;
+  source: PositionType;
+  falloff?: number;
+  minGain?: number;
+  maxGain?: number;
+}
+
+export const calculateGainFromDistanceToSource = (params: GainParams) => {
+  return gainFromDistanceQuadratic(params);
+};
+
 export function gainFromDistanceExp({
   client,
   source,
   falloff = 0.05,
   minGain = 0.15,
   maxGain = 1.0,
-}: {
-  client: PositionType;
-  source: PositionType;
-  falloff?: number;
-  minGain?: number;
-  maxGain?: number;
-}): number {
+}: GainParams): number {
   const distance = calculateEuclideanDistance(client, source);
   const gain = maxGain * Math.exp(-falloff * distance);
+  return Math.max(minGain, gain);
+}
+
+export function gainFromDistanceLinear({
+  client,
+  source,
+  falloff = 0.01,
+  minGain = 0.15,
+  maxGain = 1.0,
+}: GainParams): number {
+  const distance = calculateEuclideanDistance(client, source);
+  // Linear falloff: gain decreases linearly with distance
+  const gain = maxGain - falloff * distance;
+  return Math.max(minGain, gain);
+}
+
+export function gainFromDistanceQuadratic({
+  client,
+  source,
+  falloff = 0.001,
+  minGain = 0.15,
+  maxGain = 1.0,
+}: GainParams): number {
+  const distance = calculateEuclideanDistance(client, source);
+  // Quadratic falloff: gain decreases with square of distance
+  const gain = maxGain - falloff * distance * distance;
   return Math.max(minGain, gain);
 }
