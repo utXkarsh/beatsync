@@ -12,12 +12,6 @@ import {
 
 import { useCallback, useEffect, useState } from "react";
 import { Slider } from "../ui/slider";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 
 export const Player = () => {
   const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
@@ -39,6 +33,7 @@ export const Player = () => {
   // Local state for slider
   const [sliderPosition, setSliderPosition] = useState(0);
   const [trackDuration, setTrackDuration] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Find the selected audio source and its duration
   useEffect(() => {
@@ -66,23 +61,32 @@ export const Player = () => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
-      const currentPosition = getCurrentTrackPosition();
-      setSliderPosition(currentPosition);
+      if (!isDragging) {
+        const currentPosition = getCurrentTrackPosition();
+        setSliderPosition(currentPosition);
+      }
     }, 100); // Update every 100ms
 
     return () => clearInterval(interval);
-  }, [isPlaying, getCurrentTrackPosition]);
+  }, [isPlaying, getCurrentTrackPosition, isDragging]);
 
   // Handle slider change
   const handleSliderChange = useCallback((value: number[]) => {
     const position = value[0];
+    setIsDragging(true);
     setSliderPosition(position);
   }, []);
 
   // Handle slider release - seek to that position
-  const handleSliderCommit = (value: number[]) => {
-    console.log(value);
-  };
+  const handleSliderCommit = useCallback(
+    (value: number[]) => {
+      const newPosition = value[0];
+      setIsDragging(false);
+      // Broadcast the position change to all clients
+      broadcastPlay(newPosition);
+    },
+    [broadcastPlay]
+  );
 
   const handlePlay = useCallback(() => {
     if (isPlaying) {
@@ -184,36 +188,22 @@ export const Player = () => {
             </div>
           </button>
         </div>
-        <TooltipProvider>
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-0">
-                <span className="text-xs text-muted-foreground min-w-11 select-none">
-                  {formatTime(sliderPosition)}
-                </span>
-                <Slider
-                  value={[sliderPosition]}
-                  min={0}
-                  max={trackDuration}
-                  step={0.1}
-                  onValueChange={handleSliderChange}
-                  onValueCommit={handleSliderCommit}
-                  disabled={isPlaying}
-                />
-                <span className="text-xs text-muted-foreground min-w-11 text-right select-none">
-                  {formatTime(trackDuration)}
-                </span>
-              </div>
-            </TooltipTrigger>
-            {isPlaying && (
-              <TooltipContent side="top">
-                <p className="text-sm flex items-center gap-1.5">
-                  Pause playback before changing position
-                </p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-0">
+          <span className="text-xs text-muted-foreground min-w-11 select-none">
+            {formatTime(sliderPosition)}
+          </span>
+          <Slider
+            value={[sliderPosition]}
+            min={0}
+            max={trackDuration}
+            step={0.1}
+            onValueChange={handleSliderChange}
+            onValueCommit={handleSliderCommit}
+          />
+          <span className="text-xs text-muted-foreground min-w-11 text-right select-none">
+            {formatTime(trackDuration)}
+          </span>
+        </div>
       </div>
     </div>
   );
