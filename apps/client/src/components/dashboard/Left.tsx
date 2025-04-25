@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Library } from "lucide-react";
+import { Library, Search } from "lucide-react";
 import { motion } from "motion/react";
 import { AudioUploaderMinimal } from "../AudioUploaderMinimal";
 import { Button } from "../ui/button";
@@ -58,6 +58,16 @@ export const Left = ({ className }: LeftProps) => {
           <Library className="h-4 w-4" />
           <span>Default Library</span>
         </Button>
+
+        <a href="https://ytmp3.cc/Nnht/" target="_blank">
+          <Button
+            className="w-full flex justify-start gap-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200 cursor-pointer"
+            variant="ghost"
+          >
+            <Search className="h-4 w-4" />
+            <span>Search Music</span>
+          </Button>
+        </a>
       </motion.div>
 
       <Separator className="bg-neutral-800/50" />
