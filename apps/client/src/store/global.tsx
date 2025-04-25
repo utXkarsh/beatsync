@@ -38,14 +38,51 @@ enum AudioPlayerError {
   NotInitialized = "NOT_INITIALIZED",
 }
 
-interface GlobalState {
+// Interface for just the state values (without methods)
+interface GlobalStateValues {
   // Audio Sources
   audioSources: LocalAudioSource[];
   isInitingSystem: boolean;
-  setIsInitingSystem: (isIniting: boolean) => void;
   selectedAudioId: string;
   uploadHistory: { name: string; timestamp: number; id: string }[];
   downloadedAudioIds: Set<string>;
+
+  // Websocket
+  socket: WebSocket | null;
+
+  // Spatial audio
+  spatialConfig?: SpatialConfigType;
+  listeningSourcePosition: PositionType;
+  isDraggingListeningSource: boolean;
+  isSpatialAudioEnabled: boolean;
+
+  // Connected clients
+  connectedClients: ClientType[];
+
+  // NTP
+  ntpMeasurements: NTPMeasurement[];
+  offsetEstimate: number;
+  roundTripEstimate: number;
+  isSynced: boolean;
+
+  // Audio Player
+  audioPlayer: AudioPlayerState | null;
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+
+  // Tracking properties
+  playbackStartTime: number;
+  playbackOffset: number;
+
+  // Shuffle state
+  isShuffled: boolean;
+}
+
+interface GlobalState extends GlobalStateValues {
+  // Methods
+  setIsInitingSystem: (isIniting: boolean) => void;
   addToUploadHistory: (name: string, id: string) => void;
   reuploadAudio: (audioId: string, audioName: string) => void;
   hasDownloadedAudio: (id: string) => boolean;
@@ -60,75 +97,34 @@ interface GlobalState {
     audioId: string;
   }) => void;
   schedulePause: (data: { targetServerTime: number }) => void;
-
-  // Websocket
-  socket: WebSocket | null; // Use WebSocket.readyState read-only property returns the current state of the WebSocket connection
   setSocket: (socket: WebSocket) => void;
-  // Commands to broadcast
-  // trackTimeSeconds is the number of seconds into the track to play at (ie. location of the slider)
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
   startSpatialAudio: () => void;
   sendStopSpatialAudio: () => void;
-  spatialConfig?: SpatialConfigType;
   setSpatialConfig: (config: SpatialConfigType) => void;
   updateListeningSource: (position: PositionType) => void;
-  listeningSourcePosition: PositionType;
   setListeningSourcePosition: (position: PositionType) => void;
-  isDraggingListeningSource: boolean;
   setIsDraggingListeningSource: (isDragging: boolean) => void;
-  isSpatialAudioEnabled: boolean;
   setIsSpatialAudioEnabled: (isEnabled: boolean) => void;
   processStopSpatialAudio: () => void;
-  // Connected clients
-  connectedClients: ClientType[];
   setConnectedClients: (clients: ClientType[]) => void;
-
-  // NTP
   sendNTPRequest: () => void;
   resetNTPConfig: () => void;
-  ntpMeasurements: NTPMeasurement[];
   addNTPMeasurement: (measurement: NTPMeasurement) => void;
-  offsetEstimate: number;
-  roundTripEstimate: number;
-  isSynced: boolean;
-
-  // Audio Player
-  audioPlayer: AudioPlayerState | null;
-  isPlaying: boolean;
-  currentTime: number;
-  duration: number;
-  volume: number;
   playAudio: (data: {
     offset: number;
     when: number;
     audioIndex?: number;
   }) => void;
   processSpatialConfig: (config: SpatialConfigType) => void;
-
-  // When to pause in relative seconds from now
   pauseAudio: (data: { when: number }) => void;
-  // reset: () => void;
-  // seekTo: (time: number) => void;
-  // setVolume: (volume: number) => void; // Set volume out of 1
-
-  // Add these tracking properties
-  playbackStartTime: number; // AudioContext time when playback started
-  playbackOffset: number; // Offset in seconds into the track when playback started
-
-  // Add function to get current position
   getCurrentTrackPosition: () => number;
-
-  // Shuffle state
-  isShuffled: boolean;
   toggleShuffle: () => void;
-
-  // Add these functions for track skipping
   skipToNextTrack: (isAutoplay?: boolean) => void;
   skipToPreviousTrack: () => void;
-
-  // Add gain value getter
   getCurrentGainValue: () => number;
+  resetStore: () => void;
 }
 
 // Audio sources
@@ -164,6 +160,44 @@ const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
     id: `static-${5}`,
   },
 ];
+
+// Define initial state values
+const initialState: GlobalStateValues = {
+  // Audio playback state
+  isPlaying: false,
+  currentTime: 0,
+  playbackStartTime: 0,
+  playbackOffset: 0,
+  selectedAudioId: STATIC_AUDIO_SOURCES[0].id,
+
+  // Spatial audio
+  isShuffled: false,
+  isSpatialAudioEnabled: false,
+  isDraggingListeningSource: false,
+  listeningSourcePosition: { x: GRID.SIZE / 2, y: GRID.SIZE / 2 },
+  spatialConfig: undefined,
+
+  // Network state
+  socket: null,
+  connectedClients: [],
+  uploadHistory: [],
+  downloadedAudioIds: new Set<string>(),
+
+  // NTP state
+  ntpMeasurements: [],
+  offsetEstimate: 0,
+  roundTripEstimate: 0,
+  isSynced: false,
+
+  // Loading state
+  isInitingSystem: true,
+
+  // These need to be initialized to prevent type errors
+  audioSources: [],
+  audioPlayer: null,
+  duration: 0,
+  volume: 0.5,
+};
 
 const getAudioPlayer = (state: GlobalState) => {
   if (!state.audioPlayer) {
@@ -257,12 +291,10 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
   }
 
   return {
-    // Audio Sources
-    audioSources: [],
-    isInitingSystem: true,
-    selectedAudioId: STATIC_AUDIO_SOURCES[0].id,
-    uploadHistory: [],
-    downloadedAudioIds: new Set<string>(),
+    // Initialize with initialState
+    ...initialState,
+
+    // Add all required methods
     addToUploadHistory: (name, id) =>
       set((state) => ({
         uploadHistory: [
@@ -270,6 +302,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           { name, timestamp: Date.now(), id },
         ],
       })),
+
     reuploadAudio: (audioId, audioName) => {
       const state = get();
       const { socket } = getSocket(state);
@@ -283,10 +316,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         },
       });
     },
+
     hasDownloadedAudio: (id) => {
       const state = get();
       return state.downloadedAudioIds.has(id);
     },
+
     markAudioAsDownloaded: (id) => {
       set((state) => {
         const newSet = new Set(state.downloadedAudioIds);
@@ -294,7 +329,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         return { downloadedAudioIds: newSet };
       });
     },
+
     setAudioSources: (sources) => set({ audioSources: sources }),
+
     addAudioSource: async (source: RawAudioSource) => {
       const state = get();
       const { audioContext } = state.audioPlayer || {
@@ -334,7 +371,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         console.error("Failed to decode audio data:", error);
       }
     },
+
     setSpatialConfig: (spatialConfig) => set({ spatialConfig }),
+
     updateListeningSource: ({ x, y }) => {
       const state = get();
       const { socket } = getSocket(state);
@@ -347,7 +386,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         request: { type: ClientActionEnum.enum.SET_LISTENING_SOURCE, x, y },
       });
     },
+
     setIsInitingSystem: (isIniting) => set({ isInitingSystem: isIniting }),
+
     setSelectedAudioId: (audioId) => {
       const state = get();
       const wasPlaying = state.isPlaying; // Store if it was playing *before* stopping
@@ -384,6 +425,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // Return the previous playing state for the skip functions to use
       return wasPlaying;
     },
+
     findAudioIndexById: (audioId: string) => {
       const state = get();
       // Look through the audioSources for a matching ID
@@ -392,6 +434,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       );
       return index >= 0 ? index : null; // Return null if not found
     },
+
     schedulePlay: (data: {
       trackTimeSeconds: number;
       targetServerTime: number;
@@ -430,6 +473,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         audioIndex, // Pass the found index for actual playback
       });
     },
+
     schedulePause: ({ targetServerTime }: { targetServerTime: number }) => {
       const state = get();
       const waitTimeSeconds = getWaitTimeSeconds(state, targetServerTime);
@@ -440,11 +484,8 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
-    // Websocket
-    socket: null,
     setSocket: (socket) => set({ socket }),
 
-    // Commands to broadcast
     broadcastPlay: (trackTimeSeconds?: number) => {
       const state = get();
       const { socket } = getSocket(state);
@@ -512,8 +553,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       set({ spatialConfig: undefined });
     },
 
-    // NTP
-    isSynced: false,
     sendNTPRequest: () => {
       const state = get();
       if (state.ntpMeasurements.length >= MAX_NTP_MEASUREMENTS) {
@@ -544,28 +583,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
-    // NTP
-    ntpMeasurements: [],
     addNTPMeasurement: (measurement) =>
       set((state) => ({
         ntpMeasurements: [...state.ntpMeasurements, measurement],
       })),
-    offsetEstimate: 0,
-    roundTripEstimate: 0,
 
-    // Audio Player
-    audioPlayer: null,
-    isPlaying: false,
-
-    currentTime: 0,
-    duration: 0,
-    volume: 0.5,
-
-    // Initialize new tracking properties
-    playbackStartTime: 0,
-    playbackOffset: 0,
-
-    // Get current track position at any time
     getCurrentTrackPosition: () => {
       const state = get();
       const {
@@ -586,7 +608,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       return Math.min(playbackOffset + elapsedSinceStart, state.duration);
     },
 
-    // Play the current source
     playAudio: async (data: {
       offset: number;
       when: number;
@@ -712,7 +733,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       gainNode.gain.linearRampToValueAtTime(gain, now + rampTime);
     },
 
-    // Pause playback
     pauseAudio: (data: { when: number }) => {
       const state = get();
       const { sourceNode, audioContext } = getAudioPlayer(state);
@@ -738,19 +758,16 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }));
     },
 
-    listeningSourcePosition: { x: GRID.SIZE / 2, y: GRID.SIZE / 2 },
     setListeningSourcePosition: (position: PositionType) => {
       set({ listeningSourcePosition: position });
     },
 
-    isDraggingListeningSource: false,
     setIsDraggingListeningSource: (isDragging) => {
       set({ isDraggingListeningSource: isDragging });
     },
 
-    // Connected clients
-    connectedClients: [],
     setConnectedClients: (clients) => set({ connectedClients: clients }),
+
     skipToNextTrack: (isAutoplay = false) => {
       // Accept optional isAutoplay flag
       const state = get();
@@ -821,19 +838,42 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       }
     },
 
-    // Shuffle state
-    isShuffled: false,
     toggleShuffle: () => set((state) => ({ isShuffled: !state.isShuffled })),
 
-    isSpatialAudioEnabled: false,
     setIsSpatialAudioEnabled: (isEnabled) =>
       set({ isSpatialAudioEnabled: isEnabled }),
 
-    // Get current gain value
     getCurrentGainValue: () => {
       const state = get();
       if (!state.audioPlayer) return 1; // Default value if no player
       return state.audioPlayer.gainNode.gain.value;
+    },
+
+    // Reset function to clean up state
+    resetStore: () => {
+      const state = get();
+
+      // Stop any playing audio
+      if (state.isPlaying && state.audioPlayer) {
+        try {
+          state.audioPlayer.sourceNode.stop();
+        } catch (e) {
+          // Ignore errors if already stopped
+        }
+      }
+
+      // Close the websocket connection if it exists
+      if (state.socket && state.socket.readyState === WebSocket.OPEN) {
+        state.socket.close();
+      }
+
+      // Reset state to initial values (keeping audio context and sources)
+      set({
+        ...initialState,
+        audioSources: state.audioSources.slice(0, 7),
+        audioPlayer: state.audioPlayer,
+        duration: state.duration,
+      });
     },
   };
 });
