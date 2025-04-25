@@ -9,7 +9,7 @@ import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import * as path from "path";
 import { AUDIO_DIR, SCHEDULE_TIME_MS } from "./config";
-import { gainFromDistanceExp } from "./spatial";
+import { calculateGainFromDistanceToSource } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
 import { WSData } from "./utils/websocket";
@@ -180,7 +180,7 @@ class RoomManager {
       // Calculate gains for each client based on distance from listening source
       const gains = Object.fromEntries(
         clients.map((client) => {
-          const gain = gainFromDistanceExp({
+          const gain = calculateGainFromDistanceToSource({
             client: client.position,
             source: room.listeningSource,
           });
@@ -240,7 +240,7 @@ class RoomManager {
 
     const gains = Object.fromEntries(
       clients.map((client) => {
-        const gain = gainFromDistanceExp({
+        const gain = calculateGainFromDistanceToSource({
           client: client.position,
           source: position,
         });

@@ -12,7 +12,6 @@ interface TopBarProps {
 export const TopBar = ({ roomId }: TopBarProps) => {
   const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
   const isSynced = useGlobalStore((state) => state.isSynced);
-  const offsetEstimate = useGlobalStore((state) => state.offsetEstimate);
   const roundTripEstimate = useGlobalStore((state) => state.roundTripEstimate);
   const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
   const resetNTPConfig = useGlobalStore((state) => state.resetNTPConfig);
@@ -64,9 +63,8 @@ export const TopBar = ({ roomId }: TopBarProps) => {
           {/* Hide Offset/RTT on small screens */}
           <div className="hidden md:flex items-center space-x-2">
             <span>
-              Offset: <span>{offsetEstimate.toFixed(2)}</span>ms
+              Latency: <span>{roundTripEstimate.toFixed(2)}</span>ms
             </span>
-            <span>RTT: {roundTripEstimate.toFixed(2)} ms</span>
           </div>
           {/* Hide separator on small screens */}
           <div className="hidden md:block">|</div>

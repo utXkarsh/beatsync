@@ -217,7 +217,12 @@ const getSocket = (state: GlobalState) => {
 
 const getWaitTimeSeconds = (state: GlobalState, targetServerTime: number) => {
   const { offsetEstimate } = state;
-  return calculateWaitTimeMilliseconds(targetServerTime, offsetEstimate) / 1000;
+
+  const waitTimeMilliseconds = calculateWaitTimeMilliseconds(
+    targetServerTime,
+    offsetEstimate
+  );
+  return waitTimeMilliseconds / 1000;
 };
 
 const loadAudioSource = async ({
@@ -570,6 +575,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           roundTripEstimate: averageRoundTrip,
           isSynced: true,
         });
+
+        if (averageRoundTrip < 750) {
+          toast.error("Latency is very high (>750ms). Sync may be unstable.");
+        }
+
         return;
       }
 
