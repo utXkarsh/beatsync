@@ -24,8 +24,6 @@ import "./scrollbar.css";
 // Define prop types for components
 interface ClientAvatarProps {
   client: ClientType;
-  isActive: boolean;
-  isFocused: boolean;
   isCurrentUser: boolean;
   animationSyncKey: number;
   isGridEnabled: boolean;
@@ -33,28 +31,19 @@ interface ClientAvatarProps {
 
 interface ConnectedUserItemProps {
   client: ClientType;
-  isActive: boolean;
-  isFocused: boolean;
   isCurrentUser: boolean;
 }
 
 // Separate Client Avatar component for better performance
 const ClientAvatar = memo<ClientAvatarProps>(
-  ({
-    client,
-    isActive,
-    isFocused,
-    isCurrentUser,
-    animationSyncKey,
-    isGridEnabled,
-  }) => {
+  ({ client, isCurrentUser, animationSyncKey, isGridEnabled }) => {
     return (
       <Tooltip key={client.clientId}>
         <TooltipTrigger asChild>
           <motion.div
             className={cn(
               "absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300",
-              isFocused ? "z-30" : isActive ? "z-20" : "z-10"
+              "z-10"
             )}
             style={{
               opacity: isGridEnabled ? 1 : 0.5,
@@ -66,34 +55,17 @@ const ClientAvatar = memo<ClientAvatarProps>(
             }}
             animate={{
               opacity: isGridEnabled ? 1 : 0.5,
-              scale: isFocused ? 1.2 : isActive ? 1.1 : 1,
+              scale: 1,
               left: `${client.position.x}%`,
               top: `${client.position.y}%`,
             }}
             transition={{
               duration: 0.1,
               ease: "easeInOut",
-              // left: { type: "spring", stiffness: 120, damping: 20 },
-              // top: { type: "spring", stiffness: 120, damping: 20 },
             }}
           >
-            <div
-              className={cn(
-                "relative",
-                isFocused ? "ring-2 ring-primary ring-offset-2" : "",
-                isActive ? "ring-1 ring-secondary" : ""
-              )}
-            >
-              <Avatar
-                className={cn(
-                  "size-10 border-2",
-                  isFocused
-                    ? "border-primary"
-                    : isActive
-                    ? "border-secondary"
-                    : "border-border"
-                )}
-              >
+            <div className={cn("relative")}>
+              <Avatar className={cn("size-10 border-2", "border-border")}>
                 <AvatarImage />
                 <AvatarFallback
                   className={
@@ -103,25 +75,13 @@ const ClientAvatar = memo<ClientAvatarProps>(
                   {client.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              {isFocused && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary animate-pulse" />
-              )}
-              {isActive && !isFocused && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-secondary" />
-              )}
               {/* Add ping effect to all clients but only when the grid is enabled */}
               {isGridEnabled && (
                 <span
                   key={`ping-${animationSyncKey}`}
                   className={cn(
                     "absolute inset-0 rounded-full opacity-75 animate-ping",
-                    isFocused
-                      ? "bg-emerald-400/40"
-                      : isActive
-                      ? "bg-indigo-500/40"
-                      : isCurrentUser
-                      ? "bg-primary-400/40"
-                      : "bg-neutral-600"
+                    isCurrentUser ? "bg-primary-400/40" : "bg-neutral-600"
                   )}
                 ></span>
               )}
@@ -130,15 +90,7 @@ const ClientAvatar = memo<ClientAvatarProps>(
         </TooltipTrigger>
         <TooltipContent side="top">
           <div className="text-xs font-medium">{client.username}</div>
-          <div>
-            {isFocused
-              ? "Focused"
-              : isActive
-              ? "Active"
-              : isCurrentUser
-              ? "You"
-              : "Connected"}
-          </div>
+          <div>{isCurrentUser ? "You" : "Connected"}</div>
         </TooltipContent>
       </Tooltip>
     );
@@ -149,23 +101,17 @@ ClientAvatar.displayName = "ClientAvatar";
 
 // Separate connected user list item component
 const ConnectedUserItem = memo<ConnectedUserItemProps>(
-  ({ client, isActive, isFocused, isCurrentUser }) => {
+  ({ client, isCurrentUser }) => {
     return (
       <motion.div
         className={cn(
           "flex items-center gap-2 p-1.5 rounded-md transition-all duration-300 text-sm",
-          isFocused
-            ? "bg-primary/20 shadow-sm shadow-primary/20"
-            : isActive
-            ? "bg-primary/5"
-            : isCurrentUser
-            ? "bg-primary-400/10"
-            : "bg-transparent"
+          isCurrentUser ? "bg-primary-400/10" : "bg-transparent"
         )}
         initial={{ opacity: 0.8 }}
         animate={{
           opacity: 1,
-          scale: isFocused ? 1.02 : isActive ? 1.01 : 1,
+          scale: 1,
         }}
         transition={{ duration: 0.3 }}
       >
@@ -183,31 +129,13 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
           </span>
         </div>
         <Badge
-          variant={
-            isFocused
-              ? "default"
-              : isActive
-              ? "secondary"
-              : isCurrentUser
-              ? "default"
-              : "outline"
-          }
+          variant={isCurrentUser ? "default" : "outline"}
           className={cn(
             "ml-auto text-xs shrink-0 min-w-[60px] text-center py-0 h-5",
-            isFocused
-              ? "bg-primary animate-pulse"
-              : isCurrentUser
-              ? "bg-primary-600 text-primary-50"
-              : ""
+            isCurrentUser ? "bg-primary-600 text-primary-50" : ""
           )}
         >
-          {isFocused
-            ? "Focused"
-            : isActive
-            ? "Active"
-            : isCurrentUser
-            ? "You"
-            : "Connected"}
+          {isCurrentUser ? "You" : "Connected"}
         </Badge>
       </motion.div>
     );
@@ -438,10 +366,8 @@ export const UserGrid = () => {
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(() => {
     return clients.map((client) => {
-      const user = spatialConfig?.gains[client.clientId];
-      const isFocused = user?.gain === 0; // The focused/active device in spatial audio
       const isCurrentUser = client.clientId === userId;
-      return { client, isFocused, isCurrentUser };
+      return { client, isCurrentUser };
     });
   }, [clients, spatialConfig?.gains, userId]);
 
@@ -488,13 +414,11 @@ export const UserGrid = () => {
               onMouseMove={handleSourceMouseMove}
             >
               <TooltipProvider>
-                {clientsWithData.map(({ client, isFocused, isCurrentUser }) => (
+                {clientsWithData.map(({ client, isCurrentUser }) => (
                   <ClientAvatar
-                    isActive={false}
+                    isCurrentUser={isCurrentUser}
                     key={client.clientId}
                     client={client}
-                    isFocused={isFocused}
-                    isCurrentUser={isCurrentUser}
                     animationSyncKey={animationSyncKey}
                     isGridEnabled={isSpatialAudioEnabled}
                   />
@@ -571,12 +495,10 @@ export const UserGrid = () => {
             {/* List of connected users - Constrained height */}
             <div className="relative">
               <div className="space-y-1 overflow-y-auto flex-shrink-0 scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20">
-                {clientsWithData.map(({ client, isFocused, isCurrentUser }) => (
+                {clientsWithData.map(({ client, isCurrentUser }) => (
                   <ConnectedUserItem
                     key={client.clientId}
                     client={client}
-                    isActive={false}
-                    isFocused={isFocused}
                     isCurrentUser={isCurrentUser}
                   />
                 ))}
