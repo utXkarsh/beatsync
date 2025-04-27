@@ -126,40 +126,36 @@ interface GlobalState extends GlobalStateValues {
   getCurrentGainValue: () => number;
   resetStore: () => void;
 }
-
 // Audio sources
 const STATIC_AUDIO_SOURCES: StaticAudioSource[] = [
   {
     name: "Black Coast - TRNDSTTR (Lucian Remix)",
     url: "/trndsttr.mp3",
-    id: `static-${0}`,
   },
   {
     name: "STVCKS - Don't Be Scared",
     url: "/STVCKS - Don't Be Scared.mp3",
-    id: `static-${1}`,
-  },
-  {
-    name: "Porter Robinson ft. Amy Millan - Divinity",
-    url: "/Porter Robinson ft. Amy Millan - Divinity.mp3",
-    id: `static-${2}`,
   },
   {
     name: "INZO x ILLUSIO - Just A Mirage",
     url: "/INZO x ILLUSIO - Just A Mirage.mp3",
-    id: `static-${3}`,
+  },
+  {
+    name: "Tom Reev, Assix & Jason Gewalt - Where It Hurts",
+    url: "/Tom Reev, Assix & Jason Gewalt - Where It Hurts.mp3",
   },
   {
     name: "DROELOE x San Holo - Lines of the Broken (ft. CUT)",
     url: "/DROELOE x San Holo - Lines of the Broken (ft. CUT).mp3",
-    id: `static-${4}`,
   },
   {
     name: "joyful - chess (slowed)",
     url: "/joyful - chess (slowed).mp3",
-    id: `static-${5}`,
   },
-];
+].map((source, index) => ({
+  ...source,
+  id: `static-${index}`,
+}));
 
 // Define initial state values
 const initialState: GlobalStateValues = {
