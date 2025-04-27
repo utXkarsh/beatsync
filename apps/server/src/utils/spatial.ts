@@ -24,7 +24,7 @@ export function positionClientsInCircle(
   let index = 0;
   clients.forEach((client) => {
     // Calculate position on the circle
-    const angle = (index / clientCount) * 2 * Math.PI;
+    const angle = (index / clientCount) * 2 * Math.PI - Math.PI / 2;
     client.position = {
       x: GRID.ORIGIN_X + GRID.CLIENT_RADIUS * Math.cos(angle),
       y: GRID.ORIGIN_Y + GRID.CLIENT_RADIUS * Math.sin(angle),
