@@ -18,6 +18,7 @@ import {
 } from "../ui/tooltip";
 
 // Add custom scrollbar styles
+import { Button } from "../ui/button";
 import "./scrollbar.css";
 
 // Define prop types for components
@@ -149,8 +150,6 @@ ClientAvatar.displayName = "ClientAvatar";
 // Separate connected user list item component
 const ConnectedUserItem = memo<ConnectedUserItemProps>(
   ({ client, isActive, isFocused, isCurrentUser }) => {
-    const reorderClient = useGlobalStore((state) => state.reorderClient);
-
     return (
       <motion.div
         className={cn(
@@ -210,13 +209,6 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
             ? "You"
             : "Connected"}
         </Badge>
-        <button
-          className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
-          onClick={() => reorderClient(client.clientId)}
-          title="Move Up"
-        >
-          <ArrowUp size={14} />
-        </button>
       </motion.div>
     );
   }
@@ -445,20 +437,15 @@ export const UserGrid = () => {
 
   // Memoize client data to avoid unnecessary recalculations
   const clientsWithData = useMemo(() => {
-    // First sort clients so current user is always first
-    const sortedClients = [...clients].sort((a, b) => {
-      if (a.clientId === userId) return -1;
-      if (b.clientId === userId) return 1;
-      return 0;
-    });
-
-    return sortedClients.map((client) => {
+    return clients.map((client) => {
       const user = spatialConfig?.gains[client.clientId];
       const isFocused = user?.gain === 0; // The focused/active device in spatial audio
       const isCurrentUser = client.clientId === userId;
       return { client, isFocused, isCurrentUser };
     });
   }, [clients, spatialConfig?.gains, userId]);
+
+  const reorderClient = useGlobalStore((state) => state.reorderClient);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -568,6 +555,17 @@ export const UserGrid = () => {
             {/* Gain Meter */}
             <div className="mb-3 mt-2.5">
               <GainMeter />
+            </div>
+
+            {/* Add big move up button for current user only */}
+            <div className="flex mb-4 justify-end">
+              <Button
+                className="text-xs px-3 py-1 h-auto bg-neutral-700/60 hover:bg-neutral-700 text-white transition-colors duration-200 cursor-pointer"
+                size="sm"
+                onClick={() => reorderClient(userId)}
+              >
+                <ArrowUp className="size-4" /> Move to Top
+              </Button>
             </div>
 
             {/* List of connected users - Constrained height */}

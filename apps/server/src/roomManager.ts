@@ -130,9 +130,9 @@ class RoomManager {
 
     if (clientIndex === -1) return clients; // Client not found
 
-    // Move the client to the end
+    // Move the client to the front
     const [client] = clients.splice(clientIndex, 1);
-    clients.push(client);
+    clients.unshift(client);
 
     // Update the clients map to maintain the new order
     room.clients.clear();
