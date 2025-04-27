@@ -136,10 +136,11 @@ export const handleMessage = async (
       });
     } else if (parsedMessage.type === ClientActionEnum.enum.REORDER_CLIENT) {
       // Handle client reordering
-      const reorderedClients = roomManager.reorderClients(
+      const reorderedClients = roomManager.reorderClients({
         roomId,
-        parsedMessage.clientId
-      );
+        clientId: parsedMessage.clientId,
+        server,
+      });
 
       // Broadcast the updated client order to all clients
       sendBroadcast({

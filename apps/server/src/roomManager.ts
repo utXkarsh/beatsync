@@ -108,9 +108,20 @@ class RoomManager {
     return Array.from(room.clients.values());
   }
 
-  reorderClients(roomId: string, clientId: string): ClientType[] {
+  // Reorder clientId so that the client is at the end of the array
+  reorderClients({
+    roomId,
+    clientId,
+    server,
+  }: {
+    roomId: string;
+    clientId: string;
+    server: Server;
+  }): ClientType[] {
     const room = this.rooms.get(roomId);
-    if (!room) return [];
+    if (!room) {
+      throw new Error(`Room ${roomId} not found`);
+    }
 
     const clients = Array.from(room.clients.values());
     const clientIndex = clients.findIndex(
@@ -128,6 +139,12 @@ class RoomManager {
     clients.forEach((client) => {
       room.clients.set(client.clientId, client);
     });
+
+    // Update client positions based on new order
+    positionClientsInCircle(room.clients);
+
+    // Update gains
+    this._calculateGainsAndBroadcast({ room, server });
 
     return clients;
   }

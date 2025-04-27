@@ -85,6 +85,7 @@ interface GlobalState extends GlobalStateValues {
   setIsInitingSystem: (isIniting: boolean) => void;
   addToUploadHistory: (name: string, id: string) => void;
   reuploadAudio: (audioId: string, audioName: string) => void;
+  reorderClient: (clientId: string) => void;
   hasDownloadedAudio: (id: string) => boolean;
   markAudioAsDownloaded: (id: string) => void;
   setAudioSources: (sources: LocalAudioSource[]) => void;
@@ -320,6 +321,19 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           type: ClientActionEnum.enum.REUPLOAD_AUDIO,
           audioId,
           audioName,
+        },
+      });
+    },
+
+    reorderClient: (clientId) => {
+      const state = get();
+      const { socket } = getSocket(state);
+
+      sendWSRequest({
+        ws: socket,
+        request: {
+          type: ClientActionEnum.enum.REORDER_CLIENT,
+          clientId,
         },
       });
     },

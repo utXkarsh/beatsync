@@ -4,7 +4,7 @@ import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { ClientType, GRID } from "@beatsync/shared";
 import { motion } from "framer-motion";
-import { HeadphonesIcon, Rotate3D } from "lucide-react";
+import { ArrowUp, HeadphonesIcon, Rotate3D } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GainMeter } from "../dashboard/GainMeter";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -56,16 +56,25 @@ const ClientAvatar = memo<ClientAvatarProps>(
               isFocused ? "z-30" : isActive ? "z-20" : "z-10"
             )}
             style={{
-              left: `${client.position.x}%`,
-              top: `${client.position.y}%`,
               opacity: isGridEnabled ? 1 : 0.5,
             }}
-            initial={{ opacity: 0.8 }}
+            initial={{
+              opacity: 0.8,
+              left: `${client.position.x}%`,
+              top: `${client.position.y}%`,
+            }}
             animate={{
               opacity: isGridEnabled ? 1 : 0.5,
               scale: isFocused ? 1.2 : isActive ? 1.1 : 1,
+              left: `${client.position.x}%`,
+              top: `${client.position.y}%`,
             }}
-            transition={{ duration: 0.3 }}
+            transition={{
+              duration: 0.1,
+              ease: "easeInOut",
+              // left: { type: "spring", stiffness: 120, damping: 20 },
+              // top: { type: "spring", stiffness: 120, damping: 20 },
+            }}
           >
             <div
               className={cn(
@@ -140,6 +149,8 @@ ClientAvatar.displayName = "ClientAvatar";
 // Separate connected user list item component
 const ConnectedUserItem = memo<ConnectedUserItemProps>(
   ({ client, isActive, isFocused, isCurrentUser }) => {
+    const reorderClient = useGlobalStore((state) => state.reorderClient);
+
     return (
       <motion.div
         className={cn(
@@ -199,6 +210,13 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
             ? "You"
             : "Connected"}
         </Badge>
+        <button
+          className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+          onClick={() => reorderClient(client.clientId)}
+          title="Move Up"
+        >
+          <ArrowUp size={14} />
+        </button>
       </motion.div>
     );
   }
