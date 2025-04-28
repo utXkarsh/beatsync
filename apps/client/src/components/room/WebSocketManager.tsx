@@ -5,13 +5,17 @@ import { trimFileName } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
-import { NTPResponseMessageType, WSResponseSchema } from "@beatsync/shared";
+import {
+  epochNow,
+  NTPResponseMessageType,
+  WSResponseSchema,
+} from "@beatsync/shared";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
 // Helper function for NTP response handling
 const handleNTPResponse = (response: NTPResponseMessageType) => {
-  const t3 = performance.now();
+  const t3 = epochNow();
   const { t0, t1, t2 } = response;
 
   // Calculate round-trip delay and clock offset

@@ -1,4 +1,9 @@
-import { ClientType, MoveClientType, WSBroadcastType } from "@beatsync/shared";
+import {
+  ClientType,
+  epochNow,
+  MoveClientType,
+  WSBroadcastType,
+} from "@beatsync/shared";
 import { GRID, PositionType } from "@beatsync/shared/types/basic";
 import { Server, ServerWebSocket } from "bun";
 import { existsSync } from "node:fs";
@@ -211,7 +216,7 @@ class RoomManager {
       // Send the updated configuration to all clients
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: performance.now() + SCHEDULE_TIME_MS,
+        serverTimeToExecute: epochNow() + SCHEDULE_TIME_MS,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           listeningSource: room.listeningSource,
@@ -272,7 +277,7 @@ class RoomManager {
       roomId: room.roomId,
       message: {
         type: "SCHEDULED_ACTION",
-        serverTimeToExecute: performance.now() + 0,
+        serverTimeToExecute: epochNow() + 0,
         scheduledAction: {
           type: "SPATIAL_CONFIG",
           listeningSource: room.listeningSource,

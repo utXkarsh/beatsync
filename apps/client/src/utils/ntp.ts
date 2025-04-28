@@ -1,4 +1,4 @@
-import { ClientActionEnum } from "@beatsync/shared";
+import { ClientActionEnum, epochNow } from "@beatsync/shared";
 import { sendWSRequest } from "./ws";
 
 export interface NTPMeasurement {
@@ -15,7 +15,7 @@ export const _sendNTPRequest = (ws: WebSocket) => {
     throw new Error("Cannot send NTP request: WebSocket is not open");
   }
 
-  const t0 = performance.now();
+  const t0 = epochNow();
   sendWSRequest({
     ws,
     request: {
@@ -58,8 +58,8 @@ export const calculateOffsetEstimate = (ntpMeasurements: NTPMeasurement[]) => {
 
 export const calculateWaitTimeMilliseconds = (
   targetServerTime: number,
-  clockOffset: number | null
+  clockOffset: number
 ): number => {
-  const estimatedCurrentServerTime = performance.now() + (clockOffset || 0);
+  const estimatedCurrentServerTime = epochNow() + clockOffset;
   return Math.max(0, targetServerTime - estimatedCurrentServerTime);
 };

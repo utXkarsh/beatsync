@@ -18,7 +18,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   const pauseAudio = useGlobalStore((state) => state.pauseAudio);
   const connectedClients = useGlobalStore((state) => state.connectedClients);
   const setIsLoadingAudio = useGlobalStore((state) => state.setIsInitingSystem);
-
+  const clockOffset = useGlobalStore((state) => state.offsetEstimate);
   const resync = () => {
     try {
       pauseAudio({ when: 0 });
@@ -62,8 +62,9 @@ export const TopBar = ({ roomId }: TopBarProps) => {
           <div className="hidden md:block">|</div>
           {/* Hide Offset/RTT on small screens */}
           <div className="hidden md:flex items-center space-x-2">
+            <span>Offset: {clockOffset.toFixed(2)}ms</span>
             <span>
-              Latency: <span>{roundTripEstimate.toFixed(2)}</span>ms
+              RTT: <span>{roundTripEstimate.toFixed(2)}</span>ms
             </span>
           </div>
           {/* Hide separator on small screens */}

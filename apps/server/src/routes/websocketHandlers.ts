@@ -1,5 +1,6 @@
 import {
   ClientActionEnum,
+  epochNow,
   WSBroadcastType,
   WSRequestSchema,
 } from "@beatsync/shared";
@@ -46,7 +47,7 @@ export const handleMessage = async (
   message: string | Buffer,
   server: Server
 ) => {
-  const t1 = performance.now();
+  const t1 = epochNow();
   const { roomId, username } = ws.data;
 
   try {
@@ -67,7 +68,7 @@ export const handleMessage = async (
           type: "NTP_RESPONSE",
           t0: parsedMessage.t0, // Echo back the client's t0
           t1, // Server receive time
-          t2: performance.now(), // Server send time
+          t2: epochNow(), // Server send time
         },
       });
 
@@ -82,8 +83,8 @@ export const handleMessage = async (
         message: {
           type: "SCHEDULED_ACTION",
           scheduledAction: parsedMessage,
-          serverTimeToExecute: performance.now() + SCHEDULE_TIME_MS, // 500 ms from now
-          // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs > 500
+          serverTimeToExecute: epochNow() + SCHEDULE_TIME_MS, // 500 ms from now
+          // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs
         },
       });
 
@@ -105,7 +106,7 @@ export const handleMessage = async (
         scheduledAction: {
           type: "STOP_SPATIAL_AUDIO",
         },
-        serverTimeToExecute: performance.now() + 0,
+        serverTimeToExecute: epochNow() + 0,
       };
 
       // Reset all gains:
