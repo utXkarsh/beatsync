@@ -1,6 +1,6 @@
 # Beatsync
 
-Beatsync is an open-source, cloud-native platform for high-precision **audio synchronization** and **spatial audio** across independent devices.
+Beatsync is an open-source, cloud-native platform for high-precision, millisecond-level **audio synchronization** and **spatial audio** across independent devices.
 
 https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
 
