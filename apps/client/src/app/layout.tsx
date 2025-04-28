@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body
@@ -43,9 +42,11 @@ export default function RootLayout({
           "antialiased font-sans dark selection:bg-primary-800 selection:text-white"
         )}
       >
-        {children}
-        <Toaster />
-        <Analytics />
+        <PostHogProvider>
+          {children}
+          <Toaster />
+          <Analytics />
+        </PostHogProvider>
       </body>
     </html>
   );
