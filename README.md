@@ -1,6 +1,6 @@
 # Beatsync
 
-Beatsync is an open-source, cloud-native platform for high-precision, millisecond-level **audio synchronization** and **spatial audio** across independent devices.
+Beatsync is a web audio player built for multi-device playback. It abstracts high-precision, millisecond-level audio synchronization primitives into a minimal, intuitive interface.
 
 https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
 
@@ -9,7 +9,7 @@ https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
 >
 > Mobile device synchronization is experimental and may be unstable.
 
-# Quickstart
+## Quickstart
 
 This project uses [Turborepo](https://turbo.build/repo).
 
