@@ -4,6 +4,11 @@ Beatsync is an open-source, cloud-native platform for high-precision, millisecon
 
 https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
 
+> [!WARNING]
+> Beatsync is in early development. Currently, only desktop Chrome browsers are fully supported.
+>
+> Mobile device synchronization is experimental and may be unstable.
+
 # Quickstart
 
 This project uses [Turborepo](https://turbo.build/repo).
