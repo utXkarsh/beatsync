@@ -2,7 +2,7 @@
 
 Beatsync is a high-precision web audio player built for multi-device playback.
 
-https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
+https://github.com/user-attachments/assets/2aa385a7-2a07-4ab5-80b1-fda553efc57b
 
 ## Features
 
