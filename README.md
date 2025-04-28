@@ -1,8 +1,17 @@
 # Beatsync
 
-Beatsync is a web audio player built for multi-device playback. It abstracts high-precision, millisecond-level audio synchronization primitives into a minimal, intuitive interface.
+Beatsync is a high-precision web audio player built for multi-device playback.
 
 https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
+
+## Features
+
+- **Millisecond-accurate synchronization**: Abstracts [NTP-inspired](https://en.wikipedia.org/wiki/Network_Time_Protocol) time synchronization primitives to achieve a high degree of accuracy
+- **Cross-platform**: Works on any device with a modern browser (Chrome recommended for best performance)
+- **Spatial audio:** Allows controlling device volumes through a virtual listening source for interesting sonic effects
+- **Polished interface**: Smooth loading states, status indicators, and all UI elements come built-in
+- **Self-hostable**: Run your own instance with a few commands
+
 
 > [!WARNING]
 > Beatsync is in early development. Currently, only desktop Chrome browsers are fully supported.
