@@ -1,8 +1,10 @@
 # Beatsync
 
-Beatsync is an open-source, cloud-native platform for **perfect audio synchronization** and **spatial audio** across independent devices, all in the browser.
+Beatsync is an open-source, cloud-native platform for high-precision **audio synchronization** and **spatial audio** across independent devices.
 
-### Quickstart
+https://github.com/user-attachments/assets/8439bb29-667b-4a33-99a9-74d4f0882020
+
+# Quickstart
 
 This project uses [Turborepo](https://turbo.build/repo).
 
