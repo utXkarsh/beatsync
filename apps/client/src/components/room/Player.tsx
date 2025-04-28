@@ -82,10 +82,15 @@ export const Player = () => {
     (value: number[]) => {
       const newPosition = value[0];
       setIsDragging(false);
-      // Broadcast the position change to all clients
-      broadcastPlay(newPosition);
+      // If currently playing, broadcast play at new position
+      // If paused, just update position without playing
+      if (isPlaying) {
+        broadcastPlay(newPosition);
+      } else {
+        setSliderPosition(newPosition);
+      }
     },
-    [broadcastPlay]
+    [broadcastPlay, isPlaying, setSliderPosition]
   );
 
   const handlePlay = useCallback(() => {
