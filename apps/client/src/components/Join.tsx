@@ -11,6 +11,7 @@ import { useRoomStore } from "@/store/room";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogIn, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ interface JoinFormData {
 }
 
 export const Join = () => {
+  const posthog = usePostHog();
   const [isJoining, setIsJoining] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const setUsername = useRoomStore((state) => state.setUsername);
@@ -38,8 +40,9 @@ export const Join = () => {
 
   useEffect(() => {
     // Set a random username when component mounts
-    setUsername(generateName());
-  }, [setValue, setUsername]);
+    const generatedName = generateName();
+    setUsername(generatedName);
+  }, [setValue, setUsername, posthog]);
 
   const router = useRouter();
 
@@ -49,8 +52,20 @@ export const Join = () => {
     if (!validateFullRoomId(data.roomId)) {
       toast.error("Invalid room code. Please enter 6 digits.");
       setIsJoining(false);
+
+      // Track validation error
+      posthog.capture("join_room_validation_error", {
+        room_id: data.roomId,
+        error: "Invalid room code",
+      });
       return;
     }
+
+    // Track join attempt
+    posthog.capture("join_room_attempt", {
+      room_id: data.roomId,
+      username,
+    });
 
     console.log("Joining room with data:", {
       roomId: data.roomId,
@@ -65,7 +80,24 @@ export const Join = () => {
     // Generate a random 6-digit room ID
     const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
 
+    // Track room creation
+    posthog.capture("create_room", {
+      room_id: newRoomId,
+      username,
+    });
+
     router.push(`/room/${newRoomId}`);
+  };
+
+  const handleRegenerateName = () => {
+    const newName = generateName();
+    setUsername(newName);
+
+    // Track name regeneration
+    posthog.capture("regenerate_username", {
+      previous_username: username,
+      new_username: newName,
+    });
   };
 
   return (
@@ -183,9 +215,7 @@ export const Join = () => {
               </div>
               <Button
                 type="button"
-                onClick={() => {
-                  setUsername(generateName());
-                }}
+                onClick={handleRegenerateName}
                 variant="ghost"
                 className="text-xs text-neutral-500 hover:text-neutral-300 ml-2 h-6 px-2"
                 disabled={isJoining || isCreating}
@@ -206,6 +236,9 @@ export const Join = () => {
                   type="submit"
                   className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-medium text-sm cursor-pointer transition-all duration-300 flex items-center justify-center"
                   disabled={isJoining || isCreating}
+                  onClick={() => {
+                    posthog.capture("join_button_clicked");
+                  }}
                 >
                   {isJoining ? (
                     <motion.div
@@ -250,7 +283,7 @@ export const Join = () => {
                   ) : (
                     <PlusCircle size={16} className="mr-2" />
                   )}
-                  <span>{isCreating ? "Creating..." : "Create room"}</span>
+                  <span>{isCreating ? "Creating..." : "Create new room"}</span>
                 </Button>
               </motion.div>
             </div>

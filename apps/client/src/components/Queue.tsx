@@ -9,8 +9,10 @@ import { cn, formatTime } from "@/lib/utils";
 import { useGlobalStore } from "@/store/global";
 import { MoreHorizontal, Pause, Play, UploadCloud } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { usePostHog } from "posthog-js/react";
 
 export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
+  const posthog = usePostHog();
   const audioSources = useGlobalStore((state) => state.audioSources);
   const selectedAudioId = useGlobalStore((state) => state.selectedAudioId);
   const setSelectedAudioId = useGlobalStore(
@@ -26,13 +28,32 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
     if (source.id === selectedAudioId) {
       if (isPlaying) {
         broadcastPause();
+        posthog.capture("pause_track", { track_id: source.id });
       } else {
         broadcastPlay();
+        posthog.capture("play_track", { track_id: source.id });
       }
     } else {
+      // Track selection event
+      posthog.capture("select_track", {
+        track_id: source.id,
+        track_name: source.name,
+        previous_track_id: selectedAudioId,
+      });
+
       setSelectedAudioId(source.id);
       broadcastPlay(0);
     }
+  };
+
+  const handleReupload = (sourceId: string, sourceName: string) => {
+    reuploadAudio(sourceId, sourceName);
+
+    // Track reupload event
+    posthog.capture("reupload_track", {
+      track_id: sourceId,
+      track_name: sourceName,
+    });
   };
 
   return (
@@ -129,7 +150,9 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <DropdownMenuItem
-                          onSelect={() => reuploadAudio(source.id, source.name)}
+                          onSelect={() =>
+                            handleReupload(source.id, source.name)
+                          }
                           className="flex items-center gap-2 cursor-pointer text-sm"
                           disabled={source.id.startsWith("static")}
                         >

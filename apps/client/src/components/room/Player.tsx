@@ -9,11 +9,12 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react";
-
+import { usePostHog } from "posthog-js/react";
 import { useCallback, useEffect, useState } from "react";
 import { Slider } from "../ui/slider";
 
 export const Player = () => {
+  const posthog = usePostHog();
   const broadcastPlay = useGlobalStore((state) => state.broadcastPlay);
   const broadcastPause = useGlobalStore((state) => state.broadcastPause);
   const isPlaying = useGlobalStore((state) => state.isPlaying);
@@ -89,31 +90,67 @@ export const Player = () => {
       } else {
         setSliderPosition(newPosition);
       }
+
+      // Log scrub event
+      posthog.capture("scrub_confirm", {
+        position: newPosition,
+        track_id: selectedAudioId,
+        track_duration: trackDuration,
+      });
     },
-    [broadcastPlay, isPlaying, setSliderPosition]
+    [
+      broadcastPlay,
+      isPlaying,
+      setSliderPosition,
+      posthog,
+      selectedAudioId,
+      trackDuration,
+    ]
   );
 
   const handlePlay = useCallback(() => {
     if (isPlaying) {
       broadcastPause();
+      posthog.capture("pause_track", { track_id: selectedAudioId });
     } else {
       broadcastPlay(sliderPosition);
+      posthog.capture("play_track", {
+        position: sliderPosition,
+        track_id: selectedAudioId,
+      });
     }
-  }, [isPlaying, broadcastPause, broadcastPlay, sliderPosition]);
+  }, [
+    isPlaying,
+    broadcastPause,
+    broadcastPlay,
+    sliderPosition,
+    posthog,
+    selectedAudioId,
+  ]);
 
   const handleSkipBack = useCallback(() => {
     if (!isShuffled) {
       skipToPreviousTrack();
+      posthog.capture("skip_previous", {
+        from_track_id: selectedAudioId,
+      });
     }
-  }, [skipToPreviousTrack, isShuffled]);
+  }, [skipToPreviousTrack, isShuffled, posthog, selectedAudioId]);
 
   const handleSkipForward = useCallback(() => {
     skipToNextTrack();
-  }, [skipToNextTrack]);
+    posthog.capture("skip_next", {
+      from_track_id: selectedAudioId,
+    });
+  }, [skipToNextTrack, posthog, selectedAudioId]);
 
   const handleShuffle = useCallback(() => {
     toggleShuffle();
-  }, [toggleShuffle]);
+    posthog.capture("toggle_shuffle", {
+      shuffle_enabled: !isShuffled,
+      queue_size: audioSources.length,
+    });
+  }, [toggleShuffle, posthog, isShuffled, audioSources.length]);
 
   // Handle keyboard shortcuts
   useEffect(() => {

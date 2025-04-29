@@ -3,9 +3,11 @@
 import { useGlobalStore } from "@/store/global";
 import { Construction, Orbit } from "lucide-react";
 import { motion } from "motion/react";
+import { usePostHog } from "posthog-js/react";
 import { Button } from "../ui/button";
 
 export const AudioControls = () => {
+  const posthog = usePostHog();
   const startSpatialAudio = useGlobalStore((state) => state.startSpatialAudio);
   const stopSpatialAudio = useGlobalStore(
     (state) => state.sendStopSpatialAudio
@@ -14,10 +16,12 @@ export const AudioControls = () => {
 
   const handleStartSpatialAudio = () => {
     startSpatialAudio();
+    posthog.capture("start_spatial_audio");
   };
 
   const handleStopSpatialAudio = () => {
     stopSpatialAudio();
+    posthog.capture("stop_spatial_audio");
   };
 
   return (

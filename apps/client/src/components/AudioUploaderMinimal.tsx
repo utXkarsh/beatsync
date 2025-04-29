@@ -4,6 +4,7 @@ import { uploadAudioFile } from "@/lib/api";
 import { cn, trimFileName } from "@/lib/utils";
 import { useRoomStore } from "@/store/room";
 import { CloudUpload, Plus } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ export const AudioUploaderMinimal = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const roomId = useRoomStore((state) => state.roomId);
+  const posthog = usePostHog();
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -21,6 +23,14 @@ export const AudioUploaderMinimal = () => {
 
     // Store file name for display
     setFileName(file.name);
+
+    // Track upload initiated
+    posthog.capture("upload_initiated", {
+      file_name: file.name,
+      file_size: file.size,
+      file_type: file.type,
+      room_id: roomId,
+    });
 
     try {
       setIsUploading(true);
@@ -40,6 +50,14 @@ export const AudioUploaderMinimal = () => {
             roomId,
           });
 
+          // Track successful upload
+          posthog.capture("upload_success", {
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            room_id: roomId,
+          });
+
           // Reset the input and file name after successful upload
           event.target.value = "";
           setTimeout(() => setFileName(null), 3000);
@@ -47,6 +65,15 @@ export const AudioUploaderMinimal = () => {
           console.error("Error during upload:", err);
           toast.error("Failed to upload audio file");
           setFileName(null);
+
+          // Track upload failure
+          posthog.capture("upload_failed", {
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            room_id: roomId,
+            error: err instanceof Error ? err.message : "Unknown error",
+          });
         } finally {
           setIsUploading(false);
         }
@@ -56,6 +83,15 @@ export const AudioUploaderMinimal = () => {
         toast.error("Failed to read file");
         setIsUploading(false);
         setFileName(null);
+
+        // Track file read error
+        posthog.capture("upload_failed", {
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          room_id: roomId,
+          error: "Failed to read file",
+        });
       };
 
       reader.readAsDataURL(file);
@@ -64,6 +100,15 @@ export const AudioUploaderMinimal = () => {
       toast.error("Failed to process file");
       setIsUploading(false);
       setFileName(null);
+
+      // Track upload processing error
+      posthog.capture("upload_failed", {
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        room_id: roomId,
+        error: err instanceof Error ? err.message : "Unknown processing error",
+      });
     }
   };
 
