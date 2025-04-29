@@ -88,9 +88,6 @@ export const Left = ({ className }: LeftProps) => {
               refresh.
             </li>
             <li className="text-xs leading-relaxed">
-              On mobile, check silent mode is off.
-            </li>
-            <li className="text-xs leading-relaxed">
               {"Play on speaker directly. Don't use Bluetooth."}
             </li>
           </ul>

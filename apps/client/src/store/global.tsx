@@ -414,7 +414,26 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
-    setIsInitingSystem: (isIniting) => set({ isInitingSystem: isIniting }),
+    setIsInitingSystem: async (isIniting) => {
+      // When initialization is complete (isIniting = false), check if we need to resume audio
+      if (!isIniting) {
+        const state = get();
+        const audioContext = state.audioPlayer?.audioContext;
+        // Modern browsers require user interaction before playing audio
+        // If context is suspended, we need to resume it
+        if (audioContext && audioContext.state === "suspended") {
+          try {
+            await audioContext.resume();
+            console.log("AudioContext resumed via user gesture");
+          } catch (err) {
+            console.warn("Failed to resume AudioContext", err);
+          }
+        }
+      }
+
+      // Update the initialization state
+      set({ isInitingSystem: isIniting });
+    },
 
     setSelectedAudioId: (audioId) => {
       const state = get();
@@ -650,9 +669,9 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       // Before any audio playback, ensure the context is running
       if (audioContext.state !== "running") {
-        // This will resume a suspended context
-        await audioContext.resume();
-        console.log("Audio context resumed");
+        console.log("AudioContext still suspended, aborting play");
+        toast.error("Audio context is suspended. Please try again.");
+        return;
       }
 
       // Stop any existing source node before creating a new one

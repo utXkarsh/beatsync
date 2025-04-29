@@ -295,8 +295,7 @@ export const Join = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.4 }}
           >
-            Optimized for Chrome on macOS. Unstable for other platforms. Use
-            native device speakers, and make sure silent mode is off.
+            Use native device speakers.
           </motion.p>
         </motion.div>
       </div>

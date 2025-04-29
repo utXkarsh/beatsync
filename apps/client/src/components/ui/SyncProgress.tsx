@@ -139,8 +139,7 @@ export const SyncProgress = ({
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              Optimized for Chrome on macOS. Unstable for other platforms. Use
-              native device speakers, and make sure silent mode is off.
+              Use native device speakers.
             </motion.p>
           </motion.div>
         </div>
