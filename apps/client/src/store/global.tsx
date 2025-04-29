@@ -294,6 +294,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
   };
 
   if (typeof window !== "undefined") {
+    // @ts-expect-error only exists for iOS
+    if (window.navigator.audioSession) {
+      // @ts-expect-error only exists for iOS
+      window.navigator.audioSession.type = "playback";
+    }
+
     console.log("Detected that no audio sources were loaded, initializing");
     initializeAudio();
   }
