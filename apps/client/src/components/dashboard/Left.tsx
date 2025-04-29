@@ -59,7 +59,7 @@ export const Left = ({ className }: LeftProps) => {
           <span>Default Library</span>
         </Button>
 
-        <a href="https://ytmp3.cc/Nnht/" target="_blank">
+        <a href="https://cobalt.tools/" target="_blank">
           <Button
             className="w-full flex justify-start gap-3 py-2 text-white font-medium bg-white/10 hover:bg-white/15 rounded-md text-xs transition-colors duration-200 cursor-pointer"
             variant="ghost"
