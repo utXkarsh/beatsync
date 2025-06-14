@@ -1,6 +1,5 @@
 import { Server } from "bun";
 
-import { UploadAudioSchema } from "@beatsync/shared";
 import { mkdir } from "node:fs/promises";
 import * as path from "path";
 import { AUDIO_DIR } from "../config";
@@ -15,22 +14,25 @@ export const handleUpload = async (req: Request, server: Server) => {
 
     // Check content type
     const contentType = req.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      return errorResponse("Content-Type must be application/json", 400);
+    if (!contentType || !contentType.includes("multipart/form-data")) {
+      return errorResponse("Content-Type must be multipart/form-data", 400);
     }
 
-    // Parse and validate the request body using Zod schema
-    const rawBody = await req.json();
-    const parseResult = UploadAudioSchema.safeParse(rawBody);
+    // Parse the multipart form data
+    const formData = await req.formData();
+    const audioFile = formData.get("audio") as File | null;
+    const roomId = formData.get("roomId") as string | null;
 
-    if (!parseResult.success) {
-      return errorResponse(
-        `Invalid request data: ${parseResult.error.message}`,
-        400
-      );
+    if (!audioFile || !roomId) {
+      return errorResponse("Missing required fields: audio file and roomId", 400);
     }
 
-    const { name, audioData, roomId } = parseResult.data;
+    // Validate file is actually an audio file
+    if (!audioFile.type.startsWith("audio/")) {
+      return errorResponse("File must be an audio file", 400);
+    }
+
+    const name = audioFile.name;
 
     // Create room-specific directory if it doesn't exist
     const roomDir = path.join(AUDIO_DIR, `room-${roomId}`);
@@ -46,8 +48,8 @@ export const handleUpload = async (req: Request, server: Server) => {
     // Full path to the file
     const filePath = path.join(AUDIO_DIR, fileId);
 
-    // Decode base64 audio data and write to file using Bun.write
-    const audioBuffer = Buffer.from(audioData, "base64");
+    // Get the audio data as ArrayBuffer and write to file
+    const audioBuffer = await audioFile.arrayBuffer();
     await Bun.write(filePath, audioBuffer);
 
     sendBroadcast({

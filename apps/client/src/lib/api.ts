@@ -1,4 +1,3 @@
-import { UploadAudioType } from "@beatsync/shared";
 import axios from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -10,14 +9,23 @@ const baseAxios = axios.create({
   baseURL: BASE_URL,
 });
 
-export const uploadAudioFile = async (data: UploadAudioType) => {
+export const uploadAudioFile = async (data: { file: File; roomId: string }) => {
   try {
+    // Create FormData for binary upload
+    const formData = new FormData();
+    formData.append("audio", data.file);
+    formData.append("roomId", data.roomId);
+
     const response = await baseAxios.post<{
       success: boolean;
       filename: string;
       path: string;
       size: number;
-    }>("/upload", data);
+    }>("/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
     return response.data;
   } catch (error) {
