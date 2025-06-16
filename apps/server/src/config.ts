@@ -1,7 +1,10 @@
 import * as path from "path";
 
-// Path configurations
+// Path configurations (legacy - will be replaced by R2)
 export const AUDIO_DIR = path.join(process.cwd(), "uploads", "audio");
+
+// https://developers.cloudflare.com/r2/api/s3/api/
+// R2 Configuration
 
 // Audio settings
 export const AUDIO_LOW = 0.15;

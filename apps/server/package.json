@@ -5,6 +5,7 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.828.0",
     "@beatsync/shared": "workspace:*",
     "@distube/ytdl-core": "^4.16.4",
     "hono": "^4.7.2",
