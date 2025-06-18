@@ -1,9 +1,13 @@
 import {
-  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { config } from "dotenv";
+
+config();
 
 const S3_CONFIG = {
   BUCKET_NAME: process.env.S3_BUCKET_NAME!,
@@ -60,7 +64,7 @@ export async function generatePresignedUploadUrl(
  * Get the public URL for an audio file (if public access is enabled)
  */
 export function getPublicAudioUrl(roomId: string, fileName: string): string {
-  return `${S3_CONFIG.PUBLIC_URL}/${S3_CONFIG.BUCKET_NAME}/room-${roomId}/${fileName}`;
+  return `${S3_CONFIG.PUBLIC_URL}/room-${roomId}/${fileName}`;
 }
 
 /**
@@ -91,28 +95,89 @@ export function validateR2Config(): { isValid: boolean; errors: string[] } {
 }
 
 /**
- * Delete a single audio file from R2
+ * List all objects with a given prefix
  */
-export async function deleteAudioFile(
-  roomId: string,
-  fileName: string
-): Promise<boolean> {
+export async function listObjectsWithPrefix(prefix: string) {
   try {
-    const key = `room-${roomId}/${fileName}`;
-
-    const command = new DeleteObjectCommand({
+    const listCommand = new ListObjectsV2Command({
       Bucket: S3_CONFIG.BUCKET_NAME,
-      Key: key,
+      Prefix: prefix,
     });
 
-    await r2Client.send(command);
-    return true;
+    const listResponse = await r2Client.send(listCommand);
+    return listResponse.Contents;
   } catch (error) {
-    console.error(`Failed to delete R2 file ${roomId}/${fileName}:`, error);
-    return false;
+    console.error(`Failed to list objects with prefix "${prefix}":`, error);
+    throw error;
   }
 }
 
 /**
- * Delete all audio files for a room from R2 TODO:
+ * Delete all objects with a given prefix
  */
+export async function deleteObjectsWithPrefix(
+  prefix: string = ""
+): Promise<{ success: boolean; deletedCount: number }> {
+  let deletedCount = 0;
+
+  try {
+    const objects = await listObjectsWithPrefix(prefix);
+
+    if (!objects || objects.length === 0) {
+      console.log(`No objects found with prefix "${prefix}"`);
+      return { success: true, deletedCount: 0 };
+    }
+
+    console.log(
+      `Found ${objects.length} objects with prefix "${prefix}", deleting...`
+    );
+
+    // Prepare objects for batch deletion
+    const objectsToDelete = objects.map((obj) => ({
+      Key: obj.Key!,
+    }));
+
+    // Delete objects in batches (R2/S3 supports up to 1000 objects per batch)
+    const batchSize = 1000;
+    for (let i = 0; i < objectsToDelete.length; i += batchSize) {
+      const batch = objectsToDelete.slice(i, i + batchSize);
+
+      const deleteCommand = new DeleteObjectsCommand({
+        Bucket: S3_CONFIG.BUCKET_NAME,
+        Delete: {
+          Objects: batch,
+          Quiet: true, // Only return errors, not successful deletions
+        },
+      });
+
+      const deleteResponse = await r2Client.send(deleteCommand);
+
+      // Count successful deletions
+      const batchDeletedCount =
+        batch.length - (deleteResponse.Errors?.length || 0);
+      deletedCount += batchDeletedCount;
+
+      // Throw on first error
+      if (deleteResponse.Errors && deleteResponse.Errors.length > 0) {
+        const firstError = deleteResponse.Errors[0];
+        throw new Error(
+          `Failed to delete ${firstError.Key}: ${firstError.Message}`
+        );
+      }
+    }
+
+    console.log(
+      `R2 cleanup with prefix "${prefix}": ${deletedCount} files deleted successfully`
+    );
+
+    return { success: true, deletedCount };
+  } catch (error) {
+    const errorMessage = `Failed to delete objects with prefix "${prefix}": ${error}`;
+    console.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function clearRoom(roomId: string) {
+  return await deleteObjectsWithPrefix(`room-${roomId}`);
+}

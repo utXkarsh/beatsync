@@ -6,10 +6,8 @@ import {
 } from "@beatsync/shared";
 import { GRID, PositionType } from "@beatsync/shared/types/basic";
 import { Server, ServerWebSocket } from "bun";
-import { existsSync } from "node:fs";
-import { readdir } from "node:fs/promises";
-import * as path from "path";
-import { AUDIO_DIR, SCHEDULE_TIME_MS } from "./config";
+import { SCHEDULE_TIME_MS } from "./config";
+import { clearRoom } from "./lib/r2";
 import { calculateGainFromDistanceToSource } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
@@ -67,38 +65,25 @@ class RoomManager {
 
   // Clean up room files when all clients have left
   async cleanupRoomFiles(roomId: string) {
+    console.log(`Starting R2 cleanup for room ${roomId}...`);
+
     try {
-      const roomDirPath = path.join(AUDIO_DIR, `room-${roomId}`);
+      const { success: r2CleanupSuccess, deletedCount } = await clearRoom(
+        roomId
+      );
 
-      // Check if the directory exists before attempting to delete files
-      // Using Node.js fs.existsSync instead of Bun.file().exists() for directories
-      if (existsSync(roomDirPath)) {
-        // List all files in the directory
-        const files = await readdir(roomDirPath);
-
+      if (r2CleanupSuccess) {
         console.log(
-          `Found room directory for ${roomId}, cleaning up ${files.length} files...`
+          `✅ Room ${roomId} cleanup completed successfully. Files deleted: ${deletedCount}`
         );
-
-        if (files.length > 0) {
-          // Delete each file in the directory
-          for (const file of files) {
-            const filePath = path.join(roomDirPath, file);
-            await Bun.file(filePath).delete();
-          }
-
-          // Remove the directory using rm -rf
-          await Bun.spawn(["rmdir", roomDirPath]).exited;
-
-          console.log(`Cleaned up audio files for room ${roomId}`);
-        } else {
-          console.log(`No audio files found in room directory ${roomId}`);
-        }
       } else {
-        console.log(`No audio directory found for room ${roomId}`);
+        console.log(`❌ Room ${roomId} cleanup completed with errors`);
       }
+
+      return r2CleanupSuccess;
     } catch (error) {
-      console.error(`Error cleaning up room files for ${roomId}:`, error);
+      console.error(`❌ Room ${roomId} cleanup failed:`, error);
+      return false;
     }
   }
 
@@ -170,9 +155,7 @@ class RoomManager {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
-    // Create a closure for the focus index that persists between startInterval calls
-    let focusIndex = 0;
-    // And one for the number of loops
+    // Create a closure for the number of loops
     let loopCount = 0;
 
     const updateSpatialAudio = () => {
