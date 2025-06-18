@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config } from "dotenv";
+import sanitize = require("sanitize-filename");
 
 config();
 
@@ -71,9 +72,34 @@ export function getPublicAudioUrl(roomId: string, fileName: string): string {
  * Generate a unique file name for audio uploads
  */
 export function generateAudioFileName(originalName: string): string {
-  const timestamp = Date.now();
+  // Extract extension
   const extension = originalName.split(".").pop() || "mp3";
-  return `${timestamp}.${extension}`;
+
+  // Remove extension from name for processing
+  const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
+
+  // Sanitize filename using the library
+  let safeName = sanitize(nameWithoutExt, { replacement: "-" });
+
+  // Truncate if too long (leave room for timestamp and extension)
+  const maxNameLength = 400;
+  if (safeName.length > maxNameLength) {
+    safeName = safeName.substring(0, maxNameLength);
+  }
+
+  // Fallback if name becomes empty after sanitization
+  if (!safeName) {
+    safeName = "audio";
+  }
+
+  // Generate timestamp with date and random component
+  const now = new Date();
+  const dateStr = now.toISOString().split("T")[0]; // YYYY-MM-DD
+  const randomComponent = Math.floor(Math.random() * 100000)
+    .toString()
+    .padStart(5, "0");
+
+  return `${safeName}-${dateStr}-${randomComponent}.${extension}`;
 }
 
 /**
