@@ -41,6 +41,7 @@ export const handleGetPresignedURL = async (req: Request) => {
 
     // Generate unique filename
     const uniqueFileName = generateAudioFileName(fileName);
+    const r2Key = `room-${roomId}/${uniqueFileName}`;
 
     // Generate presigned URL for upload
     const uploadUrl = await generatePresignedUploadUrl(
@@ -49,6 +50,8 @@ export const handleGetPresignedURL = async (req: Request) => {
       contentType
     );
     const publicUrl = getPublicAudioUrl(roomId, uniqueFileName);
+
+    console.log(`Generated presigned URL for upload - R2 key: (${r2Key})`);
 
     const response: UploadUrlResponseType = {
       uploadUrl,
@@ -80,6 +83,10 @@ export const handleUploadComplete = async (req: Request, server: Server) => {
     }
 
     const { roomId, originalName, publicUrl } = parseResult.data;
+
+    console.log(
+      `✅ Audio upload completed - broadcasting to room ${roomId}: (${publicUrl})`
+    );
 
     // Broadcast to room that new audio is available
     sendBroadcast({

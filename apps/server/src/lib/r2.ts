@@ -154,7 +154,7 @@ export async function deleteObjectsWithPrefix(
     }
 
     console.log(
-      `Found ${objects.length} objects with prefix "${prefix}", deleting...`
+      `Deleting ${objects.length} objects with prefix "${prefix}: ${objects}"`
     );
 
     // Prepare objects for batch deletion

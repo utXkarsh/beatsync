@@ -178,18 +178,24 @@ export const handleMessage = async (
   }
 };
 
-export const handleClose = async (ws: ServerWebSocket<WSData>, server: Server) => {
+export const handleClose = async (
+  ws: ServerWebSocket<WSData>,
+  server: Server
+) => {
   try {
     console.log(
       `WebSocket connection closed for user ${ws.data.username} in room ${ws.data.roomId}`
     );
-    ws.unsubscribe(ws.data.roomId);
 
     await roomManager.removeClient(ws.data.roomId, ws.data.clientId);
 
     const message = createClientUpdate(ws.data.roomId);
+    ws.unsubscribe(ws.data.roomId);
     server.publish(ws.data.roomId, JSON.stringify(message));
   } catch (error) {
-    console.error(`Error handling WebSocket close for ${ws.data?.username}:`, error);
+    console.error(
+      `Error handling WebSocket close for ${ws.data?.username}:`,
+      error
+    );
   }
 };
