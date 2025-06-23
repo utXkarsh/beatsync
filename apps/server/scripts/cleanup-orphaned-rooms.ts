@@ -5,7 +5,7 @@
  */
 
 import { config } from "dotenv";
-import { listObjectsWithPrefix, deleteObjectsWithPrefix } from "../src/lib/r2";
+import { listObjectsWithPrefix, deleteObjectsWithPrefix, validateR2Config } from "../src/lib/r2";
 import { roomManager } from "../src/roomManager";
 
 config();
@@ -13,6 +13,21 @@ config();
 async function cleanupOrphanedRooms(dryRun: boolean = true) {
   console.log("🧹 Starting R2 Orphaned Room Cleanup");
   console.log(`Mode: ${dryRun ? "DRY RUN (no deletions)" : "LIVE (will delete files)"}\n`);
+
+  // Validate and display R2 configuration
+  console.log("🔧 R2 Configuration:");
+  console.log(`   Bucket: ${process.env.S3_BUCKET_NAME || 'NOT SET'}`);
+  console.log(`   Endpoint: ${process.env.S3_ENDPOINT || 'NOT SET'}`);
+  console.log(`   Public URL: ${process.env.S3_PUBLIC_URL || 'NOT SET'}`);
+  console.log(`   Access Key ID: ${process.env.S3_ACCESS_KEY_ID ? process.env.S3_ACCESS_KEY_ID.substring(0, 8) + '...' : 'NOT SET'}`);
+  console.log(`   Secret Key: ${process.env.S3_SECRET_ACCESS_KEY ? '***' : 'NOT SET'}\n`);
+
+  const r2Config = validateR2Config();
+  if (!r2Config.isValid) {
+    console.error("❌ R2 configuration is invalid:");
+    r2Config.errors.forEach(error => console.error(`   - ${error}`));
+    process.exit(1);
+  }
 
   try {
     // Step 1: Get all objects in R2

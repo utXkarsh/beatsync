@@ -2,7 +2,9 @@
   "name": "server",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "cleanup": "bun run scripts/cleanup-orphaned-rooms.ts",
+    "cleanup:live": "bun run scripts/cleanup-orphaned-rooms.ts --live"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.828.0",
