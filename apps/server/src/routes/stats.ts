@@ -41,7 +41,7 @@ export async function handleStats(): Promise<Response> {
   // --- Add Room Manager Stats with enriched storage info ---
   const activeRooms = Array.from(roomManager.rooms.entries()).map(
     ([roomId, roomData]) => {
-      const storageInfo = blobStats.activeRooms?.[roomId];
+      const storageInfo = blobStats.activeRooms[roomId];
       return {
         roomId,
         clientCount: roomData.clients.size,
@@ -67,18 +67,18 @@ export async function handleStats(): Promise<Response> {
   );
 
   // Calculate totals for orphaned rooms
-  const orphanedRoomsArray = Object.entries(blobStats.orphanedRooms || {}).map(
+  const orphanedRoomsArray = Object.entries(blobStats.orphanedRooms).map(
     ([roomId, data]) => ({
       roomId,
       ...data,
     })
   );
   const orphanedRoomsTotalSize = orphanedRoomsArray.reduce(
-    (sum, room) => sum + (room.totalSizeBytes || 0),
+    (sum, room) => sum + room.totalSizeBytes,
     0
   );
   const orphanedRoomsTotalFiles = orphanedRoomsArray.reduce(
-    (sum, room) => sum + (room.fileCount || 0),
+    (sum, room) => sum + room.fileCount,
     0
   );
 
@@ -86,9 +86,9 @@ export async function handleStats(): Promise<Response> {
   const combinedStats = {
     ...stats, // Existing CPU and Memory stats
     status: {
-      totalObjects: blobStats.totalObjects || 0,
-      totalSize: blobStats.totalSize || "0 B",
-      totalSizeBytes: blobStats.totalSizeBytes || 0,
+      totalObjects: blobStats.totalObjects,
+      totalSize: blobStats.totalSize,
+      totalSizeBytes: blobStats.totalSizeBytes,
       activeRooms: {
         total: activeRooms.length,
         totalFiles: activeRoomsTotalFiles,
@@ -97,11 +97,11 @@ export async function handleStats(): Promise<Response> {
         rooms: activeRooms,
       },
       orphanedRooms: {
-        total: blobStats.orphanedCount || 0,
+        total: blobStats.orphanedCount,
         totalFiles: orphanedRoomsTotalFiles,
         totalSize: formatBytes(orphanedRoomsTotalSize),
         totalSizeBytes: orphanedRoomsTotalSize,
-        rooms: blobStats.orphanedRooms || {},
+        rooms: blobStats.orphanedRooms,
       },
     },
   };

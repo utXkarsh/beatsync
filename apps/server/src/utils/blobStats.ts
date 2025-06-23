@@ -3,25 +3,54 @@ import { roomManager } from "../roomManager";
 
 // Helper function to format bytes to human readable
 export function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  
+  if (bytes === 0) return "0 B";
+
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
 }
 
-export async function getBlobStats() {
+// Type definitions
+interface FileInfo {
+  key: string;
+  size: string;
+  sizeBytes: number;
+  publicUrl: string;
+}
+
+interface RoomDetail {
+  fileCount: number;
+  totalSize: string;
+  totalSizeBytes: number;
+  files: FileInfo[];
+}
+
+interface BlobStats {
+  error?: string;
+  totalObjects: number;
+  totalRooms: number;
+  totalSize: string;
+  totalSizeBytes: number;
+  activeRooms: Record<string, RoomDetail>;
+  orphanedRooms: Record<string, RoomDetail>;
+  orphanedCount: number;
+}
+
+export async function getBlobStats(): Promise<BlobStats> {
   try {
     const allObjects = await listObjectsWithPrefix("");
-    
+
     // Group objects by room and calculate sizes
-    const roomsInStorage = new Map<string, { files: any[], totalSize: number }>();
+    const roomsInStorage = new Map<
+      string,
+      { files: any[]; totalSize: number }
+    >();
     let totalStorageSize = 0;
-    
+
     if (allObjects) {
-      allObjects.forEach(obj => {
+      allObjects.forEach((obj) => {
         if (obj.Key) {
           const match = obj.Key.match(/^room-([^\/]+)\//);
           if (match) {
@@ -42,28 +71,28 @@ export async function getBlobStats() {
     const activeRoomSet = new Set(roomManager.rooms.keys());
 
     // Separate active rooms from orphaned rooms
-    const activeRoomDetails: Record<string, any> = {};
-    const orphanedRoomDetails: Record<string, any> = {};
-    
+    const activeRoomDetails: Record<string, RoomDetail> = {};
+    const orphanedRoomDetails: Record<string, RoomDetail> = {};
+
     roomsInStorage.forEach((roomData, roomId) => {
       // Extract filename from the key (room-{roomId}/{filename})
-      const files = roomData.files.map(obj => {
-        const filename = obj.Key.split('/').pop() || '';
+      const files = roomData.files.map((obj) => {
+        const filename = obj.Key.split("/").pop() || "";
         return {
           key: obj.Key,
           size: formatBytes(obj.Size || 0),
           sizeBytes: obj.Size || 0,
-          publicUrl: getPublicAudioUrl(roomId, filename)
+          publicUrl: getPublicAudioUrl(roomId, filename),
         };
       });
-      
+
       const roomDetail = {
         fileCount: roomData.files.length,
         totalSize: formatBytes(roomData.totalSize),
         totalSizeBytes: roomData.totalSize,
-        files: files
+        files: files,
       };
-      
+
       // Separate active from orphaned
       if (activeRoomSet.has(roomId)) {
         activeRoomDetails[roomId] = roomDetail;
@@ -81,19 +110,18 @@ export async function getBlobStats() {
       totalSizeBytes: totalStorageSize,
       activeRooms: activeRoomDetails,
       orphanedRooms: orphanedRoomDetails,
-      orphanedCount
+      orphanedCount,
     };
-    
   } catch (error) {
     return {
       error: `Failed to check blob storage: ${error}`,
       totalObjects: 0,
       totalRooms: 0,
-      totalSize: '0 B',
+      totalSize: "0 B",
       totalSizeBytes: 0,
       activeRooms: {},
       orphanedRooms: {},
-      orphanedCount: 0
+      orphanedCount: 0,
     };
   }
 }
