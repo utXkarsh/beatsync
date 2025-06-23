@@ -10,7 +10,7 @@ import { SCHEDULE_TIME_MS } from "./config";
 import { deleteObjectsWithPrefix } from "./lib/r2";
 import { calculateGainFromDistanceToSource } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
-import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
+import { positionClientsInCircle } from "./utils/spatial";
 import { WSData } from "./utils/websocket";
 
 interface RoomData {
@@ -46,7 +46,7 @@ class RoomManager {
     });
 
     positionClientsInCircle(currentRoom.clients);
-    debugClientPositions(currentRoom.clients);
+    // debugClientPositions(currentRoom.clients);
   }
 
   async removeClient(roomId: string, clientId: string) {

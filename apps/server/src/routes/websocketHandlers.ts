@@ -54,11 +54,13 @@ export const handleMessage = async (
     const parsedData = JSON.parse(message.toString());
     const parsedMessage = WSRequestSchema.parse(parsedData);
 
-    console.log(
-      `Room: ${roomId} | User: ${username} | Message: ${JSON.stringify(
-        parsedMessage
-      )}`
-    );
+    if (parsedMessage.type !== ClientActionEnum.enum.NTP_REQUEST) {
+      console.log(
+        `Room: ${roomId} | User: ${username} | Message: ${JSON.stringify(
+          parsedMessage
+        )}`
+      );
+    }
 
     // NTP Request
     if (parsedMessage.type === ClientActionEnum.enum.NTP_REQUEST) {
