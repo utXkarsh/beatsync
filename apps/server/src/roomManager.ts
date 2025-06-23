@@ -49,14 +49,14 @@ class RoomManager {
     debugClientPositions(currentRoom.clients);
   }
 
-  removeClient(roomId: string, clientId: string) {
+  async removeClient(roomId: string, clientId: string) {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
     room.clients.delete(clientId);
     if (room.clients.size === 0) {
       this.stopInterval(roomId);
-      this.cleanupRoomFiles(roomId);
+      await this.cleanupRoomFiles(roomId);
       this.rooms.delete(roomId);
     }
 
