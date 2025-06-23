@@ -142,7 +142,7 @@ export async function listObjectsWithPrefix(prefix: string) {
  */
 export async function deleteObjectsWithPrefix(
   prefix: string = ""
-): Promise<{ success: boolean; deletedCount: number }> {
+): Promise<{ deletedCount: number }> {
   let deletedCount = 0;
 
   try {
@@ -150,7 +150,7 @@ export async function deleteObjectsWithPrefix(
 
     if (!objects || objects.length === 0) {
       console.log(`No objects found with prefix "${prefix}"`);
-      return { success: true, deletedCount: 0 };
+      return { deletedCount: 0 };
     }
 
     console.log(
@@ -195,14 +195,10 @@ export async function deleteObjectsWithPrefix(
       `R2 cleanup with prefix "${prefix}": ${deletedCount} files deleted successfully`
     );
 
-    return { success: true, deletedCount };
+    return { deletedCount };
   } catch (error) {
     const errorMessage = `Failed to delete objects with prefix "${prefix}": ${error}`;
     console.error(errorMessage);
     throw new Error(errorMessage);
   }
-}
-
-export async function clearRoom(roomId: string) {
-  return await deleteObjectsWithPrefix(`room-${roomId}`);
 }

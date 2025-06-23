@@ -7,7 +7,7 @@ import {
 import { GRID, PositionType } from "@beatsync/shared/types/basic";
 import { Server, ServerWebSocket } from "bun";
 import { SCHEDULE_TIME_MS } from "./config";
-import { clearRoom } from "./lib/r2";
+import { deleteObjectsWithPrefix } from "./lib/r2";
 import { calculateGainFromDistanceToSource } from "./spatial";
 import { sendBroadcast } from "./utils/responses";
 import { debugClientPositions, positionClientsInCircle } from "./utils/spatial";
@@ -51,39 +51,59 @@ class RoomManager {
 
   async removeClient(roomId: string, clientId: string) {
     const room = this.rooms.get(roomId);
-    if (!room) return;
-
-    room.clients.delete(clientId);
-    if (room.clients.size === 0) {
-      this.stopInterval(roomId);
-      await this.cleanupRoomFiles(roomId);
-      this.rooms.delete(roomId);
+    if (!room) {
+      console.log(
+        `RACE CONDITION: Room ${roomId} not found even though client is leaving`
+      );
+      return;
     }
 
+    room.clients.delete(clientId);
+
+    // Check if this was the last client in the room
+    if (room.clients.size === 0) {
+      this.stopInterval(roomId);
+
+      // CRITICAL: Async operation that can take significant time
+      // During this await, new clients can join the room!
+      // This is especially common during development with hot reloading
+      // or when users quickly refresh their browser
+      await this.cleanupRoom(roomId);
+
+      // IMPORTANT: We must re-check the room state after the async operation
+      // The room could have been:
+      // 1. Deleted and recreated with new clients (common in dev)
+      // 2. Had new clients added to the existing room
+      // 3. Still be empty and safe to delete
+      const currentRoom = this.rooms.get(roomId);
+
+      if (currentRoom && currentRoom.clients.size === 0) {
+        // Safe to delete - room still exists and is still empty
+        this.rooms.delete(roomId);
+        console.log(`Room ${roomId} deleted from memory`);
+      } else if (currentRoom && currentRoom.clients.size > 0) {
+        // Race condition avoided! New clients joined during cleanup
+        console.log(`Room ${roomId} has new clients - skipping deletion`);
+        // Need to reposition the new clients that joined during cleanup
+        positionClientsInCircle(currentRoom.clients);
+      }
+      // If currentRoom is undefined, another cleanup already deleted it
+      return; // No need to reposition when room is empty or deleted
+    }
+
+    // Otherwise, other clients remain, reposition remaining clients in the room
     positionClientsInCircle(room.clients);
   }
 
   // Clean up room files when all clients have left
-  async cleanupRoomFiles(roomId: string) {
-    console.log(`Starting R2 cleanup for room ${roomId}...`);
+  async cleanupRoom(roomId: string) {
+    console.log(`🧹 Starting room cleanup for room ${roomId}...`);
 
     try {
-      const { success: r2CleanupSuccess, deletedCount } = await clearRoom(
-        roomId
-      );
-
-      if (r2CleanupSuccess) {
-        console.log(
-          `✅ Room ${roomId} cleanup completed successfully. Files deleted: ${deletedCount}`
-        );
-      } else {
-        console.log(`❌ Room ${roomId} cleanup completed with errors`);
-      }
-
-      return r2CleanupSuccess;
+      const result = await deleteObjectsWithPrefix(`room-${roomId}`);
+      console.log(`✅ Room ${roomId} objects deleted: ${result.deletedCount}`);
     } catch (error) {
       console.error(`❌ Room ${roomId} cleanup failed:`, error);
-      return false;
     }
   }
 
