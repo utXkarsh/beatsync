@@ -1,6 +1,7 @@
 import type { CpuInfo } from "os";
 import * as os from "os";
 import { roomManager } from "../roomManager";
+import { formatBytes, getBlobStats } from "../utils/blobStats";
 import { corsHeaders } from "../utils/responses";
 
 export async function handleStats(): Promise<Response> {
@@ -34,23 +35,74 @@ export async function handleStats(): Promise<Response> {
     },
   };
 
-  // --- Add Room Manager Stats ---
-  const roomDetails = Object.fromEntries(
-    Array.from(roomManager.rooms.entries()).map(([roomId, roomData]) => [
-      roomId,
-      {
+  // --- Get Blob Storage Stats ---
+  const blobStats = await getBlobStats();
+
+  // --- Add Room Manager Stats with enriched storage info ---
+  const activeRooms = Array.from(roomManager.rooms.entries()).map(
+    ([roomId, roomData]) => {
+      const storageInfo = blobStats.activeRooms?.[roomId];
+      return {
+        roomId,
         clientCount: roomData.clients.size,
-        // Add other room-specific details if needed
-      },
-    ])
+        fileCount: storageInfo?.fileCount || 0,
+        totalSize: storageInfo?.totalSize || "0 B",
+        totalSizeBytes: storageInfo?.totalSizeBytes || 0,
+        files: storageInfo?.files || [],
+      };
+    }
+  );
+
+  // Sort rooms by total size (largest first)
+  activeRooms.sort((a, b) => b.totalSizeBytes - a.totalSizeBytes);
+
+  // Calculate totals for active rooms
+  const activeRoomsTotalSize = activeRooms.reduce(
+    (sum, room) => sum + room.totalSizeBytes,
+    0
+  );
+  const activeRoomsTotalFiles = activeRooms.reduce(
+    (sum, room) => sum + room.fileCount,
+    0
+  );
+
+  // Calculate totals for orphaned rooms
+  const orphanedRoomsArray = Object.entries(blobStats.orphanedRooms || {}).map(
+    ([roomId, data]) => ({
+      roomId,
+      ...data,
+    })
+  );
+  const orphanedRoomsTotalSize = orphanedRoomsArray.reduce(
+    (sum, room) => sum + (room.totalSizeBytes || 0),
+    0
+  );
+  const orphanedRoomsTotalFiles = orphanedRoomsArray.reduce(
+    (sum, room) => sum + (room.fileCount || 0),
+    0
   );
 
   // --- Combine stats ---
   const combinedStats = {
     ...stats, // Existing CPU and Memory stats
-    rooms: {
-      total: roomManager.rooms.size,
-      details: roomDetails,
+    status: {
+      totalObjects: blobStats.totalObjects || 0,
+      totalSize: blobStats.totalSize || "0 B",
+      totalSizeBytes: blobStats.totalSizeBytes || 0,
+      activeRooms: {
+        total: activeRooms.length,
+        totalFiles: activeRoomsTotalFiles,
+        totalSize: formatBytes(activeRoomsTotalSize),
+        totalSizeBytes: activeRoomsTotalSize,
+        rooms: activeRooms,
+      },
+      orphanedRooms: {
+        total: blobStats.orphanedCount || 0,
+        totalFiles: orphanedRoomsTotalFiles,
+        totalSize: formatBytes(orphanedRoomsTotalSize),
+        totalSizeBytes: orphanedRoomsTotalSize,
+        rooms: blobStats.orphanedRooms || {},
+      },
     },
   };
 

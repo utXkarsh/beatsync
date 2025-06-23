@@ -37,7 +37,7 @@ const server = Bun.serve<WSData, undefined>({
           return handleUploadComplete(req, server);
 
         case "/stats":
-          return handleStats(req);
+          return handleStats();
 
         default:
           return errorResponse("Not found", 404);
