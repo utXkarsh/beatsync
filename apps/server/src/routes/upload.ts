@@ -11,6 +11,7 @@ import {
   getPublicAudioUrl,
   validateR2Config,
 } from "../lib/r2";
+import { roomManager } from "../roomManager";
 import { errorResponse, jsonResponse, sendBroadcast } from "../utils/responses";
 
 // New endpoint to get presigned upload URL
@@ -38,6 +39,15 @@ export const handleGetPresignedURL = async (req: Request) => {
     }
 
     const { roomId, fileName, contentType } = parseResult.data;
+
+    // Check if room exists
+    const room = roomManager.getRoomState(roomId);
+    if (!room) {
+      return errorResponse(
+        "Room not found. Please join the room before uploading files.",
+        404
+      );
+    }
 
     // Generate unique filename
     const uniqueFileName = generateAudioFileName(fileName);
@@ -83,6 +93,15 @@ export const handleUploadComplete = async (req: Request, server: Server) => {
     }
 
     const { roomId, originalName, publicUrl } = parseResult.data;
+
+    // Check if room exists
+    const room = roomManager.getRoomState(roomId);
+    if (!room) {
+      return errorResponse(
+        "Room not found. The room may have been closed during upload.",
+        404
+      );
+    }
 
     console.log(
       `✅ Audio upload completed - broadcasting to room ${roomId}: (${publicUrl})`
