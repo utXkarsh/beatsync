@@ -1,3 +1,4 @@
+import { handleCleanup } from "./routes/cleanup";
 import { handleRoot } from "./routes/root";
 import { handleStats } from "./routes/stats";
 import { handleGetPresignedURL, handleUploadComplete } from "./routes/upload";
@@ -38,6 +39,9 @@ const server = Bun.serve<WSData, undefined>({
 
         case "/stats":
           return handleStats();
+
+        case "/cleanup":
+          return handleCleanup(req);
 
         default:
           return errorResponse("Not found", 404);
