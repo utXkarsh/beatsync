@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SyncProgress } from "../ui/SyncProgress";
 import { FaDiscord } from "react-icons/fa";
 import { FaGithub } from "react-icons/fa";
+import { SOCIAL_LINKS } from "@/constants";
 
 interface TopBarProps {
   roomId: string;
@@ -83,7 +84,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
         <div className="flex items-center justify-center gap-2.5">
           {/* Discord icon */}
           <a
-            href="https://discord.beatsync.gg"
+            href={SOCIAL_LINKS.discord}
             target="_blank"
             rel="noopener noreferrer"
             className="text-neutral-400 hover:text-white transition-colors"
@@ -92,7 +93,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
           </a>
           {/* GitHub icon in the top right */}
           <a
-            href="https://github.com/freeman-jiang/beatsync"
+            href={SOCIAL_LINKS.github}
             target="_blank"
             rel="noopener noreferrer"
             className="text-neutral-400 hover:text-white transition-colors"
