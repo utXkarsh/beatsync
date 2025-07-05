@@ -1,9 +1,11 @@
 "use client";
 import { useGlobalStore } from "@/store/global";
-import { Github, Hash, Users } from "lucide-react";
+import { Hash, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { SyncProgress } from "../ui/SyncProgress";
+import { FaDiscord } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 
 interface TopBarProps {
   roomId: string;
@@ -78,15 +80,26 @@ export const TopBar = ({ roomId }: TopBarProps) => {
           </button>
         </div>
 
-        {/* GitHub icon in the top right */}
-        <a
-          href="https://github.com/freeman-jiang/beatsync"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-neutral-400 hover:text-white transition-colors"
-        >
-          <Github size={16} />
-        </a>
+        <div className="flex items-center justify-center gap-2.5">
+          {/* Discord icon */}
+          <a
+            href="https://discord.beatsync.gg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-neutral-400 hover:text-white transition-colors"
+          >
+            <FaDiscord className="size-[17px]" />
+          </a>
+          {/* GitHub icon in the top right */}
+          <a
+            href="https://github.com/freeman-jiang/beatsync"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-neutral-400 hover:text-white transition-colors"
+          >
+            <FaGithub className="size-4" />
+          </a>
+        </div>
       </div>
     );
   }
