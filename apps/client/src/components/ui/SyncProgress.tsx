@@ -17,7 +17,7 @@ interface SyncProgressProps {
 const OuterModal = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.div
-      className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-red-950 backdrop-blur-sm"
+      className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-neutral-950 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
