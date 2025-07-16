@@ -1,4 +1,5 @@
 import {
+  GetActiveRoomsType,
   GetDefaultAudioType,
   GetUploadUrlType,
   UploadCompleteResponseType,
@@ -101,4 +102,12 @@ export async function fetchDefaultAudioSources() {
     console.error("Error fetching default audio sources:", error);
     return [];
   }
+}
+
+export async function fetchActiveRooms() {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/active-rooms`
+  );
+  const data: GetActiveRoomsType = await response.json();
+  return data;
 }

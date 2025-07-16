@@ -17,6 +17,8 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FaDiscord, FaGithub } from "react-icons/fa";
 import { SOCIAL_LINKS } from "@/constants";
+import { useQuery } from "@tanstack/react-query";
+import { fetchActiveRooms } from "@/lib/api";
 
 interface JoinFormData {
   roomId: string;
@@ -45,6 +47,12 @@ export const Join = () => {
     const generatedName = generateName();
     setUsername(generatedName);
   }, [setValue, setUsername, posthog]);
+
+  const { data: numActiveUsers } = useQuery({
+    queryKey: ["active-rooms"],
+    queryFn: fetchActiveRooms,
+    refetchInterval: 1000, // Poll every 1 second
+  });
 
   const router = useRouter();
 
@@ -116,11 +124,28 @@ export const Join = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
+          {numActiveUsers && numActiveUsers > 0 ? (
+            <motion.div
+              className="flex items-center gap-1.5 mb-3"
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <motion.div className="relative flex items-center justify-center">
+                <motion.div className="size-2 bg-green-500 rounded-full" />
+                <motion.div className="absolute size-2.5 bg-green-500/30 rounded-full animate-ping" />
+              </motion.div>
+              <span className="text-xs text-neutral-500 ml-0.5">
+                {numActiveUsers} {numActiveUsers === 1 ? "person" : "people"}{" "}
+                listening now
+              </span>
+            </motion.div>
+          ) : null}
           <motion.h2
             className="text-base font-medium tracking-tight mb-1 text-white"
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
+            transition={{ duration: 0.4, delay: 0.13 }}
           >
             Join a Beatsync Room
           </motion.h2>

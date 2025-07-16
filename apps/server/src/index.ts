@@ -12,6 +12,7 @@ import {
 import { corsHeaders, errorResponse } from "./utils/responses";
 import { WSData } from "./utils/websocket";
 import { BackupManager } from "./managers/BackupManager";
+import { getActiveRooms } from "./routes/active";
 
 // Bun.serve with WebSocket support
 const server = Bun.serve<WSData, undefined>({
@@ -47,6 +48,9 @@ const server = Bun.serve<WSData, undefined>({
 
         case "/default":
           return handleGetDefaultAudio(req);
+
+        case "/active-rooms":
+          return getActiveRooms(req);
 
         default:
           return errorResponse("Not found", 404);
