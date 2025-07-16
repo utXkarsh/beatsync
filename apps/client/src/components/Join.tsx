@@ -51,7 +51,7 @@ export const Join = () => {
   const { data: numActiveUsers } = useQuery({
     queryKey: ["active-rooms"],
     queryFn: fetchActiveRooms,
-    refetchInterval: 1000, // Poll every 1 second
+    refetchInterval: 300, // Poll every
   });
 
   const router = useRouter();

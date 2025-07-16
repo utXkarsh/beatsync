@@ -35,9 +35,11 @@ export class RoomManager {
   private intervalId?: NodeJS.Timeout;
   private cleanupTimer?: NodeJS.Timeout;
   private heartbeatCheckInterval?: NodeJS.Timeout;
+  private onClientCountChange?: () => void;
 
-  constructor(private readonly roomId: string) {
+  constructor(private readonly roomId: string, onClientCountChange?: () => void) {
     this.listeningSource = { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y };
+    this.onClientCountChange = onClientCountChange;
   }
 
   /**
@@ -70,6 +72,9 @@ export class RoomManager {
 
     // Idempotently start heartbeat checking
     this.startHeartbeatChecking();
+    
+    // Notify that client count changed
+    this.onClientCountChange?.();
   }
 
   /**
@@ -85,6 +90,9 @@ export class RoomManager {
       // Stop heartbeat checking if no clients remain
       this.stopHeartbeatChecking();
     }
+    
+    // Notify that client count changed
+    this.onClientCountChange?.();
   }
 
   /**

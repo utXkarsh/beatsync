@@ -9,6 +9,11 @@ const CLEANUP_DELAY_MS = 1000 * 60; // 60 seconds
 export class GlobalManager {
   private rooms = new Map<string, RoomManager>();
 
+  // Active user count cache
+  private activeUserCount: number = 0;
+  private isDirty: boolean = true;
+  private isCalculating: boolean = false;
+
   /**
    * Get a room by its ID
    */
@@ -22,7 +27,7 @@ export class GlobalManager {
   getOrCreateRoom(roomId: string): RoomManager {
     let room = this.rooms.get(roomId);
     if (!room) {
-      room = new RoomManager(roomId);
+      room = new RoomManager(roomId, () => this.markActiveUserCountDirty());
       this.rooms.set(roomId, room);
     }
     return room;
@@ -72,6 +77,55 @@ export class GlobalManager {
    */
   getRoomIds(): string[] {
     return Array.from(this.rooms.keys());
+  }
+
+  /**
+   * Mark the active user count cache as dirty.
+   * This should be called whenever room client counts change.
+   */
+  markActiveUserCountDirty(): void {
+    this.isDirty = true;
+  }
+
+  /**
+   * Get the total number of active users across all rooms, using a cache.
+   * Recalculates the count only if the cache is dirty.
+   */
+  async getActiveUserCount(): Promise<number> {
+    // If the cache is fresh, return it immediately
+    if (!this.isDirty) {
+      return this.activeUserCount;
+    }
+
+    // If another process is already calculating, return the current value
+    // This prevents request pile-ups and race conditions
+    if (this.isCalculating) {
+      return this.activeUserCount;
+    }
+
+    // We are the first to arrive, so we'll do the calculation
+    this.isCalculating = true;
+
+    console.log("Calculating active user count");
+
+    try {
+      // Calculate fresh count by summing clients from all rooms
+      const newCount = Array.from(this.rooms.values()).reduce(
+        (acc, room) => acc + room.getNumClients(),
+        0
+      );
+
+      this.activeUserCount = newCount;
+      this.isDirty = false;
+    } catch (error) {
+      console.error("Failed to recalculate active user count:", error);
+      // Keep cache dirty to retry next time
+    } finally {
+      // Always release the lock
+      this.isCalculating = false;
+    }
+
+    return this.activeUserCount;
   }
 
   /**
