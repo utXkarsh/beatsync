@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { useRoomStore } from "./room";
 import { Mutex } from "async-mutex";
+import { extractFileNameFromUrl } from "@/lib/utils";
 
 export const MAX_NTP_MEASUREMENTS = NTP_CONSTANTS.MAX_MEASUREMENTS;
 
@@ -438,7 +439,20 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         console.error(
           `Cannot play audio: No index found: ${data.audioSource} ${data.trackTimeSeconds}`
         );
-        toast.error("Audio file not found. Please reupload the audio file.");
+        toast.error(
+          `"${extractFileNameFromUrl(data.audioSource)}" not loaded yet...`,
+          { id: "schedulePlay" }
+        );
+
+        // Resend the sync request in a couple seconds
+        const { socket } = getSocket(state);
+        setTimeout(() => {
+          sendWSRequest({
+            ws: socket,
+            request: { type: ClientActionEnum.enum.SYNC },
+          });
+        }, 1000);
+
         return;
       }
 
