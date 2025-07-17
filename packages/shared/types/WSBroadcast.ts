@@ -51,7 +51,7 @@ const StopSpatialAudioSchema = z.object({
 });
 export type StopSpatialAudioType = z.infer<typeof StopSpatialAudioSchema>;
 
-const ScheduledActionSchema = z.object({
+export const ScheduledActionSchema = z.object({
   type: z.literal("SCHEDULED_ACTION"),
   serverTimeToExecute: z.number(),
   scheduledAction: z.discriminatedUnion("type", [

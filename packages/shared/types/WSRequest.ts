@@ -15,6 +15,7 @@ export const ClientActionEnum = z.enum([
   "REORDER_CLIENT",
   "SET_LISTENING_SOURCE",
   "MOVE_CLIENT",
+  "SYNC", // Client joins late, requests sync
 ]);
 
 export const NTPRequestPacketSchema = z.object({
@@ -25,11 +26,13 @@ export const NTPRequestPacketSchema = z.object({
 export const PlayActionSchema = z.object({
   type: z.literal(ClientActionEnum.enum.PLAY),
   trackTimeSeconds: z.number(),
-  audioId: z.string(),
+  audioSource: z.string(),
 });
 
 export const PauseActionSchema = z.object({
   type: z.literal(ClientActionEnum.enum.PAUSE),
+  audioSource: z.string(),
+  trackTimeSeconds: z.number(),
 });
 
 const StartSpatialAudioSchema = z.object({
@@ -58,6 +61,11 @@ const MoveClientSchema = z.object({
 });
 export type MoveClientType = z.infer<typeof MoveClientSchema>;
 
+const ClientRequestSyncSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.SYNC),
+});
+export type ClientRequestSyncType = z.infer<typeof ClientRequestSyncSchema>;
+
 export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
@@ -67,6 +75,7 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
   ReorderClientSchema,
   SetListeningSourceSchema,
   MoveClientSchema,
+  ClientRequestSyncSchema,
 ]);
 export type WSRequestType = z.infer<typeof WSRequestSchema>;
 export type PlayActionType = z.infer<typeof PlayActionSchema>;

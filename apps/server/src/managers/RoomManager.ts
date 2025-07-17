@@ -6,15 +6,18 @@ import {
   WSBroadcastType,
   NTP_CONSTANTS,
   RoomType,
+  PlayActionType,
+  PauseActionType,
 } from "@beatsync/shared";
 import { GRID } from "@beatsync/shared/types/basic";
 import { Server, ServerWebSocket } from "bun";
 import { SCHEDULE_TIME_MS } from "../config";
 import { deleteObjectsWithPrefix } from "../lib/r2";
 import { calculateGainFromDistanceToSource } from "../spatial";
-import { sendBroadcast } from "../utils/responses";
+import { sendBroadcast, sendUnicast } from "../utils/responses";
 import { positionClientsInCircle } from "../utils/spatial";
 import { WSData } from "../utils/websocket";
+import { z } from "zod";
 
 interface RoomData {
   audioSources: AudioSourceType[];
@@ -23,6 +26,14 @@ interface RoomData {
   intervalId?: NodeJS.Timeout;
   listeningSource: PositionType;
 }
+
+const RoomPlaybackStateSchema = z.object({
+  type: z.enum(["playing", "paused"]),
+  audioSource: z.string(), // URL of the audio source
+  serverTimeToExecute: z.number(), // When playback started/paused (server time)
+  trackPositionSeconds: z.number(), // Position in track when started/paused (seconds)
+});
+type RoomPlaybackState = z.infer<typeof RoomPlaybackStateSchema>;
 
 /**
  * RoomManager handles all operations for a single room.
@@ -36,8 +47,17 @@ export class RoomManager {
   private cleanupTimer?: NodeJS.Timeout;
   private heartbeatCheckInterval?: NodeJS.Timeout;
   private onClientCountChange?: () => void;
+  private playbackState: RoomPlaybackState = {
+    type: "paused",
+    audioSource: "",
+    serverTimeToExecute: 0,
+    trackPositionSeconds: 0,
+  };
 
-  constructor(private readonly roomId: string, onClientCountChange?: () => void) {
+  constructor(
+    private readonly roomId: string,
+    onClientCountChange?: () => void // To update the global # of clients active
+  ) {
     this.listeningSource = { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y };
     this.onClientCountChange = onClientCountChange;
   }
@@ -72,7 +92,7 @@ export class RoomManager {
 
     // Idempotently start heartbeat checking
     this.startHeartbeatChecking();
-    
+
     // Notify that client count changed
     this.onClientCountChange?.();
   }
@@ -90,7 +110,7 @@ export class RoomManager {
       // Stop heartbeat checking if no clients remain
       this.stopHeartbeatChecking();
     }
-    
+
     // Notify that client count changed
     this.onClientCountChange?.();
   }
@@ -304,6 +324,80 @@ export class RoomManager {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
     }
+  }
+
+  updatePlaybackSchedulePause(
+    pauseSchema: PauseActionType,
+    serverTimeToExecute: number
+  ) {
+    this.playbackState = {
+      type: "paused",
+      audioSource: pauseSchema.audioSource,
+      trackPositionSeconds: pauseSchema.trackTimeSeconds,
+      serverTimeToExecute: serverTimeToExecute,
+    };
+  }
+
+  updatePlaybackSchedulePlay(
+    playSchema: PlayActionType,
+    serverTimeToExecute: number
+  ) {
+    this.playbackState = {
+      type: "playing",
+      audioSource: playSchema.audioSource,
+      trackPositionSeconds: playSchema.trackTimeSeconds,
+      serverTimeToExecute: serverTimeToExecute,
+    };
+  }
+
+  syncClient(ws: ServerWebSocket<WSData>): void {
+    // A client has joined late, and needs to sync with the room
+    // Predict where the playback state will be in epochNow() + SCHEDULE_TIME_MS
+    // And make client play at that position then
+
+    // Determine if we are currently playing or paused
+    if (this.playbackState.type === "paused") {
+      return; // Nothing to do - client will play on next scheduled action
+    }
+
+    const serverTimeWhenPlaybackStarted =
+      this.playbackState.serverTimeToExecute;
+    const trackPositionSecondsWhenPlaybackStarted =
+      this.playbackState.trackPositionSeconds;
+    const now = epochNow();
+    const serverTimeToExecute = now + SCHEDULE_TIME_MS;
+
+    // Calculate how much time has elapsed since playback started
+    const timeElapsedSincePlaybackStarted = now - serverTimeWhenPlaybackStarted;
+
+    // Calculate how much time will have elapsed by the time the client responds
+    // to the sync response
+    const timeElapsedAtExecution =
+      serverTimeToExecute - serverTimeWhenPlaybackStarted;
+
+    // Convert to seconds and add to the starting position
+    const resumeTrackTimeSeconds =
+      trackPositionSecondsWhenPlaybackStarted + timeElapsedAtExecution / 1000;
+    console.log(
+      `Syncing late client: track started at ${trackPositionSecondsWhenPlaybackStarted.toFixed(
+        2
+      )}s, ` +
+        `${(timeElapsedSincePlaybackStarted / 1000).toFixed(2)}s elapsed, ` +
+        `will be at ${resumeTrackTimeSeconds.toFixed(2)}s when client starts`
+    );
+
+    sendUnicast({
+      ws,
+      message: {
+        type: "SCHEDULED_ACTION",
+        scheduledAction: {
+          type: "PLAY",
+          audioSource: this.playbackState.audioSource,
+          trackTimeSeconds: resumeTrackTimeSeconds, // Use the calculated position
+        },
+        serverTimeToExecute: serverTimeToExecute,
+      },
+    });
   }
 
   /**

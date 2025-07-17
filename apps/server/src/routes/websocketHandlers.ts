@@ -103,13 +103,25 @@ export const handleMessage = async (
       parsedMessage.type === ClientActionEnum.enum.PLAY ||
       parsedMessage.type === ClientActionEnum.enum.PAUSE
     ) {
+      const room = globalManager.getRoom(roomId);
+      if (!room) return;
+
+      const serverTimeToExecute = epochNow() + SCHEDULE_TIME_MS;
+
+      // Update playback state
+      if (parsedMessage.type === ClientActionEnum.enum.PLAY) {
+        room.updatePlaybackSchedulePlay(parsedMessage, serverTimeToExecute);
+      } else if (parsedMessage.type === ClientActionEnum.enum.PAUSE) {
+        room.updatePlaybackSchedulePause(parsedMessage, serverTimeToExecute);
+      }
+
       sendBroadcast({
         server,
         roomId,
         message: {
           type: "SCHEDULED_ACTION",
           scheduledAction: parsedMessage,
-          serverTimeToExecute: epochNow() + SCHEDULE_TIME_MS, // 500 ms from now
+          serverTimeToExecute: serverTimeToExecute,
           // TODO: Make the longest RTT + some amount instead of hardcoded this breaks for long RTTs
         },
       });
@@ -179,6 +191,11 @@ export const handleMessage = async (
       if (!room) return;
 
       room.moveClient(parsedMessage.clientId, parsedMessage.position, server);
+    } else if (parsedMessage.type === ClientActionEnum.enum.SYNC) {
+      // Handle sync request from new client
+      const room = globalManager.getRoom(roomId);
+      if (!room) return;
+      room.syncClient(ws);
     } else {
       console.log(`UNRECOGNIZED MESSAGE: ${JSON.stringify(parsedMessage)}`);
     }

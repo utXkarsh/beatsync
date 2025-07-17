@@ -164,7 +164,7 @@ export const WebSocketManager = ({
           schedulePlay({
             trackTimeSeconds: scheduledAction.trackTimeSeconds,
             targetServerTime: serverTimeToExecute,
-            audioId: scheduledAction.audioId,
+            audioSource: scheduledAction.audioSource,
           });
         } else if (scheduledAction.type === "PAUSE") {
           schedulePause({
