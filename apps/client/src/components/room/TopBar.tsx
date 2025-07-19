@@ -16,23 +16,9 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
   const isSynced = useGlobalStore((state) => state.isSynced);
   const roundTripEstimate = useGlobalStore((state) => state.roundTripEstimate);
-  const sendNTPRequest = useGlobalStore((state) => state.sendNTPRequest);
-  const resetNTPConfig = useGlobalStore((state) => state.resetNTPConfig);
-  const pauseAudio = useGlobalStore((state) => state.pauseAudio);
   const connectedClients = useGlobalStore((state) => state.connectedClients);
-  const setIsLoadingAudio = useGlobalStore((state) => state.setIsInitingSystem);
   const clockOffset = useGlobalStore((state) => state.offsetEstimate);
   const ntpMeasurements = useGlobalStore((state) => state.ntpMeasurements);
-  const resync = () => {
-    try {
-      pauseAudio({ when: 0 });
-    } catch (error) {
-      console.error("Failed to pause audio:", error);
-    }
-    resetNTPConfig();
-    sendNTPRequest();
-    setIsLoadingAudio(true);
-  };
 
   // Show minimal nav bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
@@ -114,15 +100,6 @@ export const TopBar = ({ roomId }: TopBarProps) => {
               RTT: <span>{roundTripEstimate.toFixed(2)}</span>ms
             </span>
           </div>
-          {/* Hide separator on small screens */}
-          <div className="hidden md:block">|</div>
-          {/* Hide Full Sync button on small screens */}
-          <button
-            onClick={resync}
-            className="hidden md:block text-neutral-400 hover:text-white transition-colors cursor-pointer"
-          >
-            Full Sync
-          </button>
         </div>
 
         <div className="flex items-center justify-center gap-2.5">
