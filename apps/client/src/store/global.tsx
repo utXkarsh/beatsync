@@ -436,6 +436,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // Find the index of the audio to play
       const audioIndex = state.findAudioIndexByUrl(data.audioSource);
       if (audioIndex === null) {
+        // Pause current track to prevent interference
+        if (state.isPlaying) {
+          state.pauseAudio({ when: 0 });
+        }
+
         console.error(
           `Cannot play audio: No index found: ${data.audioSource} ${data.trackTimeSeconds}`
         );
