@@ -1,14 +1,13 @@
 import { epochNow, ExtractWSRequestFrom } from "@beatsync/shared";
 import { SCHEDULE_TIME_MS } from "../../config";
-import { globalManager } from "../../managers";
 import { sendBroadcast } from "../../utils/responses";
+import { requireRoom } from "../middlewares";
 import { HandlerFunction } from "../types";
 
 export const handlePause: HandlerFunction<
   ExtractWSRequestFrom["PAUSE"]
 > = async ({ ws, message, server }) => {
-  const room = globalManager.getRoom(ws.data.roomId);
-  if (!room) return;
+  const { room } = requireRoom(ws);
 
   const serverTimeToExecute = epochNow() + SCHEDULE_TIME_MS;
 

@@ -1,14 +1,13 @@
 import { ExtractWSRequestFrom } from "@beatsync/shared";
-import { globalManager } from "../../managers";
 import { sendBroadcast } from "../../utils/responses";
+import { requireRoom } from "../middlewares";
 import { HandlerFunction } from "../types";
 
 export const handleReorderClient: HandlerFunction<
   ExtractWSRequestFrom["REORDER_CLIENT"]
 > = async ({ ws, message, server }) => {
   // Handle client reordering
-  const room = globalManager.getRoom(ws.data.roomId);
-  if (!room) return;
+  const { room } = requireRoom(ws);
 
   const reorderedClients = room.reorderClients(message.clientId, server);
 

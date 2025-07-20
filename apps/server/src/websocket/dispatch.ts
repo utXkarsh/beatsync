@@ -37,10 +37,14 @@ export async function dispatchMessage({
   // TypeScript can't track this relationship through dynamic property access,
   // so we use a type assertion that we know is safe.
 
-  await handler.handle({
-    ws,
-    // @ts-expect-error - we know the message matches the expected type for this handler
-    message,
-    server,
-  });
+  try {
+    await handler.handle({
+      ws,
+      // @ts-expect-error - we know the message matches the expected type for this handler
+      message,
+      server,
+    });
+  } catch (error) {
+    console.error(`[${ws.data.roomId}] Websocket handler threw error:"`, error);
+  }
 }

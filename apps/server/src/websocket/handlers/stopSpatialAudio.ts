@@ -3,8 +3,8 @@ import {
   WSBroadcastType,
   epochNow,
 } from "@beatsync/shared";
-import { globalManager } from "../../managers";
 import { sendBroadcast } from "../../utils/responses";
+import { requireRoom } from "../middlewares";
 import { HandlerFunction } from "../types";
 
 export const handleStopSpatialAudio: HandlerFunction<
@@ -23,8 +23,7 @@ export const handleStopSpatialAudio: HandlerFunction<
   sendBroadcast({ server, roomId: ws.data.roomId, message: broadcastMessage });
 
   // Stop the spatial audio interval if it exists
-  const room = globalManager.getRoom(ws.data.roomId);
-  if (!room) return; // do nothing if no room exists
+  const { room } = requireRoom(ws); // do nothing if no room exists
 
   room.stopSpatialAudio();
 };

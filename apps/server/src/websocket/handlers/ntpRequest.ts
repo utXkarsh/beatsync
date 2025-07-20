@@ -1,6 +1,6 @@
 import { epochNow, ExtractWSRequestFrom } from "@beatsync/shared";
-import { globalManager } from "../../managers";
 import { sendUnicast } from "../../utils/responses";
+import { requireRoom } from "../middlewares";
 import { HandlerFunction } from "../types";
 
 export const handleNTPRequest: HandlerFunction<
@@ -12,8 +12,7 @@ export const handleNTPRequest: HandlerFunction<
   }
 
   // Update heartbeat for client
-  const room = globalManager.getRoom(ws.data.roomId);
-  if (!room) return;
+  const { room } = requireRoom(ws);
   room.processNTPRequestFrom(ws.data.clientId);
 
   sendUnicast({
