@@ -1,4 +1,6 @@
 import { ClientActionEnum } from "@beatsync/shared";
+import { handleSetAdmin } from "./handlers/handleSetAdmin";
+import { handleSetPlaybackControls } from "./handlers/handleSetPlaybackControls";
 import { handleMoveClient } from "./handlers/moveClient";
 import { handleNTPRequest } from "./handlers/ntpRequest";
 import { handlePause } from "./handlers/pause";
@@ -53,5 +55,15 @@ export const WS_REGISTRY: WebsocketRegistry = {
   [ClientActionEnum.enum.SYNC]: {
     handle: handleSync,
     description: "Sync late-joining client with room state",
+  },
+
+  [ClientActionEnum.enum.SET_ADMIN]: {
+    handle: handleSetAdmin,
+    description: "Set admin status for a client",
+  },
+
+  [ClientActionEnum.enum.SET_PLAYBACK_CONTROLS]: {
+    handle: handleSetPlaybackControls,
+    description: "Set playback controls for a room",
   },
 };

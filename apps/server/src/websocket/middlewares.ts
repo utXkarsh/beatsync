@@ -21,3 +21,21 @@ export const requireRoom = (
 
   return { room };
 };
+
+export const requireRoomAdmin = (
+  ws: ServerWebSocket<WSData>
+): { room: RoomManager } => {
+  const { room } = requireRoom(ws);
+  const client = room.getClient(ws.data.clientId);
+  if (!client)
+    throw new Error(
+      `Client ${ws.data.clientId} does not exist in room ${ws.data.roomId}`
+    );
+
+  if (!client.isAdmin) {
+    throw new Error(
+      `Client ${ws.data.clientId} is not an admin in room ${ws.data.roomId}`
+    );
+  }
+  return { room };
+};

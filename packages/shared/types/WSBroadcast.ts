@@ -12,6 +12,7 @@ const ClientSchema = z.object({
   rtt: z.number().nonnegative().default(0), // Round-trip time in milliseconds
   position: PositionSchema,
   lastNtpResponse: z.number().default(0), // Last NTP response timestamp
+  isAdmin: z.boolean().default(false), // Admin status
 });
 export type ClientType = z.infer<typeof ClientSchema>;
 const ClientChangeMessageSchema = z.object({
