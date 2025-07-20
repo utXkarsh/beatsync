@@ -8,7 +8,6 @@ export const ClientSchema = z.object({
 export const ClientActionEnum = z.enum([
   "PLAY",
   "PAUSE",
-  "CLIENT_CHANGE",
   "NTP_REQUEST",
   "START_SPATIAL_AUDIO",
   "STOP_SPATIAL_AUDIO",
@@ -21,6 +20,7 @@ export const ClientActionEnum = z.enum([
 export const NTPRequestPacketSchema = z.object({
   type: z.literal(ClientActionEnum.enum.NTP_REQUEST),
   t0: z.number(), // Client send timestamp
+  t1: z.number().optional(), // Server receive timestamp (will be set by the server)
 });
 
 export const PlayActionSchema = z.object({
@@ -82,3 +82,8 @@ export type PlayActionType = z.infer<typeof PlayActionSchema>;
 export type PauseActionType = z.infer<typeof PauseActionSchema>;
 export type ReorderClientType = z.infer<typeof ReorderClientSchema>;
 export type SetListeningSourceType = z.infer<typeof SetListeningSourceSchema>;
+
+// Mapped type to access request types by their type field
+export type ExtractWSRequestFrom = {
+  [K in WSRequestType["type"]]: Extract<WSRequestType, { type: K }>;
+};
