@@ -1,12 +1,12 @@
 "use client";
-import { useGlobalStore, MAX_NTP_MEASUREMENTS } from "@/store/global";
-import { Hash, Users } from "lucide-react";
+import { SOCIAL_LINKS } from "@/constants";
+import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
+import { useRoomStore } from "@/store/room";
+import { Crown, Hash, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
+import { FaDiscord, FaGithub } from "react-icons/fa";
 import { SyncProgress } from "../ui/SyncProgress";
-import { FaDiscord } from "react-icons/fa";
-import { FaGithub } from "react-icons/fa";
-import { SOCIAL_LINKS } from "@/constants";
 
 interface TopBarProps {
   roomId: string;
@@ -20,11 +20,23 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   const clockOffset = useGlobalStore((state) => state.offsetEstimate);
   const ntpMeasurements = useGlobalStore((state) => state.ntpMeasurements);
 
+  // Get current user ID to check admin status
+  const userId = useRoomStore((state) => state.userId);
+  const currentUser = connectedClients.find(
+    (client) => client.clientId === userId
+  );
+  const isAdmin = currentUser?.isAdmin || false;
+
   // Show minimal nav bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
     return (
       <div className="h-8 bg-black/80 backdrop-blur-md z-50 flex items-center justify-between px-4 border-b border-zinc-800">
         <div className="flex items-center space-x-4 text-xs text-neutral-400 py-2 md:py-0">
+          {isAdmin && (
+            <div className="flex items-center">
+              <Crown className="h-3 w-3 text-green-500" fill="currentColor" />
+            </div>
+          )}
           <Link
             href="/"
             className="font-medium hover:text-white transition-colors"
