@@ -1,11 +1,11 @@
 import { PostHogProvider } from "@/components/PostHogProvider";
+import TQProvider from "@/components/TQProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import TQProvider from "@/components/TQProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +28,6 @@ export const metadata: Metadata = {
     "Beatsync is an open-source, web audio player built for multi-device playback.",
   keywords: ["music", "sync", "audio", "collaboration", "real-time"],
   authors: [{ name: "Freeman Jiang" }],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    viewportFit: "cover",
-  },
 };
 
 export default function RootLayout({
