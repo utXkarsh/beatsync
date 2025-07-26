@@ -45,7 +45,12 @@ const ConnectedUserItem = memo<ConnectedUserItemProps>(
             <AvatarFallback
               className={isCurrentUser ? "bg-primary-600" : "bg-neutral-600"}
             >
-              {client.username.slice(0, 2).toUpperCase()}
+              {client.username
+                .split("-")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
             </AvatarFallback>
           </Avatar>
           {/* Admin crown indicator */}
