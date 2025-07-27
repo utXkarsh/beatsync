@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { ClientType } from "@beatsync/shared";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
-import { Crown, MoreVertical } from "lucide-react";
+import { Crown, MoreVertical, User } from "lucide-react";
 import { motion } from "motion/react";
 import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -80,11 +80,13 @@ export const ConnectedUserItem = memo<ConnectedUserItemProps>(
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <div className="w-3 flex justify-center">
-                    {client.isAdmin && (
+                    {client.isAdmin ? (
                       <Crown
-                        className="h-3 w-3 text-yellow-500"
+                        className="h-2.5 w-2.5 text-yellow-500"
                         fill="currentColor"
                       />
+                    ) : (
+                      <User className="h-3 w-3 text-muted-foreground" />
                     )}
                   </div>
                   <p className="font-medium text-xs text-foreground">
