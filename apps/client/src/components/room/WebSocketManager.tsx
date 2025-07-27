@@ -2,10 +2,13 @@
 import { useClientId } from "@/hooks/useClientId";
 import { useNtpHeartbeat } from "@/hooks/useNtpHeartbeat";
 import { useWebSocketReconnection } from "@/hooks/useWebSocketReconnection";
+import { geolocateIP } from "@/lib/ip";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
 import { NTPMeasurement } from "@/utils/ntp";
+import { sendWSRequest } from "@/utils/ws";
 import {
+  ClientActionEnum,
   epochNow,
   NTPResponseMessageType,
   WSResponseSchema,
@@ -113,9 +116,10 @@ export const WebSocketManager = ({
     }
 
     const ws = new WebSocket(SOCKET_URL);
+
     setSocket(ws);
 
-    ws.onopen = () => {
+    ws.onopen = async () => {
       console.log("Websocket onopen fired.");
 
       // Reset reconnection state
@@ -123,6 +127,21 @@ export const WebSocketManager = ({
 
       // Start NTP heartbeat
       startHeartbeat();
+
+      try {
+        const ip = await geolocateIP();
+
+        // IP Sync
+        sendWSRequest({
+          ws,
+          request: {
+            type: ClientActionEnum.enum.SEND_IP,
+            ip,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to geolocate IP", e);
+      }
     };
 
     // This onclose event will only fire on unwanted websocket disconnects:

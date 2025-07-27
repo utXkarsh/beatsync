@@ -20,6 +20,7 @@ import { calculateGainFromDistanceToSource } from "../spatial";
 import { sendBroadcast, sendUnicast } from "../utils/responses";
 import { positionClientsInCircle } from "../utils/spatial";
 import { WSData } from "../utils/websocket";
+import { SendIpSchema } from "./../../../../packages/shared/types/WSRequest";
 
 interface RoomData {
   audioSources: AudioSourceType[];
@@ -499,6 +500,29 @@ export class RoomManager {
         serverTimeToExecute: serverTimeToExecute,
       },
     });
+  }
+
+  processIP({
+    ws,
+    message: { ip },
+  }: {
+    ws: ServerWebSocket<WSData>;
+    message: z.infer<typeof SendIpSchema>;
+  }): void {
+    const client = this.clients.get(ws.data.clientId);
+    if (!client) return;
+
+    client.location = {
+      flagEmoji: ip.flag.emoji,
+      flagSvgURL: ip.flag.img,
+      city: ip.city,
+      continent: ip.continent,
+      country: ip.country,
+      region: ip.region,
+      countryCode: ip.country_code,
+    };
+
+    this.clients.set(client.clientId, client);
   }
 
   getClient(clientId: string): ClientType | undefined {

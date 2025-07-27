@@ -1,4 +1,5 @@
 import { ClientActionEnum } from "@beatsync/shared";
+import { handleSendIp } from "./handlers/handleSendIp";
 import { handleSetAdmin } from "./handlers/handleSetAdmin";
 import { handleSetPlaybackControls } from "./handlers/handleSetPlaybackControls";
 import { handleMoveClient } from "./handlers/moveClient";
@@ -65,5 +66,10 @@ export const WS_REGISTRY: WebsocketRegistry = {
   [ClientActionEnum.enum.SET_PLAYBACK_CONTROLS]: {
     handle: handleSetPlaybackControls,
     description: "Set playback controls for a room",
+  },
+
+  [ClientActionEnum.enum.SEND_IP]: {
+    handle: handleSendIp,
+    description: "Send IP to server",
   },
 };

@@ -482,10 +482,10 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           state.pauseAudio({ when: 0 });
         }
 
-        console.error(
+        console.warn(
           `Cannot play audio: No index found: ${data.audioSource} ${data.trackTimeSeconds}`
         );
-        toast.error(
+        toast.warning(
           `"${extractFileNameFromUrl(data.audioSource)}" not loaded yet...`,
           { id: "schedulePlay" }
         );
