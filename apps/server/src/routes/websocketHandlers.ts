@@ -6,7 +6,7 @@ import {
 } from "@beatsync/shared";
 import { Server, ServerWebSocket } from "bun";
 import { globalManager } from "../managers";
-import { sendBroadcast, sendUnicast } from "../utils/responses";
+import { sendBroadcast } from "../utils/responses";
 import { WSData } from "../utils/websocket";
 import { dispatchMessage } from "../websocket/dispatch";
 
@@ -53,19 +53,19 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: Server) => {
       },
     };
 
-    // Send also the current playback controls
-    const playbackControlsMessage: WSBroadcastType = {
-      type: "ROOM_EVENT",
-      event: {
-        type: "SET_PLAYBACK_CONTROLS",
-        permissions: room.getPlaybackControlsPermissions(),
-      },
-    };
-
     // Send directly to the WebSocket since this is a broadcast-type message sent to a single client
     ws.send(JSON.stringify(audioSourcesMessage));
-    ws.send(JSON.stringify(playbackControlsMessage));
   }
+
+  // Always send the current playback controls
+  const playbackControlsMessage: WSBroadcastType = {
+    type: "ROOM_EVENT",
+    event: {
+      type: "SET_PLAYBACK_CONTROLS",
+      permissions: room.getPlaybackControlsPermissions(),
+    },
+  };
+  ws.send(JSON.stringify(playbackControlsMessage));
 
   const message = createClientUpdate(roomId);
   sendBroadcast({ server, roomId, message });
