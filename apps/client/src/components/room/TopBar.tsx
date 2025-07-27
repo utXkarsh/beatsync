@@ -39,10 +39,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
           >
             Beatsync
           </Link>
-          <div className="flex items-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></div>
-            <span>Synced</span>
-          </div>
+
           {/* NTP Measurements Indicator */}
           <div className="items-center hidden md:flex">
             <motion.svg
