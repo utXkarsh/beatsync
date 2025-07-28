@@ -89,7 +89,7 @@ export class RoomManager {
     trackPositionSeconds: 0,
   };
   private playbackControlsPermissions: PlaybackControlsPermissionsType =
-    "EVERYONE";
+    "ADMIN_ONLY";
 
   constructor(
     private readonly roomId: string,
