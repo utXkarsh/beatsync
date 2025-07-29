@@ -1,9 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { geolocateIP } from "@/lib/ip";
 import { useGlobalStore } from "@/store/global";
 import { Library, ListMusic, Rotate3D } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect } from "react";
 import { TopBar } from "../room/TopBar";
 import { SyncProgress } from "../ui/SyncProgress";
 import { Bottom } from "./Bottom";
@@ -34,12 +32,6 @@ export const Dashboard = ({ roomId }: DashboardProps) => {
       },
     },
   };
-
-  useEffect(() => {
-    geolocateIP().then((ip) => {
-      console.log(ip);
-    });
-  }, []);
 
   return (
     <div className="w-full h-dvh flex flex-col text-white bg-neutral-950">

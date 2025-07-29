@@ -12,6 +12,7 @@ import {
   WSBroadcastType,
 } from "@beatsync/shared";
 import { AudioSourceSchema, GRID } from "@beatsync/shared/types/basic";
+import { SendLocationSchema } from "@beatsync/shared/types/WSRequest";
 import { Server, ServerWebSocket } from "bun";
 import { z } from "zod";
 import { SCHEDULE_TIME_MS } from "../config";
@@ -20,7 +21,6 @@ import { calculateGainFromDistanceToSource } from "../spatial";
 import { sendBroadcast, sendUnicast } from "../utils/responses";
 import { positionClientsInCircle } from "../utils/spatial";
 import { WSData } from "../utils/websocket";
-import { SendIpSchema } from "./../../../../packages/shared/types/WSRequest";
 
 interface RoomData {
   audioSources: AudioSourceType[];
@@ -504,23 +504,15 @@ export class RoomManager {
 
   processIP({
     ws,
-    message: { ip },
+    message: { location },
   }: {
     ws: ServerWebSocket<WSData>;
-    message: z.infer<typeof SendIpSchema>;
+    message: z.infer<typeof SendLocationSchema>;
   }): void {
     const client = this.clients.get(ws.data.clientId);
     if (!client) return;
 
-    client.location = {
-      flagEmoji: ip.flag.emoji,
-      flagSvgURL: ip.flag.img,
-      city: ip.city,
-      continent: ip.continent,
-      country: ip.country,
-      region: ip.region,
-      countryCode: ip.country_code,
-    };
+    client.location = location;
 
     this.clients.set(client.clientId, client);
   }

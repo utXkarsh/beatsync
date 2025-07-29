@@ -1,12 +1,11 @@
 import { z } from "zod";
 import {
+  LocationSchema,
   PauseActionSchema,
   PlayActionSchema,
   SetPlaybackControlsSchema,
 } from "./WSRequest";
 import { AudioSourceSchema, PositionSchema } from "./basic";
-
-// ROOM EVENTS
 
 // Client change
 const ClientSchema = z.object({
@@ -17,17 +16,7 @@ const ClientSchema = z.object({
   position: PositionSchema,
   lastNtpResponse: z.number().default(0), // Last NTP response timestamp
   isAdmin: z.boolean().default(false), // Admin status
-  location: z
-    .object({
-      flagEmoji: z.string(),
-      flagSvgURL: z.string(),
-      city: z.string(),
-      country: z.string(),
-      region: z.string(),
-      continent: z.string(),
-      countryCode: z.string(),
-    })
-    .optional(),
+  location: LocationSchema.optional(),
 });
 export type ClientType = z.infer<typeof ClientSchema>;
 const ClientChangeMessageSchema = z.object({
