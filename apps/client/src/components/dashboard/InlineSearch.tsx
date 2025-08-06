@@ -6,6 +6,7 @@ import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum } from "@beatsync/shared";
 import { ArrowDown, Search as SearchIcon, X, ZapIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { usePostHog } from "posthog-js/react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { SearchResults } from "./SearchResults";
@@ -24,6 +25,7 @@ export function InlineSearch() {
   );
   const canMutate = useCanMutate();
   const socket = useGlobalStore((state) => state.socket);
+  const posthog = usePostHog();
   const setIsSearching = useGlobalStore((state) => state.setIsSearching);
   const setSearchQuery = useGlobalStore((state) => state.setSearchQuery);
   const setSearchOffset = useGlobalStore((state) => state.setSearchOffset);
@@ -89,11 +91,14 @@ export function InlineSearch() {
       return;
     }
 
-    console.log("data", data);
-
     if (!data.query || !data.query.trim()) return;
 
     console.log("Sending search request", data.query);
+
+    // Track search event
+    posthog.capture("search_music", {
+      query: data.query,
+    });
 
     // Reset pagination state for new search and set loading state
     setSearchOffset(0);

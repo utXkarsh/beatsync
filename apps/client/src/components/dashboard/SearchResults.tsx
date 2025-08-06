@@ -9,6 +9,7 @@ import { ClientActionEnum, TrackType } from "@beatsync/shared";
 import { Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
+import { usePostHog } from "posthog-js/react";
 import { toast } from "sonner";
 
 interface SearchResultsProps {
@@ -32,6 +33,7 @@ export function SearchResults({
   const loadMoreSearchResults = useGlobalStore(
     (state) => state.loadMoreSearchResults
   );
+  const posthog = usePostHog();
 
   // Helper function to format track name as "Artist 1, Artist 2 - Title (Version)"
   const formatTrackName = (track: TrackType) => {
@@ -71,6 +73,18 @@ export function SearchResults({
 
     try {
       const formattedTrackName = formatTrackName(track);
+
+      // Track streaming event
+      posthog.capture("stream_track", {
+        trackId: track.id,
+        trackName: formattedTrackName,
+        trackTitle: track.title,
+        artist: track.performer.name,
+        albumTitle: track.album.title,
+        duration: track.duration,
+        isrc: track.isrc,
+        searchQuery,
+      });
 
       // Request stream URL for this track
       sendWSRequest({
@@ -393,6 +407,12 @@ export function SearchResults({
             }}
             onClick={(e) => {
               e.stopPropagation();
+              // Track load more results event
+              posthog?.capture("search_load_more", {
+                searchQuery,
+                url: window.location.href,
+                timestamp: new Date().toISOString(),
+              });
               loadMoreSearchResults();
             }}
             disabled={isLoadingMoreResults}
