@@ -13,8 +13,8 @@ export const AnnouncementBanner = () => {
       <div className="relative">
         <div className="container mx-auto px-4 py-3">
           <p className="text-xs sm:text-sm font-medium text-center">
-            <span className="font-semibold">{"Jul 26, 2025: "}</span> New
-            dashboard layout with configurable playback permissions.
+            <span className="font-semibold">{"Aug 6, 2025: "}</span>Beta music
+            search - find and add tracks directly to your playlist.
             {/* <a
               href="#"
               className="ml-3 inline-flex items-center text-white underline hover:no-underline font-semibold"
