@@ -128,7 +128,7 @@ export function generateAudioFileName(originalName: string): string {
   const nameWithoutSlashes = nameWithoutExt.replace(/[\/\\]/g, "-");
 
   // Sanitize filename using the library
-  let safeName = sanitize(nameWithoutSlashes, { replacement: "-" });
+  let safeName = sanitize(nameWithoutSlashes, { replacement: "*" });
 
   // Truncate if too long (leave room for timestamp and extension)
   const maxNameLength = 400;
