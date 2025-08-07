@@ -8,7 +8,6 @@ import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum, TrackType } from "@beatsync/shared";
 import { Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import Image from "next/image";
 import { usePostHog } from "posthog-js/react";
 import { toast } from "sonner";
 
@@ -341,11 +340,11 @@ export function SearchResults({
             >
               {/* Album Art */}
               <div className="relative flex-shrink-0">
-                <Image
+                <img
                   src={track.album.image.thumbnail || track.album.image.small}
                   alt={track.album.title}
-                  width={40}
-                  height={40}
+                  // width={40}
+                  // height={40}
                   className="w-10 h-10 rounded object-cover bg-neutral-800"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
