@@ -149,6 +149,7 @@ export const SyncProgress = ({
             whileHover={{
               scale: 1.015,
             }}
+            whileTap={{ scale: 0.985 }}
             transition={{ duration: 0.3 }}
           >
             Go to home
@@ -327,6 +328,7 @@ export const SyncProgress = ({
             whileHover={{
               scale: 1.015,
             }}
+            whileTap={{ scale: 0.985 }}
             transition={{ duration: 0.3 }}
             onClick={() => setIsInitingSystem(false)}
           >

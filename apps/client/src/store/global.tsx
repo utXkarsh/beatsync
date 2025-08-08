@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { fetchDefaultAudioSources } from "@/lib/api";
 import { getClientId } from "@/lib/clientId";
 import { extractFileNameFromUrl } from "@/lib/utils";
 import {
@@ -327,9 +326,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
   const _initializeAudio = async () => {
     console.log("initializeAudio()");
 
-    // Fetch default audio sources from server
-    const defaultSources = await fetchDefaultAudioSources();
-
     // Create fresh audio context
     const audioContext = initializeAudioContext();
 
@@ -349,11 +345,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       },
     });
 
-    // Process all sources including the first one
-    for (let i = 0; i < defaultSources.length; i++) {
-      const { url } = defaultSources[i];
-      await processNewAudioSource({ url });
-    }
+    // Do not preload default sources; queue starts empty.
   };
 
   if (typeof window !== "undefined") {
@@ -1033,9 +1025,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     resetStore: () => {
       const state = get();
 
-      // Preserve the audio cache before reset
-      const preservedAudioCache = state.audioCache;
-
       // Stop any playing audio
       if (state.isPlaying && state.audioPlayer) {
         try {
@@ -1058,7 +1047,6 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // Reset state to initial values but preserve cache
       set({
         ...initialState,
-        audioCache: preservedAudioCache,
       });
 
       // Reinitialize audio from scratch

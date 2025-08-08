@@ -10,6 +10,7 @@ import { AudioSourceType } from "@beatsync/shared";
 import { MoreHorizontal, Pause, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { usePostHog } from "posthog-js/react";
+import LoadDefaultTracksButton from "./LoadDefaultTracksButton";
 
 export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
   const posthog = usePostHog();
@@ -24,6 +25,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
   const isPlaying = useGlobalStore((state) => state.isPlaying);
   const getAudioDuration = useGlobalStore((state) => state.getAudioDuration);
   const canMutate = useCanMutate();
+  // socket handled by child button component when needed
 
   const handleItemClick = (source: AudioSourceType) => {
     if (!canMutate) return;
@@ -155,11 +157,21 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
           </AnimatePresence>
         ) : (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-3 text-neutral-400 select-none"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="w-full text-center text-neutral-300 select-none flex flex-col items-center justify-center gap-3"
           >
-            {isInitingSystem ? "Loading tracks..." : "No tracks available"}
+            {isInitingSystem ? (
+              "Loading tracks..."
+            ) : canMutate ? (
+              <>
+                <div className="text-sm text-neutral-400">No tracks yet</div>
+                <LoadDefaultTracksButton />
+              </>
+            ) : (
+              "No tracks available"
+            )}
           </motion.div>
         )}
       </div>

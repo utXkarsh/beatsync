@@ -24,6 +24,7 @@ export const ClientActionEnum = z.enum([
   "SET_ADMIN", // Set admin status
   "SET_PLAYBACK_CONTROLS", // Set playback controls
   "SEND_IP", // Send IP to server
+  "LOAD_DEFAULT_TRACKS", // Load default tracks into empty queue
   "SEARCH_MUSIC", // Search for music
   "STREAM_MUSIC", // Stream music
 ]);
@@ -77,6 +78,10 @@ const ClientRequestSyncSchema = z.object({
 });
 export type ClientRequestSyncType = z.infer<typeof ClientRequestSyncSchema>;
 
+const LoadDefaultTracksSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.LOAD_DEFAULT_TRACKS),
+});
+
 const SetAdminSchema = z.object({
   type: z.literal(ClientActionEnum.enum.SET_ADMIN),
   clientId: z.string(), // The client to set admin status for
@@ -126,6 +131,7 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
   SetAdminSchema,
   SetPlaybackControlsSchema,
   SendLocationSchema,
+  LoadDefaultTracksSchema,
   SearchMusicSchema,
   StreamMusicSchema,
 ]);

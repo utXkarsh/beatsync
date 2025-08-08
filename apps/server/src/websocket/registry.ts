@@ -1,4 +1,5 @@
 import { ClientActionEnum } from "@beatsync/shared";
+import { handleLoadDefaultTracks } from "./handlers/handleLoadDefaultTracks";
 import { handleSearchMusic } from "./handlers/handleSearchMusic";
 import { handleSendIp } from "./handlers/handleSendIp";
 import { handleSetAdmin } from "./handlers/handleSetAdmin";
@@ -58,6 +59,11 @@ export const WS_REGISTRY: WebsocketRegistry = {
   [ClientActionEnum.enum.SYNC]: {
     handle: handleSync,
     description: "Sync late-joining client with room state",
+  },
+
+  [ClientActionEnum.enum.LOAD_DEFAULT_TRACKS]: {
+    handle: handleLoadDefaultTracks,
+    description: "Load default tracks into the room if queue is empty",
   },
 
   [ClientActionEnum.enum.SET_ADMIN]: {
