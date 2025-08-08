@@ -56,13 +56,14 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
       <div className="space-y-1">
         {audioSources.length > 0 ? (
           <AnimatePresence initial={true}>
+            {/* Ensure keys are stable and unique even if duplicates attempted */}
             {audioSources.map((source, index) => {
               const isSelected = source.url === selectedAudioId;
               const isPlayingThis = isSelected && isPlaying;
 
               return (
                 <motion.div
-                  key={source.url}
+                  key={`${source.url}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{

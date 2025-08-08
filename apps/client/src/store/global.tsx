@@ -302,12 +302,31 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     const state = get();
 
     const { audioContext } = getAudioPlayer(state);
-    const { audioBuffer } = await loadAudioSourceUrl({ url, audioContext });
+    // Decode only if not already cached
+    let audioBuffer = state.audioCache.get(url);
+    if (!audioBuffer) {
+      const loaded = await loadAudioSourceUrl({ url, audioContext });
+      audioBuffer = loaded.audioBuffer;
+    }
 
-    set((currentState) => ({
-      audioSources: [...currentState.audioSources, { url }],
-      audioCache: new Map([...currentState.audioCache, [url, audioBuffer]]),
-    }));
+    set((currentState) => {
+      // Build next list ensuring URL uniqueness while preserving first occurrence
+      const next = [...currentState.audioSources, { url }];
+      const seen = new Set<string>();
+      const deduped = next.filter((s) => {
+        if (seen.has(s.url)) return false;
+        seen.add(s.url);
+        return true;
+      });
+
+      const nextCache = new Map(currentState.audioCache);
+      nextCache.set(url, audioBuffer!);
+
+      return {
+        audioSources: deduped,
+        audioCache: nextCache,
+      };
+    });
   };
 
   // Function to initialize or reinitialize audio system
