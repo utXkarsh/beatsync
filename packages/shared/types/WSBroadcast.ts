@@ -6,6 +6,7 @@ import {
   SetPlaybackControlsSchema,
 } from "./WSRequest";
 import { AudioSourceSchema, PositionSchema } from "./basic";
+import { SongInfoSchema } from "./room";
 
 // Client change
 const ClientSchema = z.object({
@@ -31,12 +32,19 @@ const SetAudioSourcesSchema = z.object({
 });
 export type SetAudioSourcesType = z.infer<typeof SetAudioSourcesSchema>;
 
+const SetUserPlaybackSchema = z.object({
+  type: z.literal("SET_USER_PLAYBACK"),
+  userPlayback: z.record(z.string(), SongInfoSchema),
+});
+export type SetUserPlaybackType = z.infer<typeof SetUserPlaybackSchema>;
+
 const RoomEventSchema = z.object({
   type: z.literal("ROOM_EVENT"),
   event: z.discriminatedUnion("type", [
     ClientChangeMessageSchema,
     SetAudioSourcesSchema,
     SetPlaybackControlsSchema,
+    SetUserPlaybackSchema,
   ]),
 });
 
@@ -45,7 +53,7 @@ const SpatialConfigSchema = z.object({
   type: z.literal("SPATIAL_CONFIG"),
   gains: z.record(
     z.string(),
-    z.object({ gain: z.number().min(0).max(1), rampTime: z.number() })
+    z.object({ gain: z.number().min(0).max(1), rampTime: z.number() }),
   ),
   listeningSource: PositionSchema,
 });
@@ -62,7 +70,6 @@ const StreamJobUpdateSchema = z.object({
   activeJobCount: z.number().nonnegative(),
 });
 export type StreamJobUpdateType = z.infer<typeof StreamJobUpdateSchema>;
-
 
 export const ScheduledActionSchema = z.object({
   type: z.literal("SCHEDULED_ACTION"),

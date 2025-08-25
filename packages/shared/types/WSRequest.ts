@@ -27,6 +27,7 @@ export const ClientActionEnum = z.enum([
   "LOAD_DEFAULT_TRACKS", // Load default tracks into empty queue
   "SEARCH_MUSIC", // Search for music
   "STREAM_MUSIC", // Stream music
+  "SET_USER_PLAYBACK", // Per-user playback selection
 ]);
 
 export const NTPRequestPacketSchema = z.object({

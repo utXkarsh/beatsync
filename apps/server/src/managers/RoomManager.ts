@@ -12,6 +12,11 @@ import {
   WSBroadcastType,
 } from "@beatsync/shared";
 import { AudioSourceSchema, GRID } from "@beatsync/shared/types/basic";
+import {
+  RoomFeatures,
+  SongInfo,
+  UserPlayback,
+} from "@beatsync/shared/types/room";
 import { SendLocationSchema } from "@beatsync/shared/types/WSRequest";
 import { Server, ServerWebSocket } from "bun";
 import { z } from "zod";
@@ -29,6 +34,8 @@ interface RoomData {
   intervalId?: NodeJS.Timeout;
   listeningSource: PositionType;
   playbackControlsPermissions: PlaybackControlsPermissionsType;
+  features: RoomFeatures;
+  userPlayback: UserPlayback;
 }
 
 // Define Zod schemas for backup validation
@@ -40,7 +47,7 @@ const BackupClientSchema = z.object({
 
 export const ClientCacheBackupSchema = z.record(
   z.string(),
-  z.object({ isAdmin: z.boolean() })
+  z.object({ isAdmin: z.boolean() }),
 );
 
 const RoomBackupSchema = z.object({
@@ -78,6 +85,9 @@ export class RoomManager {
     x: GRID.ORIGIN_X,
     y: GRID.ORIGIN_Y,
   };
+  // New feature flag and per-user playback mapping
+  private features: RoomFeatures = { perUserPlaybackEnabled: false };
+  private userPlayback: UserPlayback = {};
   private intervalId?: NodeJS.Timeout;
   private cleanupTimer?: NodeJS.Timeout;
   private heartbeatCheckInterval?: NodeJS.Timeout;
@@ -90,18 +100,18 @@ export class RoomManager {
   };
   private playbackControlsPermissions: PlaybackControlsPermissionsType =
     "ADMIN_ONLY";
-  private activeStreamJobs = new Map<string, { trackId: string; status: string }>();
+  private activeStreamJobs = new Map<
+    string,
+    { trackId: string; status: string }
+  >();
 
   constructor(
     private readonly roomId: string,
-    onClientCountChange?: () => void // To update the global # of clients active
+    onClientCountChange?: () => void, // To update the global # of clients active
   ) {
     this.onClientCountChange = onClientCountChange;
+    // features and userPlayback already initialized above
   }
-
-  /**
-   * Get the room ID
-   */
   getRoomId(): string {
     return this.roomId;
   }
@@ -138,6 +148,14 @@ export class RoomManager {
       position: { x: GRID.ORIGIN_X, y: GRID.ORIGIN_Y - 25 }, // Initial position at center
       lastNtpResponse: Date.now(), // Initialize last NTP response time
     });
+    // Initialize per-user playback for this user if feature is enabled
+    if (this.features.perUserPlaybackEnabled && !this.userPlayback[clientId]) {
+      this.userPlayback[clientId] = {
+        songId: "",
+        url: "",
+        title: "",
+      };
+    }
 
     positionClientsInCircle(this.clients);
 
@@ -162,7 +180,7 @@ export class RoomManager {
 
       // Check if any admins remain after removing this client
       const remainingAdmins = Array.from(this.clients.values()).filter(
-        (client) => client.isAdmin
+        (client) => client.isAdmin,
       );
 
       // If no admins remain, randomly select a new admin
@@ -177,7 +195,7 @@ export class RoomManager {
           this.clientCache.set(newAdmin.clientId, { isAdmin: true });
 
           console.log(
-            `✨ Automatically promoted ${newAdmin.username} (${newAdmin.clientId}) to admin in room ${this.roomId}`
+            `✨ Automatically promoted ${newAdmin.username} (${newAdmin.clientId}) to admin in room ${this.roomId}`,
           );
         }
       }
@@ -186,8 +204,32 @@ export class RoomManager {
       this.stopHeartbeatChecking();
     }
 
+    // Remove per-user playback mapping for this user
+    if (this.userPlayback[clientId]) {
+      delete this.userPlayback[clientId];
+    }
     // Notify that client count changed
     this.onClientCountChange?.();
+  }
+
+  // Set per-user playback (song selection)
+  setUserPlayback(clientId: string, song: SongInfo): void {
+    if (!this.features.perUserPlaybackEnabled) return;
+    this.userPlayback[clientId] = song;
+  }
+
+  // Get per-user playback mapping
+  getUserPlayback(): UserPlayback {
+    return this.userPlayback;
+  }
+
+  // Enable/disable per-user playback feature
+  setPerUserPlaybackEnabled(enabled: boolean): void {
+    this.features.perUserPlaybackEnabled = enabled;
+    if (!enabled) {
+      // Clear all per-user playback if disabling
+      this.userPlayback = {};
+    }
   }
 
   setAdmin({
@@ -207,7 +249,7 @@ export class RoomManager {
   }
 
   setPlaybackControls(
-    permissions: z.infer<typeof PlaybackControlsPermissionsEnum>
+    permissions: z.infer<typeof PlaybackControlsPermissionsEnum>,
   ): void {
     this.playbackControlsPermissions = permissions;
   }
@@ -252,7 +294,7 @@ export class RoomManager {
   hasActiveConnections(): boolean {
     const now = Date.now();
     const clients = Array.from(this.clients.values());
-    
+
     for (const client of clients) {
       // A client is considered active if they've sent an NTP request within the timeout window
       // This is more reliable than WebSocket readyState during network fluctuations
@@ -275,6 +317,8 @@ export class RoomManager {
       intervalId: this.intervalId,
       listeningSource: this.listeningSource,
       playbackControlsPermissions: this.playbackControlsPermissions,
+      features: this.features,
+      userPlayback: this.userPlayback,
     };
   }
 
@@ -298,7 +342,7 @@ export class RoomManager {
    * Stream job management methods
    */
   addStreamJob(jobId: string, trackId: string): void {
-    this.activeStreamJobs.set(jobId, { trackId, status: 'active' });
+    this.activeStreamJobs.set(jobId, { trackId, status: "active" });
   }
 
   removeStreamJob(jobId: string): void {
@@ -325,7 +369,7 @@ export class RoomManager {
   reorderClients(clientId: string, server: Server): ClientType[] {
     const clients = Array.from(this.clients.values());
     const clientIndex = clients.findIndex(
-      (client) => client.clientId === clientId
+      (client) => client.clientId === clientId,
     );
 
     if (clientIndex === -1) return clients; // Client not found
@@ -384,7 +428,7 @@ export class RoomManager {
     const updateSpatialAudio = () => {
       const clients = Array.from(this.clients.values());
       console.log(
-        `ROOM ${this.roomId} LOOP ${loopCount}: Connected clients: ${clients.length}`
+        `ROOM ${this.roomId} LOOP ${loopCount}: Connected clients: ${clients.length}`,
       );
       if (clients.length === 0) return;
 
@@ -415,7 +459,7 @@ export class RoomManager {
               rampTime: 0.25,
             },
           ];
-        })
+        }),
       );
 
       // Send the updated configuration to all clients
@@ -448,7 +492,7 @@ export class RoomManager {
 
   updatePlaybackSchedulePause(
     pauseSchema: PauseActionType,
-    serverTimeToExecute: number
+    serverTimeToExecute: number,
   ) {
     this.playbackState = {
       type: "paused",
@@ -460,7 +504,7 @@ export class RoomManager {
 
   updatePlaybackSchedulePlay(
     playSchema: PlayActionType,
-    serverTimeToExecute: number
+    serverTimeToExecute: number,
   ) {
     this.playbackState = {
       type: "playing",
@@ -500,10 +544,10 @@ export class RoomManager {
       trackPositionSecondsWhenPlaybackStarted + timeElapsedAtExecution / 1000;
     console.log(
       `Syncing late client: track started at ${trackPositionSecondsWhenPlaybackStarted.toFixed(
-        2
+        2,
       )}s, ` +
         `${(timeElapsedSincePlaybackStarted / 1000).toFixed(2)}s elapsed, ` +
-        `will be at ${resumeTrackTimeSeconds.toFixed(2)}s when client starts`
+        `will be at ${resumeTrackTimeSeconds.toFixed(2)}s when client starts`,
     );
 
     sendUnicast({
@@ -593,7 +637,7 @@ export class RoomManager {
     try {
       const result = await deleteObjectsWithPrefix(`room-${this.roomId}`);
       console.log(
-        `✅ Room ${this.roomId} objects deleted: ${result.deletedCount}`
+        `✅ Room ${this.roomId} objects deleted: ${result.deletedCount}`,
       );
     } catch (error) {
       console.error(`❌ Room ${this.roomId} cleanup failed:`, error);
@@ -616,7 +660,7 @@ export class RoomManager {
         console.log(
           `Client ${client.username} at (${client.position.x}, ${
             client.position.y
-          }) - gain: ${gain.toFixed(2)}`
+          }) - gain: ${gain.toFixed(2)}`,
         );
         return [
           client.clientId,
@@ -625,7 +669,7 @@ export class RoomManager {
             rampTime: 0.25,
           },
         ];
-      })
+      }),
     );
 
     // Send the updated gains to all clients
@@ -664,7 +708,7 @@ export class RoomManager {
 
         if (timeSinceLastResponse > NTP_CONSTANTS.RESPONSE_TIMEOUT_MS) {
           console.warn(
-            `⚠️ Client ${clientId} in room ${this.roomId} has not responded for ${timeSinceLastResponse}ms`
+            `⚠️ Client ${clientId} in room ${this.roomId} has not responded for ${timeSinceLastResponse}ms`,
           );
           staleClients.push(clientId);
         }
@@ -675,7 +719,7 @@ export class RoomManager {
         const client = this.clients.get(clientId);
         if (client) {
           console.log(
-            `🔌 Disconnecting stale client ${clientId} from room ${this.roomId}`
+            `🔌 Disconnecting stale client ${clientId} from room ${this.roomId}`,
           );
           // Close the WebSocket connection
           try {
@@ -684,7 +728,7 @@ export class RoomManager {
           } catch (error) {
             console.error(
               `Error closing WebSocket for client ${clientId}:`,
-              error
+              error,
             );
           }
           // Remove from room (the close event handler should also call removeClient)
