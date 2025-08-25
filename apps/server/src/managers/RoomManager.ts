@@ -89,6 +89,13 @@ export class RoomManager {
   private features: RoomFeatures = { perUserPlaybackEnabled: false };
   private userPlayback: UserPlayback = {};
   private intervalId?: NodeJS.Timeout;
+  private spatialEffectType: "rotation" | "infinity" = "rotation";
+  /**
+   * Set the spatial audio effect type (rotation, infinity, etc.)
+   */
+  setSpatialEffectType(effectType: "rotation" | "infinity") {
+    this.spatialEffectType = effectType;
+  }
   private cleanupTimer?: NodeJS.Timeout;
   private heartbeatCheckInterval?: NodeJS.Timeout;
   private onClientCountChange?: () => void;
@@ -422,36 +429,40 @@ export class RoomManager {
     // Don't start if already running
     if (this.intervalId) return;
 
-    // Create a closure for the number of loops
     let loopCount = 0;
 
     const updateSpatialAudio = () => {
       const clients = Array.from(this.clients.values());
-      console.log(
-        `ROOM ${this.roomId} LOOP ${loopCount}: Connected clients: ${clients.length}`,
-      );
       if (clients.length === 0) return;
 
-      // Calculate new position for listening source in a circle
       const radius = 25;
       const centerX = GRID.ORIGIN_X;
       const centerY = GRID.ORIGIN_Y;
-      const angle = (loopCount * Math.PI) / 30; // Slow rotation
+      let newX = centerX;
+      let newY = centerY;
 
-      const newX = centerX + radius * Math.cos(angle);
-      const newY = centerY + radius * Math.sin(angle);
+      if (this.spatialEffectType === "rotation") {
+        // Circular rotation
+        const angle = (loopCount * Math.PI) / 30;
+        newX = centerX + radius * Math.cos(angle);
+        newY = centerY + radius * Math.sin(angle);
+      } else if (this.spatialEffectType === "infinity") {
+        // Proper figure-eight (lemniscate of Bernoulli) path
+        // x = a * cos(t) / (1 + sin^2(t)), y = a * sin(t) * cos(t) / (1 + sin^2(t))
+        const t = (loopCount * Math.PI) / 30;
+        const a = radius;
+        newX = centerX + (a * Math.cos(t)) / (1 + Math.sin(t) * Math.sin(t));
+        newY = centerY + (a * Math.sin(t) * Math.cos(t)) / (1 + Math.sin(t) * Math.sin(t));
+      }
 
-      // Update the listening source position
       this.listeningSource = { x: newX, y: newY };
 
-      // Calculate gains for each client
       const gains = Object.fromEntries(
         clients.map((client) => {
           const gain = calculateGainFromDistanceToSource({
             client: client.position,
             source: this.listeningSource,
           });
-
           return [
             client.clientId,
             {
@@ -462,7 +473,6 @@ export class RoomManager {
         }),
       );
 
-      // Send the updated configuration to all clients
       const message: WSBroadcastType = {
         type: "SCHEDULED_ACTION",
         serverTimeToExecute: epochNow() + SCHEDULE_TIME_MS,
