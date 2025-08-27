@@ -50,7 +50,8 @@ export const PauseActionSchema = z.object({
 
 const StartSpatialAudioSchema = z.object({
   type: z.literal(ClientActionEnum.enum.START_SPATIAL_AUDIO),
-  effectType: z.enum(["rotation", "infinity"]).default("rotation"),
+  effectType: z.enum(["rotation", "infinity", "aisle_sweep"]).default("rotation"),
+  speed: z.number().optional().default(1),
 });
 
 const StopSpatialAudioSchema = z.object({

@@ -1,3 +1,9 @@
+//This Zustand store manages the global state of the application, including all the audio-related state. The key functions for spatial audio are:
+//◦    processSpatialConfig: This function receives the spatial configuration from the server (which includes the gain for the current client and the position of the listening source). It then uses the Web Audio API to smoothly ramp the gain of the gainNode to the new value. This creates the effect of the sound source moving in the virtual space.
+//◦    startSpatialAudio: This function sends a message to the server to start the spatial audio effect.
+//◦    sendStopSpatialAudio: This function sends a message to the server to stop the spatial audio effect.
+//◦    updateListeningSource: This function is called when the user drags the listening source on the UI. It sends the new position to the server.
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { getClientId } from "@/lib/clientId";
 import { extractFileNameFromUrl } from "@/lib/utils";
@@ -120,7 +126,10 @@ interface GlobalState extends GlobalStateValues {
   setSocket: (socket: WebSocket) => void;
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
-  startSpatialAudio: (effectType?: "rotation" | "infinity") => void;
+  startSpatialAudio: (
+    effectType?: "rotation" | "infinity" | "aisle_sweep",
+    speed?: number,
+  ) => void;
   sendStopSpatialAudio: () => void;
   setSpatialConfig: (config: SpatialConfigType) => void;
   updateListeningSource: (position: PositionType) => void;
@@ -611,7 +620,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
-    startSpatialAudio: (effectType = "rotation") => {
+    startSpatialAudio: (effectType = "rotation", speed = 1) => {
       const state = get();
       const { socket } = getSocket(state);
       sendWSRequest({
@@ -619,6 +628,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         request: {
           type: ClientActionEnum.enum.START_SPATIAL_AUDIO,
           effectType,
+          speed,
         },
       });
     },

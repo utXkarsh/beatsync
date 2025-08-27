@@ -1,3 +1,5 @@
+//This component is the primary handler for WebSocket messages from the server. When it receives a SPATIAL_CONFIG message, it calls the processSpatialConfig function from the global store. This is the entry point for applying spatial audio effects on the client.
+
 "use client";
 import { useClientId } from "@/hooks/useClientId";
 import { useNtpHeartbeat } from "@/hooks/useNtpHeartbeat";
@@ -59,29 +61,29 @@ export const WebSocketManager = ({
   const schedulePlay = useGlobalStore((state) => state.schedulePlay);
   const schedulePause = useGlobalStore((state) => state.schedulePause);
   const processSpatialConfig = useGlobalStore(
-    (state) => state.processSpatialConfig
+    (state) => state.processSpatialConfig,
   );
   const addNTPMeasurement = useGlobalStore((state) => state.addNTPMeasurement);
   const setConnectedClients = useGlobalStore(
-    (state) => state.setConnectedClients
+    (state) => state.setConnectedClients,
   );
   const isSpatialAudioEnabled = useGlobalStore(
-    (state) => state.isSpatialAudioEnabled
+    (state) => state.isSpatialAudioEnabled,
   );
   const setIsSpatialAudioEnabled = useGlobalStore(
-    (state) => state.setIsSpatialAudioEnabled
+    (state) => state.setIsSpatialAudioEnabled,
   );
   const processStopSpatialAudio = useGlobalStore(
-    (state) => state.processStopSpatialAudio
+    (state) => state.processStopSpatialAudio,
   );
   const handleSetAudioSources = useGlobalStore(
-    (state) => state.handleSetAudioSources
+    (state) => state.handleSetAudioSources,
   );
   const setPlaybackControlsPermissions = useGlobalStore(
-    (state) => state.setPlaybackControlsPermissions
+    (state) => state.setPlaybackControlsPermissions,
   );
   const setActiveStreamJobs = useGlobalStore(
-    (state) => state.setActiveStreamJobs
+    (state) => state.setActiveStreamJobs,
   );
 
   // Use the NTP heartbeat hook
@@ -211,28 +213,29 @@ export const WebSocketManager = ({
         }
       } else if (response.type === "SEARCH_RESPONSE") {
         console.log("Received search response:", response);
-        const { 
-          setSearchResults, 
-          setIsSearching, 
+        const {
+          setSearchResults,
+          setIsSearching,
           setIsLoadingMoreResults,
           setHasMoreResults,
           isLoadingMoreResults,
         } = useGlobalStore.getState();
-        
+
         // Determine if this is pagination or new search
         const isAppending = isLoadingMoreResults;
-        
+
         // Update search results (append if pagination, replace if new search)
         setSearchResults(response.response, isAppending);
-        
+
         // Update loading states
         setIsSearching(false);
         setIsLoadingMoreResults(false);
-        
+
         // Update hasMoreResults based on response
         if (response.response.type === "success") {
-          const { total, items, offset } = response.response.response.data.tracks;
-          const hasMore = (offset + items.length) < total;
+          const { total, items, offset } =
+            response.response.response.data.tracks;
+          const hasMore = offset + items.length < total;
           setHasMoreResults(hasMore);
         } else {
           setHasMoreResults(false);

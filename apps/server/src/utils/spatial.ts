@@ -1,3 +1,5 @@
+//This file provides a utility function, positionClientsInCircle, which is used to arrange clients in a circle within the virtual space. This is used to create the initial spatial arrangement of clients.
+
 import { ClientType, GRID } from "@beatsync/shared";
 
 /**
@@ -5,7 +7,7 @@ import { ClientType, GRID } from "@beatsync/shared";
  * @param clients Map of clients to position
  */
 export function positionClientsInCircle(
-  clients: Map<string, ClientType>
+  clients: Map<string, ClientType>,
 ): void {
   const clientCount = clients.size;
 

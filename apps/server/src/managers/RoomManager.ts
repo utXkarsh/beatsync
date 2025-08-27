@@ -1,3 +1,5 @@
+//This is the heart of the server-side logic. It manages the state of each room, including the positions of clients and the listening source. The startSpatialAudio method is particularly important. It sets up an interval that periodically updates the listening source's position to create a moving effect (either a rotation or an "infinity" loop). It then calculates the gain for each client and broadcasts the updated spatial configuration to all clients in the room.
+
 import {
   AudioSourceType,
   ClientType,
@@ -89,12 +91,20 @@ export class RoomManager {
   private features: RoomFeatures = { perUserPlaybackEnabled: false };
   private userPlayback: UserPlayback = {};
   private intervalId?: NodeJS.Timeout;
-  private spatialEffectType: "rotation" | "infinity" = "rotation";
+  private spatialEffectType: "rotation" | "infinity" | "aisle_sweep" = "rotation";
+  private spatialEffectSpeed = 1.0;
+    "rotation";
   /**
-   * Set the spatial audio effect type (rotation, infinity, etc.)
+   * Set the spatial audio effect type (rotation, infinity, aisle_sweep, etc.)
    */
-  setSpatialEffectType(effectType: "rotation" | "infinity") {
+  setSpatialEffectType(
+    effectType: "rotation" | "infinity" | "aisle_sweep",
+    speed?: number,
+  ) {
     this.spatialEffectType = effectType;
+    if (speed) {
+      this.spatialEffectSpeed = speed;
+    }
   }
   private cleanupTimer?: NodeJS.Timeout;
   private heartbeatCheckInterval?: NodeJS.Timeout;
@@ -443,16 +453,26 @@ export class RoomManager {
 
       if (this.spatialEffectType === "rotation") {
         // Circular rotation
-        const angle = (loopCount * Math.PI) / 30;
+        const angle = (loopCount * Math.PI * this.spatialEffectSpeed) / 30;
         newX = centerX + radius * Math.cos(angle);
         newY = centerY + radius * Math.sin(angle);
       } else if (this.spatialEffectType === "infinity") {
-        // Proper figure-eight (lemniscate of Bernoulli) path
-        // x = a * cos(t) / (1 + sin^2(t)), y = a * sin(t) * cos(t) / (1 + sin^2(t))
-        const t = (loopCount * Math.PI) / 30;
-        const a = radius;
-        newX = centerX + (a * Math.cos(t)) / (1 + Math.sin(t) * Math.sin(t));
-        newY = centerY + (a * Math.sin(t) * Math.cos(t)) / (1 + Math.sin(t) * Math.sin(t));
+        // Figure-eight using a Lissajous curve (more intuitive infinity symbol)
+        // x = width * sin(t)
+        // y = height * sin(2t)
+        const angle =
+          (loopCount * Math.PI * this.spatialEffectSpeed) / 60; // Slower speed for a full 2*PI loop over ~12 seconds
+        const width = radius * 1.5; // Make the loop wider than it is tall
+        const height = radius;
+
+        newX = centerX + width * Math.sin(angle);
+        newY = centerY + height * Math.sin(2 * angle); // The key is the 2* multiplier for the 'y' component
+      } else if (this.spatialEffectType === "aisle_sweep") {
+        // Linear sweep from left to right, then reset
+        const sweepDuration = 200 / this.spatialEffectSpeed; // loop counts to complete a sweep
+        const progress = (loopCount % sweepDuration) / sweepDuration;
+        newX = progress * GRID.SIZE;
+        newY = GRID.ORIGIN_Y;
       }
 
       this.listeningSource = { x: newX, y: newY };
