@@ -27,6 +27,7 @@ export const ClientActionEnum = z.enum([
   "LOAD_DEFAULT_TRACKS", // Load default tracks into empty queue
   "SEARCH_MUSIC", // Search for music
   "STREAM_MUSIC", // Stream music
+  "SET_USER_PLAYBACK", // Per-user playback selection
 ]);
 
 export const NTPRequestPacketSchema = z.object({
@@ -49,6 +50,8 @@ export const PauseActionSchema = z.object({
 
 const StartSpatialAudioSchema = z.object({
   type: z.literal(ClientActionEnum.enum.START_SPATIAL_AUDIO),
+  effectType: z.enum(["rotation", "infinity", "aisle_sweep"]).default("rotation"),
+  speed: z.number().optional().default(1),
 });
 
 const StopSpatialAudioSchema = z.object({

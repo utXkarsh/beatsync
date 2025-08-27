@@ -8,5 +8,6 @@ export const handleStartSpatialAudio: HandlerFunction<
   // Start loop only if not already started
   const { room } = requireCanMutate(ws); // do nothing if no room exists
 
+  room.setSpatialEffectType(message.effectType, message.speed);
   room.startSpatialAudio(server);
 };

@@ -1,8 +1,10 @@
+//This file contains the core logic for calculating the gain (volume) of each client based on their distance from the listening source. It includes three different falloff models: exponential, linear, and quadratic. The calculateGainFromDistanceToSource function is the entry point for this logic, and it currently uses the quadratic model.
+
 import { PositionType } from "@beatsync/shared/types/basic";
 
 function calculateEuclideanDistance(
   p1: PositionType,
-  p2: PositionType
+  p2: PositionType,
 ): number {
   const dx = p1.x - p2.x;
   const dy = p1.y - p2.y;

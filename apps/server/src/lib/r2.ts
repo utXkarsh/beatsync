@@ -23,7 +23,7 @@ const S3_CONFIG = {
 };
 
 const r2Client = new S3Client({
-  region: "auto",
+  region: "ap-south-1",
   endpoint: S3_CONFIG.ENDPOINT,
   credentials: {
     accessKeyId: S3_CONFIG.ACCESS_KEY_ID,
@@ -54,7 +54,7 @@ export async function generatePresignedUploadUrl(
   roomId: string,
   fileName: string,
   contentType: string,
-  expiresIn: number = 3600 // 1 hour
+  expiresIn: number = 3600, // 1 hour
 ): Promise<string> {
   const key = createKey(roomId, fileName);
 
@@ -86,7 +86,7 @@ export function getPublicAudioUrl(roomId: string, fileName: string): string {
  * @returns true if the file exists, false otherwise
  */
 export async function validateAudioFileExists(
-  audioUrl: string
+  audioUrl: string,
 ): Promise<boolean> {
   try {
     // Extract the key from the public URL
@@ -174,7 +174,7 @@ export function validateR2Config(): { isValid: boolean; errors: string[] } {
  */
 export async function listObjectsWithPrefix(
   prefix: string,
-  options: { includeFolders?: boolean } = {}
+  options: { includeFolders?: boolean } = {},
 ) {
   try {
     const listCommand = new ListObjectsV2Command({
@@ -190,7 +190,7 @@ export async function listObjectsWithPrefix(
     } else {
       // Filter out folder objects (GCS creates these, R2 doesn't)
       return listResponse.Contents?.filter(
-        (obj) => obj.Key && !obj.Key.endsWith("/") && obj.Size && obj.Size > 0
+        (obj) => obj.Key && !obj.Key.endsWith("/") && obj.Size && obj.Size > 0,
       );
     }
   } catch (error) {
@@ -203,7 +203,7 @@ export async function listObjectsWithPrefix(
  * Delete objects using batch delete API (faster for R2, not supported by GCS)
  */
 async function deleteBatchObjects(
-  objects: { Key: string }[]
+  objects: { Key: string }[],
 ): Promise<{ deletedCount: number; errors: string[] }> {
   let deletedCount = 0;
   const errors: string[] = [];
@@ -243,7 +243,7 @@ async function deleteBatchObjects(
  * Delete objects individually (slower but compatible with GCS)
  */
 async function deleteIndividualObjects(
-  objects: { Key: string }[]
+  objects: { Key: string }[],
 ): Promise<{ deletedCount: number; errors: string[] }> {
   let deletedCount = 0;
   const errors: string[] = [];
@@ -265,7 +265,7 @@ async function deleteIndividualObjects(
  * Tries batch delete first, falls back to individual deletes for GCS compatibility
  */
 export async function deleteObjectsWithPrefix(
-  prefix: string = ""
+  prefix: string = "",
 ): Promise<{ deletedCount: number }> {
   try {
     const objects = await listObjectsWithPrefix(prefix, {
@@ -294,7 +294,7 @@ export async function deleteObjectsWithPrefix(
       // If there were errors but some succeeded, log and return partial success
       if (batchResult.deletedCount > 0) {
         console.warn(
-          `Batch delete partially succeeded: ${batchResult.deletedCount} deleted, ${batchResult.errors.length} errors`
+          `Batch delete partially succeeded: ${batchResult.deletedCount} deleted, ${batchResult.errors.length} errors`,
         );
         batchResult.errors.forEach((error) => console.warn(error));
         return { deletedCount: batchResult.deletedCount };
@@ -312,13 +312,13 @@ export async function deleteObjectsWithPrefix(
           error.Code === "NotImplemented")
       ) {
         console.log(
-          `Batch delete not supported, falling back to individual deletes...`
+          `Batch delete not supported, falling back to individual deletes...`,
         );
         const individualResult = await deleteIndividualObjects(objectsToDelete);
 
         if (individualResult.errors.length > 0) {
           console.warn(
-            `Individual delete had ${individualResult.errors.length} errors:`
+            `Individual delete had ${individualResult.errors.length} errors:`,
           );
           individualResult.errors.forEach((error) => console.warn(error));
         }
@@ -342,7 +342,7 @@ export async function deleteObjectsWithPrefix(
 export async function uploadFile(
   filePath: string,
   roomId: string,
-  fileName: string
+  fileName: string,
 ): Promise<string> {
   const key = createKey(roomId, fileName);
 
@@ -371,7 +371,7 @@ export async function uploadBytes(
   bytes: Uint8Array | ArrayBuffer,
   roomId: string,
   fileName: string,
-  contentType: string = "audio/mpeg"
+  contentType: string = "audio/mpeg",
 ): Promise<string> {
   const key = createKey(roomId, fileName);
 
@@ -440,7 +440,7 @@ export async function downloadJSON<T = any>(key: string): Promise<T | null> {
  * Time 235959 > 000000
  */
 export async function getLatestFileWithPrefix(
-  prefix: string
+  prefix: string,
 ): Promise<string | null> {
   const objects = await listObjectsWithPrefix(prefix);
 
@@ -473,7 +473,7 @@ export async function deleteObject(key: string): Promise<void> {
  */
 export async function getSortedFilesWithPrefix(
   prefix: string,
-  extension?: string
+  extension?: string,
 ): Promise<string[]> {
   const objects = await listObjectsWithPrefix(prefix);
 
@@ -509,7 +509,7 @@ export interface OrphanCleanupResult {
  */
 export async function cleanupOrphanedRooms(
   activeRoomIds: Set<string>,
-  performDeletion: boolean = false
+  performDeletion: boolean = false,
 ): Promise<OrphanCleanupResult> {
   const result: OrphanCleanupResult = {
     orphanedRooms: [],
@@ -524,7 +524,7 @@ export async function cleanupOrphanedRooms(
     const r2Config = validateR2Config();
     if (!r2Config.isValid) {
       throw new Error(
-        `R2 configuration is invalid: ${r2Config.errors.join(", ")}`
+        `R2 configuration is invalid: ${r2Config.errors.join(", ")}`,
       );
     }
 
@@ -555,7 +555,7 @@ export async function cleanupOrphanedRooms(
 
     console.log(`  📁 Found ${roomsInR2.size} unique rooms in R2`);
     console.log(
-      `  🏃 Found ${activeRoomIds.size} active rooms in server memory`
+      `  🏃 Found ${activeRoomIds.size} active rooms in server memory`,
     );
 
     // Identify orphaned rooms
@@ -578,7 +578,7 @@ export async function cleanupOrphanedRooms(
     }
 
     console.log(
-      `  🗑️  Found ${orphanedRooms.length} orphaned rooms to clean up`
+      `  🗑️  Found ${orphanedRooms.length} orphaned rooms to clean up`,
     );
 
     // Calculate total files to be deleted
@@ -598,7 +598,7 @@ export async function cleanupOrphanedRooms(
         try {
           const deleteResult = await deleteObjectsWithPrefix(`room-${roomId}`);
           console.log(
-            `    ✅ Deleted room-${roomId}: ${deleteResult.deletedCount} files`
+            `    ✅ Deleted room-${roomId}: ${deleteResult.deletedCount} files`,
           );
           totalDeleted += deleteResult.deletedCount;
         } catch (error) {

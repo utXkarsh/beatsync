@@ -1,3 +1,9 @@
+//This Zustand store manages the global state of the application, including all the audio-related state. The key functions for spatial audio are:
+//◦    processSpatialConfig: This function receives the spatial configuration from the server (which includes the gain for the current client and the position of the listening source). It then uses the Web Audio API to smoothly ramp the gain of the gainNode to the new value. This creates the effect of the sound source moving in the virtual space.
+//◦    startSpatialAudio: This function sends a message to the server to start the spatial audio effect.
+//◦    sendStopSpatialAudio: This function sends a message to the server to stop the spatial audio effect.
+//◦    updateListeningSource: This function is called when the user drags the listening source on the UI. It sends the new position to the server.
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { getClientId } from "@/lib/clientId";
 import { extractFileNameFromUrl } from "@/lib/utils";
@@ -120,7 +126,10 @@ interface GlobalState extends GlobalStateValues {
   setSocket: (socket: WebSocket) => void;
   broadcastPlay: (trackTimeSeconds?: number) => void;
   broadcastPause: () => void;
-  startSpatialAudio: () => void;
+  startSpatialAudio: (
+    effectType?: "rotation" | "infinity" | "aisle_sweep",
+    speed?: number,
+  ) => void;
   sendStopSpatialAudio: () => void;
   setSpatialConfig: (config: SpatialConfigType) => void;
   updateListeningSource: (position: PositionType) => void;
@@ -152,13 +161,13 @@ interface GlobalState extends GlobalStateValues {
     maxAttempts: number;
   }) => void;
   setPlaybackControlsPermissions: (
-    permissions: PlaybackControlsPermissionsType
+    permissions: PlaybackControlsPermissionsType,
   ) => void;
 
   // Search methods
   setSearchResults: (
     results: SearchResponseType | null,
-    append?: boolean
+    append?: boolean,
   ) => void;
   setIsSearching: (isSearching: boolean) => void;
   setIsLoadingMoreResults: (isLoading: boolean) => void;
@@ -254,7 +263,7 @@ const getWaitTimeSeconds = (state: GlobalState, targetServerTime: number) => {
 
   const waitTimeMilliseconds = calculateWaitTimeMilliseconds(
     targetServerTime,
-    offsetEstimate
+    offsetEstimate,
   );
   return waitTimeMilliseconds / 1000;
 };
@@ -286,7 +295,7 @@ const initializationMutex = new Mutex();
 export const useCanMutate = () => {
   const currentUser = useGlobalStore((state) => state.currentUser);
   const playbackControlsPermissions = useGlobalStore(
-    (state) => state.playbackControlsPermissions
+    (state) => state.playbackControlsPermissions,
   );
 
   const isAdmin = currentUser?.isAdmin || false;
@@ -478,7 +487,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         const audioBuffer = state.audioCache.get(audioSource.url);
         if (!audioBuffer)
           throw new Error(
-            `Audio buffer not decoded for url: ${audioSource.url}`
+            `Audio buffer not decoded for url: ${audioSource.url}`,
           );
         newDuration = audioBuffer.duration;
       }
@@ -501,7 +510,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       const state = get();
       // Look through the audioSources for a matching ID
       const index = state.audioSources.findIndex(
-        (source) => source.url === url
+        (source) => source.url === url,
       );
       return index >= 0 ? index : null; // Return null if not found
     },
@@ -516,7 +525,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       const waitTimeSeconds = getWaitTimeSeconds(state, data.targetServerTime);
       console.log(
-        `Playing track ${data.audioSource} at ${data.trackTimeSeconds} seconds in ${waitTimeSeconds}`
+        `Playing track ${data.audioSource} at ${data.trackTimeSeconds} seconds in ${waitTimeSeconds}`,
       );
 
       // Update the selected audio ID
@@ -533,11 +542,11 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         }
 
         console.warn(
-          `Cannot play audio: No index found: ${data.audioSource} ${data.trackTimeSeconds}`
+          `Cannot play audio: No index found: ${data.audioSource} ${data.trackTimeSeconds}`,
         );
         toast.warning(
           `"${extractFileNameFromUrl(data.audioSource)}" not loaded yet...`,
-          { id: "schedulePlay" }
+          { id: "schedulePlay" },
         );
 
         // Resend the sync request in a couple seconds
@@ -611,14 +620,15 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       });
     },
 
-    startSpatialAudio: () => {
+    startSpatialAudio: (effectType = "rotation", speed = 1) => {
       const state = get();
       const { socket } = getSocket(state);
-
       sendWSRequest({
         ws: socket,
         request: {
           type: ClientActionEnum.enum.START_SPATIAL_AUDIO,
+          effectType,
+          speed,
         },
       });
     },
@@ -751,21 +761,21 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       const startTime = audioContext.currentTime + data.when;
       const audioIndex = data.audioIndex ?? 0;
       const audioBuffer = state.audioCache.get(
-        state.audioSources[audioIndex].url
+        state.audioSources[audioIndex].url,
       );
       if (!audioBuffer)
         throw new Error(
-          `Audio buffer not decoded for url: ${state.audioSources[audioIndex].url}`
+          `Audio buffer not decoded for url: ${state.audioSources[audioIndex].url}`,
         );
 
       // Validate offset is within track duration to prevent sync failures
       if (data.offset >= audioBuffer.duration) {
         console.error(
           `Sync offset ${data.offset.toFixed(
-            2
+            2,
           )}s is beyond track duration ${audioBuffer.duration.toFixed(
-            2
-          )}s. Aborting playback.`
+            2,
+          )}s. Aborting playback.`,
         );
         return;
       }
@@ -797,7 +807,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
           if (endedNaturally) {
             console.log(
-              "Track ended naturally, skipping to next via autoplay."
+              "Track ended naturally, skipping to next via autoplay.",
             );
             // Set currentTime to duration, as playback fully completed
             // We don't set isPlaying false here, let skipToNextTrack handle state transition
@@ -805,7 +815,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
             currentState.skipToNextTrack(true); // Trigger autoplay skip
           } else {
             console.log(
-              "onended fired but not deemed a natural end (likely manual stop/skip). State should be handled elsewhere."
+              "onended fired but not deemed a natural end (likely manual stop/skip). State should be handled elsewhere.",
             );
             // If stopped manually (pauseAudio) or skipped (setSelectedAudioId),
             // those functions are responsible for setting isPlaying = false and currentTime.
@@ -813,7 +823,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
           }
         } else {
           console.log(
-            "onended fired but player was already stopped/paused or source node changed."
+            "onended fired but player was already stopped/paused or source node changed.",
           );
         }
       };
@@ -825,7 +835,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         "with delay:",
         data.when,
         "audio index:",
-        audioIndex
+        audioIndex,
       );
 
       // Update state with the new source node and tracking info
@@ -889,7 +899,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         "Stopping at:",
         data.when,
         "Current track position:",
-        currentTrackPosition
+        currentTrackPosition,
       );
 
       set((state) => ({
@@ -910,12 +920,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
     setConnectedClients: (clients) => {
       const clientId = getClientId();
       const currentUser = clients.find(
-        (client) => client.clientId === clientId
+        (client) => client.clientId === clientId,
       );
 
       if (!currentUser) {
         throw new Error(
-          `Current user not found in connected clients: ${clientId}`
+          `Current user not found in connected clients: ${clientId}`,
         );
       }
 
@@ -955,12 +965,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // start playing the next track from the beginning.
       if (wasPlayingBeforeSkip || isAutoplay) {
         console.log(
-          `Skip to next: ${nextAudioId}. Was playing: ${wasPlayingBeforeSkip}, Is autoplay: ${isAutoplay}. Broadcasting play.`
+          `Skip to next: ${nextAudioId}. Was playing: ${wasPlayingBeforeSkip}, Is autoplay: ${isAutoplay}. Broadcasting play.`,
         );
         state.broadcastPlay(0); // Play next track from start
       } else {
         console.log(
-          `Skip to next: ${nextAudioId}. Was playing: ${wasPlayingBeforeSkip}, Is autoplay: ${isAutoplay}. Not broadcasting play.`
+          `Skip to next: ${nextAudioId}. Was playing: ${wasPlayingBeforeSkip}, Is autoplay: ${isAutoplay}. Not broadcasting play.`,
         );
       }
     },
@@ -989,12 +999,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // If the track was playing before the manual skip, start playing the previous track.
       if (wasPlayingBeforeSkip) {
         console.log(
-          `Skip to previous: ${prevAudioId}. Was playing: ${wasPlayingBeforeSkip}. Broadcasting play.`
+          `Skip to previous: ${prevAudioId}. Was playing: ${wasPlayingBeforeSkip}. Broadcasting play.`,
         );
         state.broadcastPlay(0); // Play previous track from start
       } else {
         console.log(
-          `Skip to previous: ${prevAudioId}. Was playing: ${wasPlayingBeforeSkip}. Not broadcasting play.`
+          `Skip to previous: ${prevAudioId}. Was playing: ${wasPlayingBeforeSkip}. Not broadcasting play.`,
         );
       }
     },
@@ -1030,7 +1040,7 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
 
       // Find only new sources that have not already been loaded and then load them with loadAudioSourceUrl
       const newSources = sources.filter(
-        (source) => !state.audioCache.has(source.url)
+        (source) => !state.audioCache.has(source.url),
       );
 
       console.log("newSources", newSources);
